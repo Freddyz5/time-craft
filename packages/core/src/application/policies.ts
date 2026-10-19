@@ -75,3 +75,16 @@ export async function setPolicy(
 		return policy;
 	});
 }
+
+// The child's limits in force: the global policy and/or one per activity.
+// The child sees their own.
+export async function listCurrentPolicies(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { childId: string },
+): Promise<QuotaPolicy[]> {
+	return transaction(deps, async (tx) => {
+		const child = await loadChild(tx, actor, input.childId, "see the limits");
+		return tx.repos.policies.listCurrent(child.id);
+	});
+}

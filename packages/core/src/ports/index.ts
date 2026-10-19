@@ -44,6 +44,18 @@ export interface Notifier {
 	send(authUserIds: readonly string[], message: PushMessage): Promise<void>;
 }
 
+// A device where someone is signed in (an auth_session row), as parents see
+// it. Never includes the session token.
+export interface LoginSession {
+	id: string;
+	createdAt: Date;
+	// Last time the session was refreshed by use.
+	updatedAt: Date;
+	expiresAt: Date;
+	ipAddress: string | null;
+	userAgent: string | null;
+}
+
 export type CreateChildUserResult =
 	| { ok: true; authUserId: string }
 	| { ok: false; reason: "username_taken" };
@@ -62,6 +74,11 @@ export interface IdentityService {
 	// Sets the password (parent) or PIN (child) of a credential account.
 	setPassword(authUserId: string, password: string): Promise<void>;
 	findUserIdByEmail(email: string): Promise<string | null>;
+	// Login sessions of the user that have not expired, newest first.
+	listSessions(authUserId: string): Promise<LoginSession[]>;
+	// Signs the user out of every device, or only of `sessionId`. Returns how
+	// many sessions it closed.
+	revokeSessions(authUserId: string, sessionId?: string): Promise<number>;
 }
 
 // The family's single-use recovery code.

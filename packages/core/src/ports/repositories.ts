@@ -33,6 +33,8 @@ export interface ParentRepository {
 export interface ChildRepository {
 	findById(id: string): Promise<Child | null>;
 	findByAuthUserId(authUserId: string): Promise<Child | null>;
+	// Oldest first.
+	listByFamily(familyId: string): Promise<Child[]>;
 	insert(child: Child): Promise<void>;
 	// Writes name, avatar, failed_pin_attempts and locked_until.
 	update(child: Child): Promise<void>;
@@ -40,6 +42,8 @@ export interface ChildRepository {
 
 export interface ActivityRepository {
 	findById(id: string): Promise<Activity | null>;
+	// Active and inactive, by name.
+	listByFamily(familyId: string): Promise<Activity[]>;
 }
 
 export interface QuotaPolicyRepository {
@@ -60,6 +64,11 @@ export interface ChildRequestRepository {
 	findPendingByChild(childId: string): Promise<ChildRequest | null>;
 	// Pending requests of every child in the family, oldest first.
 	listPendingByFamily(familyId: string): Promise<ChildRequest[]>;
+	// Requests of the child created in the period, any status, newest first.
+	listByChildCreatedIn(
+		childId: string,
+		period: Period,
+	): Promise<ChildRequest[]>;
 	insert(request: ChildRequest): Promise<void>;
 	// Writes status, approved_minutes, response_note, resolved_by_parent_id and
 	// resolved_at only if the stored status is still 'pending'.
@@ -68,6 +77,11 @@ export interface ChildRequestRepository {
 
 export interface QuotaOverrideRepository {
 	findById(id: string): Promise<QuotaOverride | null>;
+	// Overrides granted to the child in the period, newest first.
+	listByChildCreatedIn(
+		childId: string,
+		period: Period,
+	): Promise<QuotaOverride[]>;
 	insert(override: QuotaOverride): Promise<void>;
 }
 
@@ -80,6 +94,9 @@ export interface SessionRepository {
 	// started_at < period.end AND (ended_at IS NULL OR ended_at > period.start).
 	// A superset of what any imputation strategy may need.
 	listStartedOverlapping(childId: string, period: Period): Promise<Session[]>;
+	// Sessions whose start falls in the period: started_at, or
+	// scheduled_start_at if it never started. Newest first.
+	listByChildStartingIn(childId: string, period: Period): Promise<Session[]>;
 	insert(session: Session): Promise<void>;
 	// Writes the session row and upserts its pauses (by id), only if the stored
 	// status is still `expected`.
@@ -99,6 +116,8 @@ export interface SessionAlertRepository {
 
 export interface BonusTaskRepository {
 	findById(id: string): Promise<BonusTask | null>;
+	// Active and inactive, oldest first.
+	listByFamily(familyId: string): Promise<BonusTask[]>;
 	insert(task: BonusTask): Promise<void>;
 	// Writes name, description, reward_minutes, max_per_week and is_active.
 	update(task: BonusTask): Promise<void>;
@@ -107,6 +126,12 @@ export interface BonusTaskRepository {
 export interface TaskReportRepository {
 	findById(id: string): Promise<TaskReport | null>;
 	findPending(childId: string, bonusTaskId: string): Promise<TaskReport | null>;
+	// Pending reports of every child in the family, oldest first.
+	listPendingByFamily(familyId: string): Promise<TaskReport[]>;
+	// Pending reports of the child, oldest first.
+	listPendingByChild(childId: string): Promise<TaskReport[]>;
+	// Reports of the child with reported_at in the period, newest first.
+	listByChildReportedIn(childId: string, period: Period): Promise<TaskReport[]>;
 	// Reports of the task by the child with reported_at in the period.
 	listByTaskReportedIn(
 		childId: string,

@@ -7,6 +7,7 @@ import type {
 	IdentityService,
 	IdGenerator,
 	JobScheduler,
+	LoginSession,
 	Notifier,
 	RecoveryCodeService,
 	ScheduledJob,
@@ -110,12 +111,31 @@ export interface FakeUser {
 	password: string | null;
 }
 
+export interface FakeLogin extends LoginSession {
+	authUserId: string;
+}
+
 export class FakeIdentityService implements IdentityService {
 	readonly users = new Map<string, FakeUser>();
+	// Login sessions; the fake treats them all as not expired.
+	logins: FakeLogin[] = [];
 	private count = 0;
 
 	addUser(user: Omit<FakeUser, "password"> & { password?: string }): void {
 		this.users.set(user.id, { ...user, password: user.password ?? null });
+	}
+
+	addLogin(authUserId: string, id: string, createdAt: Date | string): void {
+		const at = new Date(createdAt);
+		this.logins.push({
+			id,
+			authUserId,
+			createdAt: at,
+			updatedAt: at,
+			expiresAt: new Date(at.getTime() + 7 * 24 * 60 * 60_000),
+			ipAddress: "203.0.113.7",
+			userAgent: "Mozilla/5.0",
+		});
 	}
 
 	async createChildUser(input: {
@@ -156,6 +176,26 @@ export class FakeIdentityService implements IdentityService {
 		return (
 			[...this.users.values()].find((user) => user.email === email)?.id ?? null
 		);
+	}
+
+	async listSessions(authUserId: string): Promise<LoginSession[]> {
+		return this.logins
+			.filter((login) => login.authUserId === authUserId)
+			.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+			.map(({ authUserId: _, ...login }) => ({ ...login }));
+	}
+
+	async revokeSessions(
+		authUserId: string,
+		sessionId?: string,
+	): Promise<number> {
+		const revoked = this.logins.filter(
+			(login) =>
+				login.authUserId === authUserId &&
+				(sessionId === undefined || login.id === sessionId),
+		);
+		this.logins = this.logins.filter((login) => !revoked.includes(login));
+		return revoked.length;
 	}
 
 	passwordOf(authUserId: string): string | null {

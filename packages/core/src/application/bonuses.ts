@@ -57,6 +57,33 @@ function validateTaskFields(fields: BonusTaskFields) {
 	};
 }
 
+// The family's catalog. The child only sees the active tasks, the ones they
+// can report.
+export async function listBonusTasks(
+	deps: CoreDeps,
+	actor: Actor,
+): Promise<BonusTask[]> {
+	return transaction(deps, async (tx) => {
+		const tasks = await tx.repos.bonusTasks.listByFamily(actor.familyId);
+		return actor.kind === "parent"
+			? tasks
+			: tasks.filter((task) => task.isActive);
+	});
+}
+
+// Reports waiting for review: the family's for a parent, their own for the
+// child. Oldest first.
+export async function listPendingTaskReports(
+	deps: CoreDeps,
+	actor: Actor,
+): Promise<TaskReport[]> {
+	return transaction(deps, (tx) =>
+		actor.kind === "parent"
+			? tx.repos.taskReports.listPendingByFamily(actor.familyId)
+			: tx.repos.taskReports.listPendingByChild(actor.childId),
+	);
+}
+
 export async function createBonusTask(
 	deps: CoreDeps,
 	actor: Actor,

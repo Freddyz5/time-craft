@@ -60,6 +60,25 @@ function before(a: Date, b: Date): boolean {
 	return a.getTime() < b.getTime();
 }
 
+function within(at: Date, period: Period): boolean {
+	return !before(at, period.start) && before(at, period.end);
+}
+
+const oldestFirst =
+	<T>(at: (row: T) => Date) =>
+	(a: T, b: T) =>
+		at(a).getTime() - at(b).getTime();
+
+const newestFirst =
+	<T>(at: (row: T) => Date) =>
+	(a: T, b: T) =>
+		at(b).getTime() - at(a).getTime();
+
+// Where a session starts: started_at, or scheduled_start_at if it never did.
+function sessionStart(session: Session): Date {
+	return session.startedAt ?? session.scheduledStartAt ?? session.createdAt;
+}
+
 export class InMemoryDatabase implements UnitOfWork {
 	tables: Tables = emptyTables();
 	readonly repos: Repositories;
@@ -179,6 +198,11 @@ function createRepositories(t: () => Tables): Repositories {
 					values("children").find((child) => child.authUserId === authUserId) ??
 						null,
 				),
+			listByFamily: async (familyId) =>
+				values("children")
+					.filter((child) => child.familyId === familyId)
+					.sort(oldestFirst((child) => child.createdAt))
+					.map(copy),
 			insert: async (child) => {
 				if (
 					values("children").some(
@@ -196,6 +220,11 @@ function createRepositories(t: () => Tables): Repositories {
 
 		activities: {
 			findById: async (id) => find(t().activities, id),
+			listByFamily: async (familyId) =>
+				values("activities")
+					.filter((activity) => activity.familyId === familyId)
+					.sort((a, b) => a.name.localeCompare(b.name))
+					.map(copy),
 		},
 
 		policies: {
@@ -248,7 +277,15 @@ function createRepositories(t: () => Tables): Repositories {
 							request.status === "pending" &&
 							t().children.get(request.childId)?.familyId === familyId,
 					)
-					.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+					.sort(oldestFirst((request) => request.createdAt))
+					.map(copy),
+			listByChildCreatedIn: async (childId, period) =>
+				values("requests")
+					.filter(
+						(request) =>
+							request.childId === childId && within(request.createdAt, period),
+					)
+					.sort(newestFirst((request) => request.createdAt))
 					.map(copy),
 			insert: async (request) => {
 				assertOnePendingRequest(request);
@@ -273,6 +310,15 @@ function createRepositories(t: () => Tables): Repositories {
 
 		overrides: {
 			findById: async (id) => find(t().overrides, id),
+			listByChildCreatedIn: async (childId, period) =>
+				values("overrides")
+					.filter(
+						(override) =>
+							override.childId === childId &&
+							within(override.createdAt, period),
+					)
+					.sort(newestFirst((override) => override.createdAt))
+					.map(copy),
 			insert: async (override) => {
 				if (
 					override.requestId !== null &&
@@ -304,6 +350,15 @@ function createRepositories(t: () => Tables): Repositories {
 							(session.endedAt === null ||
 								before(period.start, session.endedAt)),
 					)
+					.map(copy),
+			listByChildStartingIn: async (childId, period) =>
+				values("sessions")
+					.filter(
+						(session) =>
+							session.childId === childId &&
+							within(sessionStart(session), period),
+					)
+					.sort(newestFirst(sessionStart))
 					.map(copy),
 			insert: async (session) => {
 				assertOneOpenSession(session);
@@ -362,6 +417,11 @@ function createRepositories(t: () => Tables): Repositories {
 
 		bonusTasks: {
 			findById: async (id) => find(t().bonusTasks, id),
+			listByFamily: async (familyId) =>
+				values("bonusTasks")
+					.filter((task) => task.familyId === familyId)
+					.sort(oldestFirst((task) => task.createdAt))
+					.map(copy),
 			insert: async (task) => {
 				t().bonusTasks.set(task.id, copy(task));
 			},
@@ -381,14 +441,38 @@ function createRepositories(t: () => Tables): Repositories {
 							report.status === "pending",
 					) ?? null,
 				),
+			listPendingByFamily: async (familyId) =>
+				values("taskReports")
+					.filter(
+						(report) =>
+							report.status === "pending" &&
+							t().children.get(report.childId)?.familyId === familyId,
+					)
+					.sort(oldestFirst((report) => report.reportedAt))
+					.map(copy),
+			listPendingByChild: async (childId) =>
+				values("taskReports")
+					.filter(
+						(report) =>
+							report.childId === childId && report.status === "pending",
+					)
+					.sort(oldestFirst((report) => report.reportedAt))
+					.map(copy),
+			listByChildReportedIn: async (childId, period) =>
+				values("taskReports")
+					.filter(
+						(report) =>
+							report.childId === childId && within(report.reportedAt, period),
+					)
+					.sort(newestFirst((report) => report.reportedAt))
+					.map(copy),
 			listByTaskReportedIn: async (childId, bonusTaskId, period) =>
 				values("taskReports")
 					.filter(
 						(report) =>
 							report.childId === childId &&
 							report.bonusTaskId === bonusTaskId &&
-							!before(report.reportedAt, period.start) &&
-							before(report.reportedAt, period.end),
+							within(report.reportedAt, period),
 					)
 					.map(copy),
 			listApprovedReviewedIn: async (childId, period) =>
@@ -398,8 +482,7 @@ function createRepositories(t: () => Tables): Repositories {
 							report.childId === childId &&
 							report.status === "approved" &&
 							report.reviewedAt !== null &&
-							!before(report.reviewedAt, period.start) &&
-							before(report.reviewedAt, period.end),
+							within(report.reviewedAt, period),
 					)
 					.map(copy),
 			insert: async (report) => {

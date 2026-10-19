@@ -1,7 +1,11 @@
 // Login secrets and names. Better Auth stores them; core only decides what is
 // acceptable. The PIN floor (6 digits) is Better Auth's minPasswordLength;
 // parents get a stricter rule on top.
+// The child's lockout also lives here: Better Auth's rate limit is per IP, so
+// wrong PINs are counted per child too (children.failed_pin_attempts).
 import { invalidInput } from "../errors";
+import type { Child } from "./family";
+import { addMinutes } from "./values";
 
 export const PIN_MIN_DIGITS = 6;
 export const PIN_MAX_DIGITS = 12;
@@ -52,4 +56,33 @@ export function validateParentPassword(password: string): string {
 
 export function normalizeEmail(value: string): string {
 	return value.trim().toLowerCase();
+}
+
+// Wrong PINs in a row that lock the child out, and for how long.
+export const MAX_FAILED_PIN_ATTEMPTS = 5;
+export const PIN_LOCKOUT_MINUTES = 15;
+
+export function isLockedOut(child: Child, now: Date): boolean {
+	return (
+		child.lockedUntil !== null && child.lockedUntil.getTime() > now.getTime()
+	);
+}
+
+// One more wrong PIN. The last allowed one locks the child out and starts the
+// count again, so after the lockout they get the same number of tries.
+export function recordFailedPin(child: Child, now: Date): Child {
+	const attempts = child.failedPinAttempts + 1;
+	if (attempts >= MAX_FAILED_PIN_ATTEMPTS) {
+		return {
+			...child,
+			failedPinAttempts: 0,
+			lockedUntil: addMinutes(now, PIN_LOCKOUT_MINUTES),
+		};
+	}
+	return { ...child, failedPinAttempts: attempts };
+}
+
+// A right PIN clears the count and any lockout that already ended.
+export function recordSuccessfulPin(child: Child): Child {
+	return { ...child, failedPinAttempts: 0, lockedUntil: null };
 }

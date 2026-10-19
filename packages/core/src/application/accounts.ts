@@ -1,17 +1,21 @@
-// Accounts: who an auth_user is, the child's login, password and PIN resets
-// within the family, and the family's recovery code.
+// Accounts: who an auth_user is, the child's login (lockout and devices),
+// password and PIN resets within the family, and the family's recovery code.
 import type { Actor } from "../domain/actor";
 import { requireParent } from "../domain/actor";
 import {
+	isLockedOut,
 	normalizeEmail,
 	normalizeUsername,
+	recordFailedPin,
+	recordSuccessfulPin,
 	validateParentPassword,
 	validatePin,
 } from "../domain/credentials";
 import type { Child } from "../domain/family";
 import { optionalText, requiredText } from "../domain/values";
-import { DomainError } from "../errors";
-import { loadFamily } from "./access";
+import { DomainError, forbidden } from "../errors";
+import type { LoginSession } from "../ports";
+import { loadChild, loadFamily } from "./access";
 import { type CoreDeps, transaction } from "./context";
 
 // Parent or child is decided by the domain table that references the
@@ -36,6 +40,97 @@ export async function resolveActor(
 		}
 		return null;
 	});
+}
+
+function childLocked(child: Child): DomainError {
+	return new DomainError("child_locked", "Too many wrong PINs", {
+		lockedUntil: child.lockedUntil?.toISOString() ?? null,
+	});
+}
+
+// Before checking a username + PIN sign-in (Better Auth hook): fails with
+// child_locked while the child is locked out. Users that are not children
+// pass through.
+export async function assertChildCanSignIn(
+	deps: CoreDeps,
+	input: { authUserId: string },
+): Promise<void> {
+	return transaction(deps, async (tx) => {
+		const child = await tx.repos.children.findByAuthUserId(input.authUserId);
+		if (child !== null && isLockedOut(child, tx.now)) {
+			throw childLocked(child);
+		}
+	});
+}
+
+// After a username + PIN sign-in (Better Auth hook): counts a wrong PIN, and
+// locks the child out after too many; a right one clears the count. Returns
+// when the lockout ends, if this attempt started one.
+export async function recordChildSignIn(
+	deps: CoreDeps,
+	input: { authUserId: string; succeeded: boolean },
+): Promise<{ lockedUntil: Date | null }> {
+	return transaction(deps, async (tx) => {
+		const child = await tx.repos.children.findByAuthUserId(input.authUserId);
+		if (child === null) {
+			return { lockedUntil: null };
+		}
+		const updated = input.succeeded
+			? recordSuccessfulPin(child)
+			: recordFailedPin(child, tx.now);
+		await tx.repos.children.update(updated);
+		const startedLockout =
+			updated.lockedUntil !== null &&
+			updated.lockedUntil.getTime() !== child.lockedUntil?.getTime();
+		return { lockedUntil: startedLockout ? updated.lockedUntil : null };
+	});
+}
+
+// Before someone changes their own password with the current one (Better
+// Auth's /change-password hook). Parents get the stricter rule; the child's
+// PIN is set by a parent, so the child cannot change it.
+export async function assertCanChangeOwnPassword(
+	deps: CoreDeps,
+	input: { authUserId: string; newPassword: string },
+): Promise<void> {
+	const actor = await resolveActor(deps, { authUserId: input.authUserId });
+	if (actor?.kind !== "parent") {
+		throw forbidden("change this password");
+	}
+	validateParentPassword(input.newPassword);
+}
+
+// The devices where the child is signed in, so a parent can close them.
+export async function listChildLogins(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { childId: string },
+): Promise<LoginSession[]> {
+	requireParent(actor, "see the child's devices");
+	const child = await transaction(deps, (tx) =>
+		loadChild(tx, actor, input.childId, "see the child's devices"),
+	);
+	return deps.identity.listSessions(child.authUserId);
+}
+
+// A parent signs the child out of every device, or of one (`loginId`).
+export async function revokeChildLogins(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { childId: string; loginId?: string },
+): Promise<{ revoked: number }> {
+	requireParent(actor, "sign the child out");
+	const child = await transaction(deps, (tx) =>
+		loadChild(tx, actor, input.childId, "sign the child out"),
+	);
+	const revoked = await deps.identity.revokeSessions(
+		child.authUserId,
+		input.loginId,
+	);
+	if (input.loginId !== undefined && revoked === 0) {
+		throw new DomainError("login_not_found", "Login session not found");
+	}
+	return { revoked };
 }
 
 export interface CreateChildAccountInput {

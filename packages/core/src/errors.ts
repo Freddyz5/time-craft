@@ -19,6 +19,7 @@ export const errorKinds = {
 
 	forbidden: "forbidden",
 	cannot_reset_own_password: "forbidden",
+	child_locked: "forbidden",
 
 	family_not_found: "not_found",
 	parent_not_found: "not_found",
@@ -28,6 +29,7 @@ export const errorKinds = {
 	session_not_found: "not_found",
 	bonus_task_not_found: "not_found",
 	task_report_not_found: "not_found",
+	login_not_found: "not_found",
 
 	request_already_pending: "conflict",
 	request_already_resolved: "conflict",
