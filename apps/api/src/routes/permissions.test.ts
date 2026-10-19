@@ -32,6 +32,7 @@ describe("the child", () => {
 				`/api/children/${childId}/policies`,
 				{ dailyLimitMinutes: 600, weeklyLimitMinutes: 1000 },
 			],
+			["DELETE", `/api/children/${childId}/policies/${t.ids.tvId}`],
 			["POST", "/api/bonus-tasks", { name: "Nada", rewardMinutes: 60 }],
 			["POST", "/api/children", { name: "Yo", username: "yo2", pin: "123456" }],
 			["PUT", `/api/children/${childId}/pin`, { pin: "111111" }],

@@ -32,6 +32,8 @@ describe("limits", () => {
 			{ activityId: null, dailyLimitMinutes: 60, weeklyLimitMinutes: 300 },
 		]);
 
+		// Later than the seeded policy, so the history order is certain.
+		t.clock.advanceMinutes(1);
 		const created = await body<{ policy: object }>(
 			await t.request("POST", path, {
 				cookie: parent,
@@ -53,6 +55,40 @@ describe("limits", () => {
 			200,
 		);
 		expect(current.policies).toMatchObject([{ dailyLimitMinutes: 90 }]);
+		const history = await body<{ policies: object[] }>(
+			await t.request("GET", `${path}/history`, { cookie: child }),
+			200,
+		);
+		expect(history.policies).toMatchObject([
+			{ dailyLimitMinutes: 90, validTo: null },
+			{ dailyLimitMinutes: 60, validTo: expect.any(String) },
+		]);
+
+		// A limit of its own for TV, then back to the global quota.
+		await body<object>(
+			await t.request("POST", path, {
+				cookie: parent,
+				json: {
+					activityId: t.ids.tvId,
+					dailyLimitMinutes: 30,
+					weeklyLimitMinutes: 120,
+				},
+			}),
+			201,
+		);
+		const cleared = await body<{ policy: object | null }>(
+			await t.request("DELETE", `${path}/${t.ids.tvId}`, { cookie: parent }),
+			200,
+		);
+		expect(cleared.policy).toMatchObject({
+			activityId: t.ids.tvId,
+			validTo: expect.any(String),
+		});
+		const afterClear = await body<{ policies: object[] }>(
+			await t.request("GET", path, { cookie: parent }),
+			200,
+		);
+		expect(afterClear.policies).toMatchObject([{ activityId: null }]);
 
 		const invalid = await t.request("POST", path, {
 			cookie: parent,
