@@ -25,7 +25,7 @@ related_targets: ["src/pages/login.astro","src/pages/recuperar.astro"]
 
 THESIS: El tiempo de pantalla se arma y se gasta en ladrillos, como en un manual de armado: cada ladrillo son 10 minutos, los flujos son pasos numerados y todo se entiende casi sin leer. Rechaza el panel de control parental de la categoría: anillos de progreso, escudos y tarjetas grises con un acento azul.
 
-OWN-WORLD: Fondo azul pálido de manual, recuadros blancos de borde fino gris azulado y esquinas de 12 px, tinta casi negra. Ladrillos de frente con sus pernos, cada color con un trabajo: verde Juego, azul TV, amarillo bonos, naranja pausa, rojo fin, exceso y acciones que cortan. Un ladrillo disponible es un contorno punteado. Rubik autohospedada en todo, cifras tabulares, números de paso en 800. Iconos Lucide de trazo 2.
+OWN-WORLD: Fondo azul pálido de manual, recuadros blancos de borde fino gris azulado y esquinas de 12 px, tinta casi negra. Ladrillos de frente con sus pernos: sólido es tiempo disponible y contorno punteado es tiempo ya usado. Cada color tiene un trabajo: verde el saldo, amarillo los bonos, azul Juego, magenta TV, naranja la pausa, rojo el fin, el exceso y las acciones que cortan. Rubik autohospedada en todo, cifras tabulares, números de paso en 800. Iconos Lucide de trazo 2.
 
 STORY: El padre abre la app y ve si hay algo que responder, qué está corriendo y cuántos ladrillos le quedan al niño hoy y en la semana. Pausa, detiene o aprueba con un toque, y confía en que el otro padre ve lo mismo.
 
@@ -35,7 +35,7 @@ FORM: Manual de armado de ladrillos, dirección fijada por el usuario en la segu
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
-Signature interaction: «colocar el ladrillo». Cada 10 minutos consumidos, un ladrillo pasa de contorno a sólido con una caída corta (180 ms, ease-out). Al aprobar un bono, sus ladrillos amarillos se encajan en la semana. Con reduced motion, el cambio es instantáneo.
+Signature interaction: «soltar el ladrillo». Cada 10 minutos consumidos, el ladrillo en uso se desprende: pasa de sólido a contorno con un salto corto hacia arriba (180 ms, ease-out). El ladrillo en curso se va vaciando de a poco. Al aprobar un bono, sus ladrillos amarillos se encajan en la semana. Con reduced motion, el cambio es instantáneo.
 
 ## Briefs por pantalla (shape)
 

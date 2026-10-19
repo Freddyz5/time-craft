@@ -1,0 +1,19 @@
+---
+import LoadingFrame from "../../components/LoadingFrame.astro";
+// The parents' island. One static HTML file per screen of its router, so a
+// reload or a notification link opens the right one.
+import Base from "../../layouts/Base.astro";
+import ParentsApp from "../../parents/ParentsApp";
+
+export function getStaticPaths() {
+	return [undefined, "sesion", "historial", "reglas", "bonos", "cuentas"].map(
+		(path) => ({ params: { path } }),
+	);
+}
+---
+
+<Base title="Time Craft · Padres">
+	<ParentsApp client:only="react">
+		<LoadingFrame slot="fallback" />
+	</ParentsApp>
+</Base>

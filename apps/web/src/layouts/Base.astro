@@ -1,0 +1,30 @@
+---
+// The document shell every page shares: language, viewport, theme colour
+// and the global styles.
+import "../styles/global.css";
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const {
+	title,
+	description = "El tiempo de pantalla de la familia, en ladrillos.",
+} = Astro.props;
+---
+
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="description" content={description} />
+		<meta name="theme-color" content="#ffffff" />
+		<meta name="color-scheme" content="light" />
+		<link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+		<title>{title}</title>
+	</head>
+	<body class="bg-page text-ink">
+		<slot />
+	</body>
+</html>
