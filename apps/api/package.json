@@ -7,7 +7,8 @@
 		"dev": "bun --watch --port=3000 src/index.ts",
 		"build": "bun scripts/build.ts",
 		"lint": "biome check .",
-		"typecheck": "tsc --noEmit && tsc --noEmit -p scripts"
+		"typecheck": "tsc --noEmit && tsc --noEmit -p scripts",
+		"test": "bun test"
 	},
 	"dependencies": {
 		"@hono/zod-validator": "^0.9.1",
