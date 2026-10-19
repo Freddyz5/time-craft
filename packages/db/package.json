@@ -8,7 +8,19 @@
 	},
 	"scripts": {
 		"lint": "biome check .",
+		"typecheck": "tsc --noEmit",
 		"db:generate": "echo 'db:generate is a no-op until Phase 2'",
 		"db:migrate": "echo 'db:migrate is a no-op until Phase 2'"
+	},
+	"dependencies": {
+		"@neondatabase/serverless": "^1.2.0",
+		"drizzle-orm": "^0.45.4"
+	},
+	"devDependencies": {
+		"@electric-sql/pglite": "^0.5.10",
+		"@time-craft/tsconfig": "workspace:*",
+		"@types/bun": "1.4.3",
+		"drizzle-kit": "^0.31.11",
+		"typescript": "^6.0.3"
 	}
 }

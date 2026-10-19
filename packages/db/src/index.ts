@@ -1,2 +1,2 @@
-// Drizzle schema, migrations, client and seed arrive in Phase 2.
-export {};
+export * from "./client";
+export * from "./schema";
