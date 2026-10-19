@@ -4,6 +4,15 @@
 import type { Actor } from "../domain/actor";
 import { getChildBalance } from "./balance";
 import type { CoreDeps } from "./context";
+import { grantOverride } from "./overrides";
+import { setPolicy } from "./policies";
+import {
+	approveRequest,
+	cancelRequest,
+	createRequest,
+	listPendingRequests,
+	rejectRequest,
+} from "./requests";
 import {
 	advanceScheduledSession,
 	cancelScheduledSession,
@@ -16,6 +25,9 @@ import {
 
 export * from "./balance";
 export type { CoreDeps, Tx } from "./context";
+export * from "./overrides";
+export * from "./policies";
+export * from "./requests";
 export * from "./sessions";
 
 type ActorUseCase<I, O> = (
@@ -33,6 +45,12 @@ export function createCore(deps: CoreDeps) {
 		// Balance and timer
 		getChildBalance: bind(deps, getChildBalance),
 		getLiveSession: bind(deps, getLiveSession),
+		// Requests
+		createRequest: bind(deps, createRequest),
+		listPendingRequests: (actor: Actor) => listPendingRequests(deps, actor),
+		cancelRequest: bind(deps, cancelRequest),
+		approveRequest: bind(deps, approveRequest),
+		rejectRequest: bind(deps, rejectRequest),
 		// Sessions
 		startDirectSession: bind(deps, startDirectSession),
 		advanceScheduledSession: bind(deps, advanceScheduledSession),
@@ -40,6 +58,9 @@ export function createCore(deps: CoreDeps) {
 		pauseSession: bind(deps, pauseSession),
 		resumeSession: bind(deps, resumeSession),
 		stopSession: bind(deps, stopSession),
+		// Overrides and limits
+		grantOverride: bind(deps, grantOverride),
+		setPolicy: bind(deps, setPolicy),
 	};
 }
 

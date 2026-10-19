@@ -332,3 +332,54 @@ describe("getLiveSession", () => {
 		).rejects.toMatchObject({ code: "forbidden" });
 	});
 });
+
+describe("grantOverride", () => {
+	test("only once the quota is used up", async () => {
+		await expect(
+			kit.core.grantOverride(h.mom, {
+				childId: h.childId,
+				activityId: h.gameId,
+				extraMinutes: 15,
+				reason: "cumpleaños",
+			}),
+		).rejects.toMatchObject({ code: "quota_not_exhausted" });
+	});
+
+	test("creates the override and a new session that uses it", async () => {
+		kit.db.set("sessions", {
+			...finishedSession("2026-10-21T10:00:00-05:00", 60),
+			childId: h.childId,
+		});
+		const { override, session } = await kit.core.grantOverride(h.dad, {
+			childId: h.childId,
+			activityId: h.tvId,
+			extraMinutes: 15,
+			reason: "cumpleaños",
+		});
+		expect(override).toMatchObject({
+			requestId: null,
+			extraMinutes: 15,
+			grantedByParentId: h.dad.parentId,
+		});
+		expect(session).toMatchObject({
+			status: "running",
+			overrideId: override.id,
+			plannedDurationSeconds: 15 * 60,
+		});
+	});
+
+	test("the reason is required and only a parent grants", async () => {
+		const input = {
+			childId: h.childId,
+			activityId: h.gameId,
+			extraMinutes: 15,
+			reason: " ",
+		};
+		await expect(kit.core.grantOverride(h.mom, input)).rejects.toMatchObject({
+			code: "invalid_input",
+		});
+		await expect(
+			kit.core.grantOverride(h.child, { ...input, reason: "porfa" }),
+		).rejects.toMatchObject({ code: "forbidden" });
+	});
+});
