@@ -36,7 +36,12 @@
 		},
 		"db:seed": {
 			"cache": false,
-			"passThroughEnv": ["DATABASE_URL_UNPOOLED", "SEED_*"]
+			"passThroughEnv": [
+				"DATABASE_URL_UNPOOLED",
+				"BETTER_AUTH_SECRET",
+				"BETTER_AUTH_URL",
+				"SEED_*"
+			]
 		}
 	}
 }
