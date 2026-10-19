@@ -432,6 +432,7 @@ CREATE TABLE push_subscriptions (
 -- ---------------------------------------------------------------------
 CREATE INDEX idx_auth_session_user ON auth_session (user_id);
 CREATE INDEX idx_auth_account_user ON auth_account (user_id);
+CREATE INDEX idx_auth_verification_identifier ON auth_verification (identifier);
 CREATE INDEX idx_parents_family ON parents (family_id);
 CREATE INDEX idx_children_family ON children (family_id);
 CREATE INDEX idx_sessions_child_started ON sessions (child_id, started_at);
