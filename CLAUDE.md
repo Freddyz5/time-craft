@@ -19,7 +19,7 @@ apps/
   web/        Astro (salida estática) + islas React + Tailwind
 packages/
   core/       dominio, casos de uso y puertos
-  db/         schema Drizzle, migraciones, cliente y seed (Fase 2)
+  db/         schema Drizzle, migraciones, cliente y seed
   tsconfig/   configs de TypeScript compartidas (base, node, astro)
 ```
 
@@ -52,8 +52,10 @@ bun run format         # Biome con --write (formato, orden de imports, fixes seg
 bun run typecheck      # tsc en paquetes y api; astro check en web
 bun run test           # bun test
 bun run build          # web → apps/web/dist, api → apps/api/dist
-bun run db:generate    # no-op hasta la Fase 2
-bun run db:migrate     # no-op hasta la Fase 2
+bun run db:generate    # genera una migración a partir del schema (no se conecta a la base)
+bun run db:migrate     # aplica las migraciones pendientes en DATABASE_URL_UNPOOLED
+bun run db:studio      # Drizzle Studio sobre DATABASE_URL_UNPOOLED
+bun run db:seed        # familia, padres y actividades desde las variables SEED_* (idempotente)
 
 bun run test --filter=@time-craft/core   # cualquier tarea, en un solo paquete
 ```
