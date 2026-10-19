@@ -1,6 +1,7 @@
 // Bonus tasks: the parents' catalog of tasks that earn minutes, and the
 // child's reports of tasks done, which a parent reviews.
 // Lifecycle of a report: pending → approved | rejected.
+import { DomainError } from "../errors";
 import { isWithin, type Period } from "./calendar";
 
 export interface BonusTask {
@@ -46,4 +47,60 @@ export function weeklyBonusMinutes(
 				: total,
 		0,
 	);
+}
+
+// Reports that use up one of the task's times this week: pending and
+// approved ones reported this week. Rejected ones give the try back.
+export function reportsThisWeek(
+	reports: readonly TaskReport[],
+	week: Period,
+): number {
+	return reports.filter(
+		(report) =>
+			report.status !== "rejected" && isWithin(report.reportedAt, week),
+	).length;
+}
+
+function assertPending(report: TaskReport): void {
+	if (report.status !== "pending") {
+		throw new DomainError(
+			"report_already_reviewed",
+			`The report is already ${report.status}`,
+			{ reportId: report.id, status: report.status },
+		);
+	}
+}
+
+export function markReportApproved(
+	report: TaskReport,
+	review: {
+		at: Date;
+		parentId: string;
+		awardedMinutes: number;
+		note: string | null;
+	},
+): TaskReport {
+	assertPending(report);
+	return {
+		...report,
+		status: "approved",
+		awardedMinutes: review.awardedMinutes,
+		reviewNote: review.note,
+		reviewedByParentId: review.parentId,
+		reviewedAt: review.at,
+	};
+}
+
+export function markReportRejected(
+	report: TaskReport,
+	review: { at: Date; parentId: string; note: string | null },
+): TaskReport {
+	assertPending(report);
+	return {
+		...report,
+		status: "rejected",
+		reviewNote: review.note,
+		reviewedByParentId: review.parentId,
+		reviewedAt: review.at,
+	};
 }

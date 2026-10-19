@@ -3,6 +3,13 @@
 // api's composition root.
 import type { Actor } from "../domain/actor";
 import { getChildBalance } from "./balance";
+import {
+	createBonusTask,
+	deactivateBonusTask,
+	reportTask,
+	reviewTask,
+	updateBonusTask,
+} from "./bonuses";
 import type { CoreDeps } from "./context";
 import { grantOverride } from "./overrides";
 import { setPolicy } from "./policies";
@@ -24,6 +31,7 @@ import {
 } from "./sessions";
 
 export * from "./balance";
+export * from "./bonuses";
 export type { CoreDeps, Tx } from "./context";
 export * from "./overrides";
 export * from "./policies";
@@ -61,6 +69,12 @@ export function createCore(deps: CoreDeps) {
 		// Overrides and limits
 		grantOverride: bind(deps, grantOverride),
 		setPolicy: bind(deps, setPolicy),
+		// Bonuses
+		createBonusTask: bind(deps, createBonusTask),
+		updateBonusTask: bind(deps, updateBonusTask),
+		deactivateBonusTask: bind(deps, deactivateBonusTask),
+		reportTask: bind(deps, reportTask),
+		reviewTask: bind(deps, reviewTask),
 	};
 }
 
