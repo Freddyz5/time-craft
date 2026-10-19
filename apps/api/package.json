@@ -1,0 +1,23 @@
+{
+	"name": "@time-craft/api",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch --port=3000 src/index.ts",
+		"build": "bun scripts/build.ts",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit && tsc --noEmit -p scripts"
+	},
+	"dependencies": {
+		"@time-craft/core": "workspace:*",
+		"@time-craft/db": "workspace:*",
+		"hono": "^4.13.13"
+	},
+	"devDependencies": {
+		"@time-craft/tsconfig": "workspace:*",
+		"@types/bun": "1.4.3",
+		"@types/node": "^22",
+		"typescript": "^6.0.3"
+	}
+}

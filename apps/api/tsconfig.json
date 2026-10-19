@@ -1,0 +1,4 @@
+{
+	"extends": "@time-craft/tsconfig/node.json",
+	"include": ["src"]
+}

@@ -1,0 +1,42 @@
+{
+	"$schema": "https://turborepo.dev/schema.json",
+	"tasks": {
+		"transit": {
+			"dependsOn": ["^transit"]
+		},
+		"build": {
+			"dependsOn": ["^build", "transit"],
+			"outputs": ["dist/**"]
+		},
+		"//#lint:root": {},
+		"lint": {
+			"dependsOn": ["//#lint:root"]
+		},
+		"typecheck": {
+			"dependsOn": ["transit"]
+		},
+		"test": {
+			"dependsOn": ["transit"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"db:generate": {
+			"cache": false
+		},
+		"db:migrate": {
+			"cache": false,
+			"passThroughEnv": ["DATABASE_URL_UNPOOLED"]
+		},
+		"db:studio": {
+			"cache": false,
+			"persistent": true,
+			"passThroughEnv": ["DATABASE_URL_UNPOOLED"]
+		},
+		"db:seed": {
+			"cache": false,
+			"passThroughEnv": ["DATABASE_URL_UNPOOLED", "SEED_*"]
+		}
+	}
+}
