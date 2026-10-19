@@ -1,7 +1,15 @@
-// Use cases. Each one takes the ports, the actor and its input, and checks
+// Use cases. Each one takes the ports, the actor (except the system entry
+// points: resolveActor, useRecoveryCode) and its input, and checks
 // permissions itself. `createCore` binds them to one set of ports for the
 // api's composition root.
 import type { Actor } from "../domain/actor";
+import {
+	createChildAccount,
+	regenerateRecoveryCode,
+	resetPassword,
+	resolveActor,
+	useRecoveryCode,
+} from "./accounts";
 import { getChildBalance } from "./balance";
 import {
 	createBonusTask,
@@ -13,6 +21,7 @@ import {
 import type { CoreDeps } from "./context";
 import { grantOverride } from "./overrides";
 import { setPolicy } from "./policies";
+import { registerSubscription, removeSubscription } from "./push";
 import {
 	approveRequest,
 	cancelRequest,
@@ -30,11 +39,13 @@ import {
 	stopSession,
 } from "./sessions";
 
+export * from "./accounts";
 export * from "./balance";
 export * from "./bonuses";
 export type { CoreDeps, Tx } from "./context";
 export * from "./overrides";
 export * from "./policies";
+export * from "./push";
 export * from "./requests";
 export * from "./sessions";
 
@@ -75,6 +86,17 @@ export function createCore(deps: CoreDeps) {
 		deactivateBonusTask: bind(deps, deactivateBonusTask),
 		reportTask: bind(deps, reportTask),
 		reviewTask: bind(deps, reviewTask),
+		// Accounts
+		resolveActor: (input: { authUserId: string }) => resolveActor(deps, input),
+		createChildAccount: bind(deps, createChildAccount),
+		resetPassword: bind(deps, resetPassword),
+		useRecoveryCode: (input: Parameters<typeof useRecoveryCode>[1]) =>
+			useRecoveryCode(deps, input),
+		regenerateRecoveryCode: (actor: Actor) =>
+			regenerateRecoveryCode(deps, actor),
+		// Push
+		registerSubscription: bind(deps, registerSubscription),
+		removeSubscription: bind(deps, removeSubscription),
 	};
 }
 
