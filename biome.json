@@ -65,6 +65,82 @@
 			}
 		},
 		{
+			"includes": ["packages/core/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"drizzle-orm",
+											"drizzle-orm/**",
+											"drizzle-kit",
+											"hono",
+											"hono/**",
+											"@hono/**",
+											"better-auth",
+											"better-auth/**",
+											"@better-auth/**",
+											"@upstash/**",
+											"web-push",
+											"@neondatabase/**",
+											"@time-craft/db",
+											"@time-craft/db/**",
+											"**/db/src/**"
+										],
+										"message": "packages/core holds only domain rules: infrastructure lives in apps/api adapters behind core's ports."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/core/src/**", "!**/*.test.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["bun", "bun:*"],
+										"message": "Deployed code runs on Node (Vercel) or in the browser: Bun modules are only allowed in tests and scripts."
+									},
+									{
+										"group": [
+											"drizzle-orm",
+											"drizzle-orm/**",
+											"drizzle-kit",
+											"hono",
+											"hono/**",
+											"@hono/**",
+											"better-auth",
+											"better-auth/**",
+											"@better-auth/**",
+											"@upstash/**",
+											"web-push",
+											"@neondatabase/**",
+											"@time-craft/db",
+											"@time-craft/db/**",
+											"**/db/src/**"
+										],
+										"message": "packages/core holds only domain rules: infrastructure lives in apps/api adapters behind core's ports."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": ["**/*.astro"],
 			"linter": {
 				"rules": {
