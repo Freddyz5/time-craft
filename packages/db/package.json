@@ -9,6 +9,7 @@
 	"scripts": {
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit",
+		"test": "bun test",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "bun --env-file=../../.env drizzle-kit migrate"
 	},
