@@ -1,6 +1,11 @@
 // Public API of @time-craft/core: domain types and rules, and errors.
 export * from "./domain/actor";
+export * from "./domain/attribution";
+export * from "./domain/balance";
+export * from "./domain/calendar";
 export * from "./domain/family";
+export * from "./domain/policy";
+export * from "./domain/session";
 export * from "./domain/values";
 export * from "./errors";
 

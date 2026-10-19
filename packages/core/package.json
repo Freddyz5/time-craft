@@ -11,6 +11,10 @@
 		"typecheck": "tsc --noEmit",
 		"test": "bun test"
 	},
+	"dependencies": {
+		"@date-fns/tz": "^1.5.0",
+		"date-fns": "^4.4.0"
+	},
 	"devDependencies": {
 		"@time-craft/tsconfig": "workspace:*",
 		"@types/bun": "1.4.3",
