@@ -74,13 +74,13 @@ packages/
 - **Padres:** **"Continuar con Google"** como forma principal (proveedor social de Better Auth, cliente OAuth gratis en Google Cloud), con email + contraseña como segunda vía. Los dos padres se crean con el seed. **Sin registro público:** solo entran los correos que ya existen como padres.
   - Google OAuth: la app puede quedar en modo "testing" con los dos correos como usuarios de prueba (solo se piden `email` y `profile`).
   - Las previews de Vercel cambian de URL y Google exige registrar las URLs de retorno: el login con Google se activa solo en `dev` (dominio fijo) y producción. En previews se entra con contraseña.
-- **Restablecer contraseña o PIN:** un padre puede restablecer la contraseña del otro padre y el PIN del niño desde la app. Endpoint propio que verifica que sea de la misma familia y luego usa `setUserPassword` del plugin `admin` de Better Auth (ese plugin es administrador global, por eso se envuelve).
+- **Restablecer contraseña o PIN:** un padre puede restablecer la contraseña del otro padre y el PIN del niño desde la app. Endpoint propio que verifica que sea de la misma familia y luego fija la contraseña con el hasher y el adaptador internos de Better Auth (`auth.$context`). No se usa el plugin `admin` (decidido en la fase 4): su `setUserPassword` exige una sesión de administrador y el flujo del código de recuperación no tiene sesión.
 - **Código de recuperación de la familia** (último recurso si ambos pierden acceso): código largo aleatorio de un solo uso, generado al configurar el hogar, guardado hasheado en `families.recovery_code_hash`. Se imprime o se guarda en lugar seguro. Con él se restablece la contraseña de un padre; al usarlo se genera uno nuevo. Endpoint con rate limit estricto.
 - **Sin correo en la versión 1:** no hay "olvidé mi contraseña" por email. Si se necesita más adelante, se conecta Resend (plan gratis) sin cambiar el schema.
 - **Script de desarrollo:** queda solo como herramienta del desarrollador, no como vía de recuperación.
-- **Niño:** plugin `username`, login con usuario + PIN. El username es **único global**. Como Better Auth exige email, se usa uno sintético (`usuario@hijos.timecraft.local`). Su cuenta la crea un padre desde la api con `auth.api.signUpEmail`.
+- **Niño:** plugin `username`, login con usuario + PIN. El username es **único global**. Como Better Auth exige email, se usa uno sintético (`usuario@hijos.timecraft.local`). Su cuenta la crea un padre desde la api, también con el contexto interno de Better Auth (usuario + cuenta `credential`): con `disableSignUp`, `auth.api.signUpEmail` falla incluso en el servidor.
 - **PIN:** mínimo 6 dígitos (se baja `minPasswordLength` a 6 y se exige más a los padres con validación propia).
-- **Fuerza bruta:** rate limit de Better Auth con `storage: "database"` (en serverless la memoria no sirve) + bloqueo por cuenta con hooks antes/después del sign-in (`children.failed_pin_attempts`, `locked_until`).
+- **Fuerza bruta:** rate limit de Better Auth con `storage: "database"` (en serverless la memoria no sirve) + bloqueo por cuenta con hooks antes/después del sign-in (`children.failed_pin_attempts`, `locked_until`): 5 PIN errados seguidos bloquean al niño 15 minutos; un padre que restablece el PIN lo desbloquea.
 - **Sin vinculación de dispositivos.** `auth_session` guarda user agent e IP: ese es el registro de dónde está logueado cada uno, y un padre puede cerrar las sesiones del niño.
 
 ## Alarmas y tareas programadas (QStash)
@@ -189,6 +189,7 @@ Archivo de referencia: `timecraft_v1.sql` (validado contra PostgreSQL 16, inclui
 | `QSTASH_TOKEN` | Publicar y cancelar mensajes |
 | `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` | Verificar la firma de los callbacks |
 | `PUBLIC_API_URL` | URL pública a la que QStash llama de vuelta |
+| `QSTASH_URL` | Solo en local: el servidor de desarrollo de QStash (opcional) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Web Push (la pública también la usa la web) |
 
 Se validan al arrancar con un schema de zod: si falta una, la api falla de inmediato en lugar de fallar a mitad de un flujo.
