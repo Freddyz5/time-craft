@@ -11,7 +11,8 @@
 		"typecheck": "tsc --noEmit",
 		"test": "bun test",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "bun --env-file=../../.env drizzle-kit migrate"
+		"db:migrate": "bun --env-file=../../.env drizzle-kit migrate",
+		"db:seed": "bun --env-file=../../.env scripts/seed.ts"
 	},
 	"dependencies": {
 		"@neondatabase/serverless": "^1.2.0",
