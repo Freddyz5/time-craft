@@ -1,0 +1,14 @@
+{
+	"name": "@time-craft/db",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"lint": "biome check .",
+		"db:generate": "echo 'db:generate is a no-op until Phase 2'",
+		"db:migrate": "echo 'db:migrate is a no-op until Phase 2'"
+	}
+}

@@ -1,0 +1,4 @@
+[install]
+# Astro's build output imports Astro's own dependencies by bare name, which the
+# isolated linker does not expose to apps/*. Hoisted keeps them resolvable.
+linker = "hoisted"

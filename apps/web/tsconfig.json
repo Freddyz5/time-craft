@@ -1,0 +1,3 @@
+{
+	"extends": "@time-craft/tsconfig/astro.json"
+}
