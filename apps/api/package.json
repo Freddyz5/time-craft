@@ -3,8 +3,13 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/app.ts"
+		}
+	},
 	"scripts": {
-		"dev": "bun --watch --port=3000 src/index.ts",
+		"dev": "bun --env-file=../../.env --watch --port=3000 src/index.ts",
 		"build": "bun scripts/build.ts",
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit && tsc --noEmit -p scripts",
