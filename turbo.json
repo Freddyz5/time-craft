@@ -26,7 +26,17 @@
 			"cache": false
 		},
 		"db:migrate": {
-			"cache": false
+			"cache": false,
+			"passThroughEnv": ["DATABASE_URL_UNPOOLED"]
+		},
+		"db:studio": {
+			"cache": false,
+			"persistent": true,
+			"passThroughEnv": ["DATABASE_URL_UNPOOLED"]
+		},
+		"db:seed": {
+			"cache": false,
+			"passThroughEnv": ["DATABASE_URL_UNPOOLED", "SEED_*"]
 		}
 	}
 }
