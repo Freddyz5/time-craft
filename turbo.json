@@ -8,7 +8,10 @@
 			"dependsOn": ["^build", "transit"],
 			"outputs": ["dist/**"]
 		},
-		"lint": {},
+		"//#lint:root": {},
+		"lint": {
+			"dependsOn": ["//#lint:root"]
+		},
 		"typecheck": {
 			"dependsOn": ["transit"]
 		},

@@ -2,17 +2,23 @@
 	"name": "time-craft",
 	"private": true,
 	"packageManager": "bun@1.4.3",
-	"workspaces": ["apps/*", "packages/*"],
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
 	"scripts": {
 		"dev": "turbo run dev",
 		"build": "turbo run build",
 		"lint": "turbo run lint",
+		"lint:root": "biome check *.json",
+		"format": "biome check --write .",
 		"typecheck": "turbo run typecheck",
 		"test": "turbo run test",
 		"db:generate": "turbo run db:generate",
 		"db:migrate": "turbo run db:migrate"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "2.5.15",
 		"turbo": "2.11.9"
 	}
 }
