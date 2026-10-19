@@ -372,6 +372,73 @@ describe("approveRequest to start later", () => {
 			).rejects.toMatchObject({ code: "invalid_start_time" });
 		}
 	});
+
+	test("at start, the duration is trimmed to what is available then", async () => {
+		const request = await askToStart(40);
+		const { session } = await kit.core.approveRequest(h.mom, {
+			requestId: request.id,
+			approvedMinutes: 40,
+			startAt: SIX_PM,
+		});
+		// The parents lower the daily limit before it starts.
+		await kit.core.setPolicy(h.dad, {
+			childId: h.childId,
+			dailyLimitMinutes: 25,
+			weeklyLimitMinutes: 300,
+		});
+		kit.clock.set(SIX_PM);
+		const start = kit.jobs.scheduled[0];
+		expect(
+			await kit.core.handleJob({ alertId: start?.alertId ?? "" }),
+		).toMatchObject({
+			status: "handled",
+			alertType: "start",
+		});
+
+		const started = kit.db.get("sessions", session.id);
+		expect(started.status).toBe("running");
+		expect(started.startedAt?.toISOString()).toBe(SIX_PM.toISOString());
+		expect(started.plannedDurationSeconds).toBe(25 * 60);
+		expect(kit.notifier.sent.at(-1)?.message).toMatchObject({
+			kind: "session_ready",
+			body: "Tienes 25 min de Juego.",
+		});
+		expect(kit.jobs.scheduled.slice(1).map((job) => job.alertType)).toEqual([
+			"warning",
+			"end",
+			"auto_close",
+		]);
+	});
+
+	test("with nothing available at start, it is cancelled and everyone is told", async () => {
+		const request = await askToStart(30);
+		const { session } = await kit.core.approveRequest(h.mom, {
+			requestId: request.id,
+			approvedMinutes: 30,
+			startAt: SIX_PM,
+		});
+		consumedToday(20);
+		await kit.core.setPolicy(h.dad, {
+			childId: h.childId,
+			dailyLimitMinutes: 20,
+			weeklyLimitMinutes: 300,
+		});
+		kit.notifier.clear();
+		kit.clock.set(SIX_PM);
+		await kit.core.handleJob({ alertId: kit.jobs.scheduled[0]?.alertId ?? "" });
+
+		const cancelled = kit.db.get("sessions", session.id);
+		expect(cancelled.status).toBe("cancelled");
+		expect(cancelled.endedByParentId).toBe(h.mom.parentId);
+		expect(kit.notifier.sent.map((push) => push.to)).toEqual([
+			[h.auth.mom, h.auth.dad],
+			[h.auth.child],
+		]);
+		expect(kit.notifier.kinds()).toEqual([
+			"session_cancelled_no_time",
+			"session_cancelled_no_time",
+		]);
+	});
 });
 
 describe("rejectRequest and cancelRequest", () => {

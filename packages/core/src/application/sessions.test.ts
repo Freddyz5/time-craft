@@ -273,6 +273,11 @@ describe("scheduled sessions", () => {
 			"auto_close",
 		]);
 		expect(kit.notifier.sent.at(-1)?.message.kind).toBe("session_ready");
+
+		// The cancelled start job may still arrive: it does nothing.
+		expect(
+			await kit.core.handleJob({ alertId: startJob?.alertId ?? "" }),
+		).toEqual({ status: "ignored", reason: "already_cancelled" });
 	});
 
 	test("a parent can cancel it: its start job is cancelled", async () => {

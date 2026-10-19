@@ -1,5 +1,5 @@
 // Use cases. Each one takes the ports, the actor (except the system entry
-// points: resolveActor, useRecoveryCode) and its input, and checks
+// points: resolveActor, useRecoveryCode, handleJob) and its input, and checks
 // permissions itself. `createCore` binds them to one set of ports for the
 // api's composition root.
 import type { Actor } from "../domain/actor";
@@ -19,6 +19,7 @@ import {
 	updateBonusTask,
 } from "./bonuses";
 import type { CoreDeps } from "./context";
+import { handleJob } from "./jobs";
 import { grantOverride } from "./overrides";
 import { setPolicy } from "./policies";
 import { registerSubscription, removeSubscription } from "./push";
@@ -43,6 +44,7 @@ export * from "./accounts";
 export * from "./balance";
 export * from "./bonuses";
 export type { CoreDeps, Tx } from "./context";
+export * from "./jobs";
 export * from "./overrides";
 export * from "./policies";
 export * from "./push";
@@ -97,6 +99,8 @@ export function createCore(deps: CoreDeps) {
 		// Push
 		registerSubscription: bind(deps, registerSubscription),
 		removeSubscription: bind(deps, removeSubscription),
+		// Scheduled jobs (QStash callback)
+		handleJob: (input: { alertId: string }) => handleJob(deps, input),
 	};
 }
 
