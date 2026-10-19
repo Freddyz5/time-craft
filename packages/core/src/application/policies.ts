@@ -88,3 +88,47 @@ export async function listCurrentPolicies(
 		return tx.repos.policies.listCurrent(child.id);
 	});
 }
+
+// Every policy of the child, the closed ones included, newest first: changing
+// a limit never rewrites the old one. The child sees their own.
+export async function listPolicyHistory(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { childId: string },
+): Promise<QuotaPolicy[]> {
+	return transaction(deps, async (tx) => {
+		const child = await loadChild(tx, actor, input.childId, "see the limits");
+		return tx.repos.policies.listByChild(child.id);
+	});
+}
+
+// An activity goes back to the global quota: its own policy is closed (it
+// stays in the history). The global policy itself is not removable. Returns
+// the closed policy, or null if the activity had none.
+export async function clearActivityPolicy(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { childId: string; activityId: string },
+): Promise<QuotaPolicy | null> {
+	requireParent(actor, "change the limits");
+	return transaction(deps, async (tx) => {
+		const child = await loadChild(
+			tx,
+			actor,
+			input.childId,
+			"change the limits",
+		);
+		await loadActivity(tx, child.familyId, input.activityId, {
+			requireActive: false,
+		});
+		const current =
+			(await tx.repos.policies.listCurrent(child.id)).find(
+				(policy) => policy.activityId === input.activityId,
+			) ?? null;
+		if (current === null) {
+			return null;
+		}
+		await tx.repos.policies.closeCurrent(child.id, input.activityId, tx.now);
+		return { ...current, validTo: tx.now };
+	});
+}

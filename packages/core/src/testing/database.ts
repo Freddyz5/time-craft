@@ -234,6 +234,11 @@ function createRepositories(t: () => Tables): Repositories {
 						(policy) => policy.childId === childId && policy.validTo === null,
 					)
 					.map(copy),
+			listByChild: async (childId) =>
+				values("policies")
+					.filter((policy) => policy.childId === childId)
+					.sort((a, b) => b.validFrom.getTime() - a.validFrom.getTime())
+					.map(copy),
 			closeCurrent: async (childId, activityId, validTo) => {
 				for (const policy of values("policies")) {
 					if (

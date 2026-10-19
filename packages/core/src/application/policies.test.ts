@@ -151,3 +151,96 @@ describe("listCurrentPolicies", () => {
 		).rejects.toMatchObject({ code: "child_not_found" });
 	});
 });
+
+describe("listPolicyHistory", () => {
+	test("keeps the closed policies, newest first, for parents and the child", async () => {
+		kit.clock.set("2026-10-21T16:00:00-05:00");
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			dailyLimitMinutes: 90,
+			weeklyLimitMinutes: 400,
+		});
+		kit.clock.set("2026-10-21T17:00:00-05:00");
+		await kit.core.setPolicy(h.dad, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		for (const actor of [h.mom, h.child]) {
+			const history = await kit.core.listPolicyHistory(actor, {
+				childId: h.childId,
+			});
+			expect(
+				history.map((policy) => [
+					policy.activityId,
+					policy.dailyLimitMinutes,
+					policy.validTo === null,
+				]),
+			).toEqual([
+				[h.tvId, 30, true],
+				[null, 90, true],
+				[null, 60, false],
+			]);
+		}
+	});
+
+	test("another family's child does not exist", async () => {
+		const other = seedHousehold(kit, { prefix: "other-" });
+		await expect(
+			kit.core.listPolicyHistory(other.dad, { childId: h.childId }),
+		).rejects.toMatchObject({ code: "child_not_found" });
+	});
+});
+
+describe("clearActivityPolicy", () => {
+	test("the activity goes back to the global quota; the history keeps it", async () => {
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		kit.clock.advanceMinutes(5);
+		const closed = await kit.core.clearActivityPolicy(h.dad, {
+			childId: h.childId,
+			activityId: h.tvId,
+		});
+		expect(closed?.validTo?.toISOString()).toBe("2026-10-21T20:05:00.000Z");
+
+		const current = await kit.core.listCurrentPolicies(h.mom, {
+			childId: h.childId,
+		});
+		expect(current.map((policy) => policy.activityId)).toEqual([null]);
+		const view = await kit.core.getChildBalance(h.mom, { childId: h.childId });
+		expect(view.balances.map((balance) => balance.activityId)).toEqual([null]);
+		const history = await kit.core.listPolicyHistory(h.mom, {
+			childId: h.childId,
+		});
+		expect(history).toHaveLength(2);
+
+		// Nothing left to clear.
+		expect(
+			await kit.core.clearActivityPolicy(h.mom, {
+				childId: h.childId,
+				activityId: h.tvId,
+			}),
+		).toBeNull();
+	});
+
+	test("only parents, and only for an activity of the family", async () => {
+		await expect(
+			kit.core.clearActivityPolicy(h.child, {
+				childId: h.childId,
+				activityId: h.tvId,
+			}),
+		).rejects.toMatchObject({ code: "forbidden" });
+		const other = seedHousehold(kit, { prefix: "other-" });
+		await expect(
+			kit.core.clearActivityPolicy(h.mom, {
+				childId: h.childId,
+				activityId: other.tvId,
+			}),
+		).rejects.toMatchObject({ code: "activity_not_found" });
+	});
+});
