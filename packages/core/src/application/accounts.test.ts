@@ -243,3 +243,132 @@ describe("recovery code", () => {
 		});
 	});
 });
+
+describe("child sign-in lockout", () => {
+	const failPin = () =>
+		kit.core.recordChildSignIn({ authUserId: h.auth.child, succeeded: false });
+
+	test("five wrong PINs in a row lock the child out for 15 minutes", async () => {
+		for (let attempt = 1; attempt <= 4; attempt++) {
+			expect(await failPin()).toEqual({ lockedUntil: null });
+		}
+		expect(kit.db.get("children", h.childId).failedPinAttempts).toBe(4);
+		expect(await failPin()).toEqual({
+			lockedUntil: new Date("2026-10-21T15:15:00-05:00"),
+		});
+		await expect(
+			kit.core.assertChildCanSignIn({ authUserId: h.auth.child }),
+		).rejects.toMatchObject({
+			code: "child_locked",
+			details: { lockedUntil: "2026-10-21T20:15:00.000Z" },
+		});
+
+		kit.clock.advanceMinutes(15);
+		await kit.core.assertChildCanSignIn({ authUserId: h.auth.child });
+		// The count started again, and another wrong PIN does not relock.
+		expect(await failPin()).toEqual({ lockedUntil: null });
+	});
+
+	test("a right PIN clears the count", async () => {
+		await failPin();
+		await failPin();
+		await kit.core.recordChildSignIn({
+			authUserId: h.auth.child,
+			succeeded: true,
+		});
+		expect(kit.db.get("children", h.childId)).toMatchObject({
+			failedPinAttempts: 0,
+			lockedUntil: null,
+		});
+	});
+
+	test("users that are not children are not counted", async () => {
+		await kit.core.assertChildCanSignIn({ authUserId: h.auth.mom });
+		expect(
+			await kit.core.recordChildSignIn({
+				authUserId: h.auth.mom,
+				succeeded: false,
+			}),
+		).toEqual({ lockedUntil: null });
+	});
+});
+
+describe("child logins", () => {
+	beforeEach(() => {
+		kit.identity.addLogin(h.auth.child, "login-tablet", "2026-10-20T10:00:00Z");
+		kit.identity.addLogin(h.auth.child, "login-pc", "2026-10-21T10:00:00Z");
+		kit.identity.addLogin(h.auth.mom, "login-mom", "2026-10-21T10:00:00Z");
+	});
+
+	test("a parent lists the child's devices, newest first", async () => {
+		const logins = await kit.core.listChildLogins(h.dad, {
+			childId: h.childId,
+		});
+		expect(logins.map((login) => login.id)).toEqual([
+			"login-pc",
+			"login-tablet",
+		]);
+	});
+
+	test("a parent signs the child out of one device or all of them", async () => {
+		expect(
+			await kit.core.revokeChildLogins(h.mom, {
+				childId: h.childId,
+				loginId: "login-pc",
+			}),
+		).toEqual({ revoked: 1 });
+		await expect(
+			kit.core.revokeChildLogins(h.mom, {
+				childId: h.childId,
+				loginId: "login-mom",
+			}),
+		).rejects.toMatchObject({ code: "login_not_found" });
+		expect(
+			await kit.core.revokeChildLogins(h.mom, { childId: h.childId }),
+		).toEqual({ revoked: 1 });
+		expect(kit.identity.logins.map((login) => login.id)).toEqual(["login-mom"]);
+	});
+
+	test("only parents, and only for their family", async () => {
+		await expect(
+			kit.core.listChildLogins(h.child, { childId: h.childId }),
+		).rejects.toMatchObject({ code: "forbidden" });
+		await expect(
+			kit.core.revokeChildLogins(h.child, { childId: h.childId }),
+		).rejects.toMatchObject({ code: "forbidden" });
+		const other = seedHousehold(kit, { prefix: "other-" });
+		await expect(
+			kit.core.listChildLogins(other.mom, { childId: h.childId }),
+		).rejects.toMatchObject({ code: "child_not_found" });
+	});
+});
+
+describe("assertCanChangeOwnPassword", () => {
+	test("parents need a strong password; the child cannot change the PIN", async () => {
+		await kit.core.assertCanChangeOwnPassword({
+			authUserId: h.auth.mom,
+			newPassword: "una-clave-larga",
+		});
+		await expect(
+			kit.core.assertCanChangeOwnPassword({
+				authUserId: h.auth.mom,
+				newPassword: "123456",
+			}),
+		).rejects.toMatchObject({
+			code: "invalid_input",
+			details: { field: "password" },
+		});
+		await expect(
+			kit.core.assertCanChangeOwnPassword({
+				authUserId: h.auth.child,
+				newPassword: "654321",
+			}),
+		).rejects.toMatchObject({ code: "forbidden" });
+		await expect(
+			kit.core.assertCanChangeOwnPassword({
+				authUserId: "stranger",
+				newPassword: "una-clave-larga",
+			}),
+		).rejects.toMatchObject({ code: "forbidden" });
+	});
+});

@@ -237,3 +237,41 @@ describe("reviewTask", () => {
 		).rejects.toMatchObject({ code: "forbidden" });
 	});
 });
+
+describe("lists", () => {
+	test("parents see every task; the child only the active ones", async () => {
+		const reading = await kit.core.createBonusTask(h.mom, {
+			name: "Leer 20 min",
+			rewardMinutes: 10,
+		});
+		await kit.core.deactivateBonusTask(h.mom, { taskId: homework.id });
+
+		expect(
+			(await kit.core.listBonusTasks(h.dad)).map((task) => task.id),
+		).toEqual([homework.id, reading.id]);
+		expect(
+			(await kit.core.listBonusTasks(h.child)).map((task) => task.id),
+		).toEqual([reading.id]);
+	});
+
+	test("pending reports: the family's for parents, their own for the child", async () => {
+		const pending = await report();
+		const other = seedHousehold(kit, { prefix: "other-" });
+		const otherTask = await kit.core.createBonusTask(other.mom, {
+			name: "Ordenar",
+			rewardMinutes: 10,
+		});
+		await kit.core.reportTask(other.child, { bonusTaskId: otherTask.id });
+
+		for (const actor of [h.mom, h.child]) {
+			expect(
+				(await kit.core.listPendingTaskReports(actor)).map((r) => r.id),
+			).toEqual([pending.id]);
+		}
+		await kit.core.reviewTask(h.mom, {
+			reportId: pending.id,
+			decision: "approve",
+		});
+		expect(await kit.core.listPendingTaskReports(h.mom)).toEqual([]);
+	});
+});

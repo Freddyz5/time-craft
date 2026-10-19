@@ -1,0 +1,68 @@
+import { describe, expect, test } from "bun:test";
+import { InvalidEnvError, parseEnv } from "./env";
+
+const valid = {
+	DATABASE_URL: "postgresql://user:secret@host/db?sslmode=require",
+	BETTER_AUTH_SECRET: "a".repeat(32),
+	BETTER_AUTH_URL: "http://localhost:3000",
+	GOOGLE_CLIENT_ID: "",
+	GOOGLE_CLIENT_SECRET: "",
+	QSTASH_TOKEN: "token",
+	QSTASH_CURRENT_SIGNING_KEY: "sig_current",
+	QSTASH_NEXT_SIGNING_KEY: "sig_next",
+	PUBLIC_API_URL: "https://api.example.com",
+	VAPID_PUBLIC_KEY: "public",
+	VAPID_PRIVATE_KEY: "private",
+	VAPID_SUBJECT: "mailto:padres@example.com",
+};
+
+describe("parseEnv", () => {
+	test("reads a complete environment; empty optionals are missing", () => {
+		const env = parseEnv(valid);
+		expect(env.GOOGLE_CLIENT_ID).toBeUndefined();
+		expect(env.QSTASH_URL).toBeUndefined();
+		expect(env.PUBLIC_API_URL).toBe("https://api.example.com");
+	});
+
+	test("names every missing or invalid variable, never its value", () => {
+		const attempt = () =>
+			parseEnv({
+				...valid,
+				DATABASE_URL: "mysql://user:secret@host/db",
+				BETTER_AUTH_SECRET: "short",
+				QSTASH_TOKEN: "  ",
+				VAPID_SUBJECT: "padres@example.com",
+				GOOGLE_CLIENT_ID: "only-the-id",
+			});
+		expect(attempt).toThrow(InvalidEnvError);
+		let message = "";
+		try {
+			attempt();
+		} catch (error) {
+			message = (error as Error).message;
+		}
+		for (const name of [
+			"DATABASE_URL",
+			"BETTER_AUTH_SECRET",
+			"QSTASH_TOKEN: missing",
+			"VAPID_SUBJECT",
+			"GOOGLE_CLIENT_SECRET",
+		]) {
+			expect(message).toContain(name);
+		}
+		expect(message).not.toContain("secret@host");
+		expect(message).not.toContain("only-the-id");
+	});
+
+	test("Google needs both variables", () => {
+		expect(() =>
+			parseEnv({ ...valid, GOOGLE_CLIENT_SECRET: "only-the-secret" }),
+		).toThrow("GOOGLE_CLIENT_SECRET");
+		const env = parseEnv({
+			...valid,
+			GOOGLE_CLIENT_ID: "id",
+			GOOGLE_CLIENT_SECRET: "secret",
+		});
+		expect(env.GOOGLE_CLIENT_ID).toBe("id");
+	});
+});

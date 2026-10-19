@@ -55,7 +55,7 @@ bun run build          # web → apps/web/dist, api → apps/api/dist
 bun run db:generate    # genera una migración a partir del schema (no se conecta a la base)
 bun run db:migrate     # aplica las migraciones pendientes en DATABASE_URL_UNPOOLED
 bun run db:studio      # Drizzle Studio sobre DATABASE_URL_UNPOOLED
-bun run db:seed        # familia, padres y actividades desde las variables SEED_* (idempotente)
+bun run db:seed        # hogar completo desde las variables SEED_* (idempotente; imprime el código de recuperación una vez)
 
 bun run test --filter=@time-craft/core   # cualquier tarea, en un solo paquete
 ```

@@ -119,3 +119,35 @@ describe("setPolicy", () => {
 		});
 	});
 });
+
+describe("listCurrentPolicies", () => {
+	test("parents and the child see the limits in force", async () => {
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		for (const actor of [h.dad, h.child]) {
+			const policies = await kit.core.listCurrentPolicies(actor, {
+				childId: h.childId,
+			});
+			expect(
+				policies.map((policy) => [policy.activityId, policy.dailyLimitMinutes]),
+			).toEqual(
+				expect.arrayContaining([
+					[null, 60],
+					[h.tvId, 30],
+				]),
+			);
+			expect(policies).toHaveLength(2);
+		}
+	});
+
+	test("another family's child does not exist", async () => {
+		const other = seedHousehold(kit, { prefix: "other-" });
+		await expect(
+			kit.core.listCurrentPolicies(other.dad, { childId: h.childId }),
+		).rejects.toMatchObject({ code: "child_not_found" });
+	});
+});

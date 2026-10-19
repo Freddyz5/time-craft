@@ -1,27 +1,36 @@
 // Use cases. Each one takes the ports, the actor (except the system entry
-// points: resolveActor, useRecoveryCode, handleJob) and its input, and checks
-// permissions itself. `createCore` binds them to one set of ports for the
+// points: resolveActor, the child sign-in guard, useRecoveryCode, handleJob)
+// and its input, and checks permissions itself. `createCore` binds them to one set of ports for the
 // api's composition root.
 import type { Actor } from "../domain/actor";
 import {
+	assertCanChangeOwnPassword,
+	assertChildCanSignIn,
 	createChildAccount,
+	listChildLogins,
+	recordChildSignIn,
 	regenerateRecoveryCode,
 	resetPassword,
 	resolveActor,
+	revokeChildLogins,
 	useRecoveryCode,
 } from "./accounts";
 import { getChildBalance } from "./balance";
 import {
 	createBonusTask,
 	deactivateBonusTask,
+	listBonusTasks,
+	listPendingTaskReports,
 	reportTask,
 	reviewTask,
 	updateBonusTask,
 } from "./bonuses";
 import type { CoreDeps } from "./context";
+import { getChildHistory } from "./history";
+import { getHousehold } from "./household";
 import { handleJob } from "./jobs";
 import { grantOverride } from "./overrides";
-import { setPolicy } from "./policies";
+import { listCurrentPolicies, setPolicy } from "./policies";
 import { registerSubscription, removeSubscription } from "./push";
 import {
 	approveRequest,
@@ -44,6 +53,8 @@ export * from "./accounts";
 export * from "./balance";
 export * from "./bonuses";
 export type { CoreDeps, Tx } from "./context";
+export * from "./history";
+export * from "./household";
 export * from "./jobs";
 export * from "./overrides";
 export * from "./policies";
@@ -63,6 +74,9 @@ function bind<I, O>(deps: CoreDeps, useCase: ActorUseCase<I, O>) {
 
 export function createCore(deps: CoreDeps) {
 	return {
+		// Household and history
+		getHousehold: (actor: Actor) => getHousehold(deps, actor),
+		getChildHistory: bind(deps, getChildHistory),
 		// Balance and timer
 		getChildBalance: bind(deps, getChildBalance),
 		getLiveSession: bind(deps, getLiveSession),
@@ -81,8 +95,12 @@ export function createCore(deps: CoreDeps) {
 		stopSession: bind(deps, stopSession),
 		// Overrides and limits
 		grantOverride: bind(deps, grantOverride),
+		listCurrentPolicies: bind(deps, listCurrentPolicies),
 		setPolicy: bind(deps, setPolicy),
 		// Bonuses
+		listBonusTasks: (actor: Actor) => listBonusTasks(deps, actor),
+		listPendingTaskReports: (actor: Actor) =>
+			listPendingTaskReports(deps, actor),
 		createBonusTask: bind(deps, createBonusTask),
 		updateBonusTask: bind(deps, updateBonusTask),
 		deactivateBonusTask: bind(deps, deactivateBonusTask),
@@ -90,7 +108,17 @@ export function createCore(deps: CoreDeps) {
 		reviewTask: bind(deps, reviewTask),
 		// Accounts
 		resolveActor: (input: { authUserId: string }) => resolveActor(deps, input),
+		assertChildCanSignIn: (input: { authUserId: string }) =>
+			assertChildCanSignIn(deps, input),
+		recordChildSignIn: (input: { authUserId: string; succeeded: boolean }) =>
+			recordChildSignIn(deps, input),
+		assertCanChangeOwnPassword: (input: {
+			authUserId: string;
+			newPassword: string;
+		}) => assertCanChangeOwnPassword(deps, input),
 		createChildAccount: bind(deps, createChildAccount),
+		listChildLogins: bind(deps, listChildLogins),
+		revokeChildLogins: bind(deps, revokeChildLogins),
 		resetPassword: bind(deps, resetPassword),
 		useRecoveryCode: (input: Parameters<typeof useRecoveryCode>[1]) =>
 			useRecoveryCode(deps, input),
