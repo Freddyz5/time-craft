@@ -355,7 +355,7 @@ CREATE TABLE session_alerts (
     session_id            UUID         NOT NULL,
     alert_type            VARCHAR(20)  NOT NULL,           -- start | warning | end | auto_close
     scheduled_at          TIMESTAMPTZ  NOT NULL,
-    provider_message_id   VARCHAR(100),                    -- id del mensaje en QStash, para cancelarlo
+    provider_message_id   TEXT,                            -- id del mensaje en QStash, para cancelarlo (~100 caracteres)
     sent_at               TIMESTAMPTZ,
     cancelled_at          TIMESTAMPTZ,
     CONSTRAINT chk_alerts_type CHECK (alert_type IN ('start', 'warning', 'end', 'auto_close')),

@@ -1,0 +1,1 @@
+ALTER TABLE "session_alerts" ALTER COLUMN "provider_message_id" SET DATA TYPE text;

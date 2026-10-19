@@ -15,6 +15,13 @@
       "when": 1792433892331,
       "tag": "0001_auth_verification_identifier",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792435346009,
+      "tag": "0002_provider_message_id_text",
+      "breakpoints": true
     }
   ]
 }
