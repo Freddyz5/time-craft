@@ -1,6 +1,6 @@
 ---
-// The document shell every page shares: language, viewport, theme colour
-// and the global styles.
+// The document shell every page shares: language, viewport, theme colour,
+// the manifest for Web Push, and the global styles.
 import "../styles/global.css";
 
 interface Props {
@@ -22,6 +22,8 @@ const {
 		<meta name="theme-color" content="#ffffff" />
 		<meta name="color-scheme" content="light" />
 		<link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+		<link rel="apple-touch-icon" href="/icons/icon-192.png" />
+		<link rel="manifest" href="/manifest.webmanifest" />
 		<title>{title}</title>
 	</head>
 	<body class="bg-page text-ink">

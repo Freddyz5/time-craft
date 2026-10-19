@@ -1,6 +1,7 @@
 // "Ahora": the child's open session (running, paused or scheduled) with its
 // countdown and controls, or what can be started when there is none. The
-// countdown runs on the server's clock.
+// countdown runs on the server's clock; the tab rings at the warning and at
+// the end.
 import { CalendarClock, Pause, Play, Plus, Square, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -11,13 +12,15 @@ import {
 	brickUnit,
 	overrunBricks,
 } from "../../components/bricks";
+import { useToast } from "../../components/toast";
 import {
 	Button,
 	buttonClass,
 	Callout,
 	ConfirmDialog,
 } from "../../components/ui";
-import { activityById, activityLook } from "../../lib/activity";
+import { activityById, activityLook, bagFor } from "../../lib/activity";
+import { type AlarmKind, useSessionAlarm } from "../../lib/alarm";
 import { api, call } from "../../lib/api";
 import { useServerNow } from "../../lib/clock";
 import {
@@ -99,12 +102,13 @@ function useSessionCommands(session: Session, activityName: string) {
 
 function LiveSession({
 	session,
+	policies,
 }: {
 	session: Session;
-	// The tab's alarm reads the warning time from them (next commit).
 	policies: readonly Policy[];
 }) {
-	const { household, activities, timeZone } = useParents();
+	const { household, activities, timeZone, child } = useParents();
+	const toast = useToast();
 	const now = useServerNow();
 	const [confirm, setConfirm] = useState<"stop" | "cancel" | null>(null);
 	const activity = activityById(activities, session.activityId);
@@ -112,6 +116,24 @@ function LiveSession({
 	const name = activity?.name ?? "La sesión";
 	const commands = useSessionCommands(session, name);
 	const t = timing(session, now);
+	const warningMinutes =
+		bagFor(policies, session.activityId)?.warningMinutes ?? 0;
+
+	useSessionAlarm(
+		{ sessionId: session.id, endsAtMs: t.endsAtMs, warningMinutes },
+		(kind: AlarmKind) => {
+			toast.show(
+				"alarm",
+				kind === "warning"
+					? `Quedan ${warningMinutes} min`
+					: "Se acabó el tiempo",
+				kind === "warning"
+					? `${name} de ${child?.name ?? "el niño"} está por terminar.`
+					: `Terminó ${name} de ${child?.name ?? "el niño"}. Detén la sesión cuando apague.`,
+			);
+		},
+	);
+
 	const paused = session.status === "paused";
 	const scheduled = session.status === "scheduled";
 	const over = !scheduled && t.remainingMs < 0;

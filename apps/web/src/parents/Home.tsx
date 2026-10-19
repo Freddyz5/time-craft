@@ -1,6 +1,7 @@
 // Inicio. Phone order: a forgotten pause first, then the child's pending
 // requests (they expire), what is happening now, the balance in bricks, the
-// tasks to review. On a laptop the balance moves to its own column.
+// tasks to review and, while this phone has none, the offer to turn on
+// notifications. On a laptop the balance moves to its own column.
 import { Lock, UserPlus } from "lucide-react";
 import { Link } from "wouter";
 import { buttonClass, Callout, LoadingBricks, Notice } from "../components/ui";
@@ -21,6 +22,7 @@ import { BalanceCard } from "./home/BalanceCard";
 import { isLongPause, NowCard } from "./home/NowCard";
 import { ReportCard } from "./home/ReportCard";
 import { RequestCard } from "./home/RequestCard";
+import { PushOffer } from "./PushSetting";
 
 function NoChild() {
 	return (
@@ -153,6 +155,8 @@ export function Home() {
 					<BalanceCard balances={balances} />
 
 					{!wide && reportsSection}
+
+					<PushOffer />
 				</div>
 			</div>
 		</div>

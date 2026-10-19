@@ -1,6 +1,6 @@
 // Cuentas: the child's login (create it, reset the PIN, see and close the
-// devices where it is signed in), the parents' passwords and the family's
-// recovery code.
+// devices where it is signed in), the parents' passwords, this device's
+// notifications and the family's recovery code.
 import { useQueryClient } from "@tanstack/react-query";
 import {
 	KeyRound,
@@ -31,6 +31,7 @@ import { keys, useChildLogins } from "../lib/queries";
 import { signOut } from "../lib/session";
 import type { HouseholdChild } from "../lib/types";
 import { useParents } from "./context";
+import { PushToggle } from "./PushSetting";
 import { useCommand } from "./useCommand";
 
 const PIN_PATTERN = /^\d{6,12}$/;
@@ -686,6 +687,22 @@ export function Accounts() {
 						<OtherParentPassword parent={parent} />
 					</div>
 				))}
+			</Callout>
+
+			<Callout
+				className="flex flex-col gap-3 p-4 sm:p-5"
+				aria-labelledby="push-title"
+			>
+				<div className="flex flex-col gap-1">
+					<h2 id="push-title" className="text-lg font-semibold">
+						Avisos en este dispositivo
+					</h2>
+					<p className="text-ink-soft">
+						Solicitudes, tareas reportadas, aviso previo, fin y cierres
+						automáticos.
+					</p>
+				</div>
+				<PushToggle />
 			</Callout>
 
 			<RecoveryCode />
