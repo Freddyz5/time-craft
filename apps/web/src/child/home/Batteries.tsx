@@ -249,6 +249,43 @@ export function BonusMeter({
 	);
 }
 
+// Today with a session open: what is free in green, then what the session
+// will still take in its colour (each run with its own part brick, so a
+// session draws the same here as in "Ahora"), then what was used.
+function splitDay({
+	freeMinutes,
+	sessionMinutes,
+	limitMinutes,
+	unit,
+	sessionColor,
+}: {
+	freeMinutes: number;
+	sessionMinutes: number;
+	limitMinutes: number;
+	unit: number;
+	sessionColor: string;
+}): BrickSpec[] {
+	const run = (minutes: number, color: string): BrickSpec[] => {
+		const count = Math.ceil(minutes / unit - 1e-9);
+		return Array.from({ length: count }, (_, index) => ({
+			fill: Math.min(1, minutes / unit - index),
+			color,
+		}));
+	};
+	const solid = [
+		...run(freeMinutes, "var(--color-balance)"),
+		...run(sessionMinutes, sessionColor),
+	];
+	const used = Math.max(0, Math.ceil(limitMinutes / unit) - solid.length);
+	return [
+		...solid,
+		...Array.from({ length: used }, () => ({
+			fill: 0,
+			color: "var(--color-balance)",
+		})),
+	];
+}
+
 // "Te quedan 40 min hoy", or "Juego: te quedan 20 min hoy" for a bag of its own.
 function headline(title: string | null, text: string): string {
 	return title === null
@@ -294,19 +331,25 @@ function BagBatteries({
 
 	const dayLimit = toMin(balance.dailyLimitSeconds);
 	const dayUnit = brickUnit(dayLimit, DAY_BRICKS);
-	const freeToday = toMin(
-		Math.max(0, balance.dailyRemainingSeconds - reserved),
-	);
-	const dayBricks = bricksFor(
-		toMin(balance.dailyRemainingSeconds),
-		dayLimit,
-		dayUnit,
-		"var(--color-balance)",
-	).map((brick, index) =>
-		sessionColor !== null && brick.fill > 0 && index + 0.5 > freeToday / dayUnit
-			? { ...brick, color: sessionColor }
-			: brick,
-	);
+	const dayBricks =
+		sessionColor === null
+			? bricksFor(
+					toMin(balance.dailyRemainingSeconds),
+					dayLimit,
+					dayUnit,
+					"var(--color-balance)",
+				)
+			: splitDay({
+					freeMinutes: toMin(
+						Math.max(0, balance.dailyRemainingSeconds - reserved),
+					),
+					sessionMinutes: toMin(
+						Math.min(reserved, balance.dailyRemainingSeconds),
+					),
+					limitMinutes: dayLimit,
+					unit: dayUnit,
+					sessionColor,
+				});
 	const dayOver =
 		balance.consumedTodaySeconds +
 		balance.carriedExcessSeconds -

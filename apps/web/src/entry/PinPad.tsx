@@ -1,4 +1,4 @@
-// The child's PIN: the digits typed so far drawn as a brick's studs, and a
+// The child's PIN: the digits typed so far drawn as studs on a brick, and a
 // big 3×4 keypad for a thumb (1–9, delete, 0, Entrar). A PIN is 6 to 12
 // digits, so the row starts with six empty studs and grows as it fills.
 import { ArrowRight, Delete, LoaderCircle } from "lucide-react";
@@ -17,23 +17,35 @@ export function PinStuds({
 	const slots = Math.min(PIN_MAX, Math.max(PIN_MIN, length));
 	return (
 		<div className="flex flex-col items-center gap-2">
+			{/* The studs sit on top of a brick: each digit typed fills one. */}
 			<div
 				key={shake}
 				aria-hidden="true"
-				className={`grid w-full justify-center gap-1.5 ${shake > 0 ? "motion-safe:animate-shake" : ""}`}
-				style={{ gridTemplateColumns: `repeat(${slots}, minmax(0, 1.5rem))` }}
+				className={`flex flex-col items-center ${shake > 0 ? "motion-safe:animate-shake" : ""}`}
 			>
-				{Array.from({ length: slots }, (_, index) => (
-					<span
-						// biome-ignore lint/suspicious/noArrayIndexKey: slots are positions
-						key={index}
-						className={`block aspect-[3/2] rounded-[5px] transition-colors duration-150 ${
-							index < length
-								? "bg-ink"
-								: "border-[1.5px] border-rule-strong bg-sheet-sunk"
-						}`}
-					/>
-				))}
+				<div
+					className="grid justify-center gap-2 px-3"
+					style={{
+						gridTemplateColumns: `repeat(${slots}, minmax(0, 1.25rem))`,
+					}}
+				>
+					{Array.from({ length: slots }, (_, index) => (
+						<span
+							// biome-ignore lint/suspicious/noArrayIndexKey: slots are positions
+							key={index}
+							className={`relative block aspect-[2/1] rounded-t-[5px] transition-colors duration-150 ${
+								index < length
+									? "bg-ink"
+									: "border-[1.5px] border-b-0 border-rule-strong bg-sheet-sunk"
+							}`}
+						>
+							{index < length && (
+								<span className="absolute inset-x-1 top-0.5 h-0.5 rounded-full bg-white/45" />
+							)}
+						</span>
+					))}
+				</div>
+				<span className="block h-2.5 w-full rounded-[4px] border-[1.5px] border-rule-strong bg-sheet-sunk" />
 			</div>
 			<p className="sr-only" aria-live="polite">
 				{length === 0

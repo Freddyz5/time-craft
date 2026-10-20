@@ -265,7 +265,7 @@ function AskForm() {
 						onChange={setMinutes}
 						unit={unit}
 						color={look.color}
-						rest={extra ? "socket" : "balance"}
+						restColor={extra ? look.tint : "var(--color-balance)"}
 						label={extra ? "Minutos extra" : "Minutos"}
 					/>
 				</div>

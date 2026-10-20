@@ -68,39 +68,52 @@ export function Home() {
 		</>
 	);
 
+	const batteries = (
+		<Batteries
+			balances={balances}
+			asOf={Date.parse(balance.data.serverTime)}
+			live={session}
+			action={
+				balances.length > 0 &&
+				session === null &&
+				requests.pending === null && (
+					<Link
+						href="/pedir"
+						className={`${buttonClass(exhausted ? "secondary" : "primary")} min-h-14 text-lg`}
+					>
+						<Hand className="size-5" aria-hidden="true" />
+						{exhausted ? "Pedir tiempo extra" : "Pedir tiempo"}
+					</Link>
+				)
+			}
+		/>
+	);
+	const extras = (
+		<>
+			<Rules policies={policies.data?.policies ?? []} />
+			<PushOffer />
+		</>
+	);
+
+	if (!now) {
+		return (
+			<div className="mx-auto flex max-w-xl flex-col gap-5">
+				<h1 className="sr-only">Tu tiempo</h1>
+				<AnswerAnnouncer arrival={arrival} />
+				{batteries}
+				{extras}
+			</div>
+		);
+	}
+	// Phone: now, batteries, extras. Laptop: now and extras on the left, the
+	// batteries spanning the right, so both columns end near each other.
 	return (
-		<div
-			className={`mx-auto grid gap-5 ${
-				now
-					? "max-w-5xl lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start"
-					: "max-w-xl"
-			}`}
-		>
+		<div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
 			<h1 className="sr-only">Tu tiempo</h1>
 			<AnswerAnnouncer arrival={arrival} />
-			{now && <div className="flex flex-col gap-5">{now}</div>}
-			<div className="flex flex-col gap-5">
-				<Batteries
-					balances={balances}
-					asOf={Date.parse(balance.data.serverTime)}
-					live={session}
-					action={
-						balances.length > 0 &&
-						session === null &&
-						requests.pending === null && (
-							<Link
-								href="/pedir"
-								className={`${buttonClass(exhausted ? "secondary" : "primary")} min-h-14 text-lg`}
-							>
-								<Hand className="size-5" aria-hidden="true" />
-								{exhausted ? "Pedir tiempo extra" : "Pedir tiempo"}
-							</Link>
-						)
-					}
-				/>
-				<Rules policies={policies.data?.policies ?? []} />
-				<PushOffer />
-			</div>
+			<div className="flex flex-col gap-5">{now}</div>
+			<div className="flex flex-col gap-5 lg:row-span-2">{batteries}</div>
+			<div className="flex flex-col gap-5">{extras}</div>
 		</div>
 	);
 }

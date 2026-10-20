@@ -1,8 +1,10 @@
 // «Arma tu pedido»: the minutes the child can ask for, as a row of bricks.
 // Tapping one picks every brick up to it; the picked ones lift and take the
-// activity's colour. The last brick may be worth less (what is left: 35 min
-// is three bricks and a half one). Radio inputs underneath, so arrow keys and
-// screen readers work as with any choice.
+// activity's colour, the rest keep theirs (still available in green, or a
+// pale tint of the activity for extra time, which is nobody's balance). The
+// last brick may be worth less (what is left: 35 min is three bricks and a
+// half one). Radio inputs underneath, so arrow keys and screen readers work
+// as with any choice.
 import { useId } from "react";
 import { Brick } from "../../components/bricks";
 
@@ -12,7 +14,7 @@ export function BrickPicker({
 	onChange,
 	unit,
 	color,
-	rest,
+	restColor,
 	label,
 }: {
 	// Minutes each brick stands for, cumulative: [10, 20, 30, 35].
@@ -22,9 +24,8 @@ export function BrickPicker({
 	unit: number;
 	// The picked bricks' colour (the activity's).
 	color: string;
-	// How unpicked bricks look: still available (green) or only possible
-	// (an empty socket, for extra time).
-	rest: "balance" | "socket";
+	// The unpicked bricks' colour.
+	restColor: string;
 	label: string;
 }) {
 	const name = useId();
@@ -63,8 +64,7 @@ export function BrickPicker({
 							>
 								<Brick
 									fill={1}
-									color={isPicked ? color : "var(--color-balance)"}
-									socket={!isPicked && rest === "socket"}
+									color={isPicked ? color : restColor}
 									half={half}
 								/>
 							</span>

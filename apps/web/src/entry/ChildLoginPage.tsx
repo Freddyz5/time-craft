@@ -118,9 +118,12 @@ export default function ChildLoginPage() {
 	const [step, setStep] = useState<"username" | "pin">(
 		known ? "pin" : "username",
 	);
-	// The name to greet with: theirs, once this browser has seen them sign in.
+	// The name to greet with: theirs, once this browser has seen them sign in;
+	// until then the username, capitalised.
 	const greeting =
-		known !== null && known.username === username ? known.name : username;
+		known !== null && known.username === username
+			? known.name
+			: `${username.charAt(0).toUpperCase()}${username.slice(1)}`;
 	const [pin, setPin] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);

@@ -5,7 +5,7 @@
 // later counts down to "¡Ya puedes empezar!", and the tab rings then, at the
 // warning and at the end. When it arrives with a parent's yes, its bricks
 // snap in. There are no controls here: only a parent starts, pauses or stops.
-import { PartyPopper } from "lucide-react";
+import { CirclePlay } from "lucide-react";
 import { useEffect, useRef } from "react";
 import {
 	AmountBricks,
@@ -120,7 +120,7 @@ function Scheduled({
 			</div>
 			{ready ? (
 				<div className="flex items-center gap-3">
-					<PartyPopper
+					<CirclePlay
 						className="size-10 shrink-0 text-ink"
 						strokeWidth={1.75}
 						aria-hidden="true"
