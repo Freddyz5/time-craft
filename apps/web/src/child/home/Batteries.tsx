@@ -8,6 +8,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { Link } from "wouter";
 import {
 	BRICK_MINUTES,
+	Brick,
 	BrickRow,
 	type BrickSpec,
 	bricksFor,
@@ -122,13 +123,6 @@ export function BonusMeter({
 	const halves = Math.round((earned / unit) * 2);
 	const whole = Math.min(count, Math.floor(halves / 2));
 	const half = whole < count && halves % 2 === 1;
-	const bricks: BrickSpec[] = Array.from({ length: count }, (_, index) =>
-		index < whole
-			? { fill: 1, color: "var(--color-bonus)" }
-			: index === whole && half
-				? { fill: 1, color: "var(--color-bonus)", half: true }
-				: { fill: 0, color: "var(--color-bonus)", socket: true },
-	);
 	const full = earned >= cap;
 	return (
 		<div className="flex flex-col gap-2">
@@ -136,13 +130,28 @@ export function BonusMeter({
 				title="Bonos de la semana"
 				figure={`${minutesText(Math.floor(earned))} de ${minutesText(cap)}`}
 			/>
-			<div className="max-w-[24rem]">
-				<BrickRow
-					bricks={bricks}
-					perRow={count}
-					gap="tight"
-					label={`Bonos: ganaste ${minutesText(Math.floor(earned))} de ${minutesText(cap)} posibles esta semana`}
-				/>
+			<div
+				role="img"
+				aria-label={`Bonos: ganaste ${minutesText(Math.floor(earned))} de ${minutesText(cap)} posibles esta semana`}
+				className="grid max-w-[24rem] gap-x-[3px]"
+				style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
+			>
+				{Array.from({ length: count }, (_, index) => (
+					// A half-earned place shows its half brick sitting in the socket.
+					// biome-ignore lint/suspicious/noArrayIndexKey: places are positions
+					<div key={index} className="relative">
+						{index < whole ? (
+							<Brick fill={1} color="var(--color-bonus)" />
+						) : (
+							<Brick fill={0} color="var(--color-bonus)" socket />
+						)}
+						{index === whole && half && (
+							<div className="absolute inset-0">
+								<Brick fill={1} color="var(--color-bonus)" half />
+							</div>
+						)}
+					</div>
+				))}
 			</div>
 			<p className="flex flex-wrap gap-x-3.5 gap-y-1 text-[0.9375rem] text-ink-soft">
 				<span>
