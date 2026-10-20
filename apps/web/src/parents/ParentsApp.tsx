@@ -8,6 +8,7 @@ import { StandaloneFrame } from "../components/StandaloneFrame";
 import { Button, buttonClass, LoadingBricks } from "../components/ui";
 import { errorMessage } from "../lib/errors";
 import { useRoleGuard } from "../lib/guard";
+import { dropTrailingSlash } from "../lib/routing";
 import { signOut } from "../lib/session";
 import { Accounts } from "./Accounts";
 import { BonusTasks } from "./BonusTasks";
@@ -83,21 +84,8 @@ function ParentsRoot() {
 	);
 }
 
-// /padres/reglas/ and /padres/reglas are the same screen. Runs before the
-// router reads the location (the island only renders in the browser).
-function dropTrailingSlash() {
-	const { pathname, search, hash } = window.location;
-	if (pathname.length > "/padres/".length && pathname.endsWith("/")) {
-		window.history.replaceState(
-			null,
-			"",
-			`${pathname.slice(0, -1)}${search}${hash}`,
-		);
-	}
-}
-
 export default function ParentsApp() {
-	useState(dropTrailingSlash);
+	useState(() => dropTrailingSlash("/padres"));
 
 	return (
 		<AppProviders>

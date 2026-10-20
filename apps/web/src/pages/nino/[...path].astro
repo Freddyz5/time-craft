@@ -1,0 +1,20 @@
+---
+import ChildApp from "../../child/ChildApp";
+import LoadingFrame from "../../components/LoadingFrame.astro";
+// The child's island. One static HTML file per screen of its router, so a
+// reload or a notification link opens the right one. /nino/entrar is a page
+// of its own (static routes win over this one).
+import Base from "../../layouts/Base.astro";
+
+export function getStaticPaths() {
+	return [undefined, "pedir", "tareas", "avisos"].map((path) => ({
+		params: { path },
+	}));
+}
+---
+
+<Base title="Time Craft">
+	<ChildApp client:only="react">
+		<LoadingFrame slot="fallback" />
+	</ChildApp>
+</Base>

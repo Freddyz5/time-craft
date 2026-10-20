@@ -269,6 +269,31 @@ export function bricksFor(
 	}));
 }
 
+// The week's wall: what is left is solid, its tail in yellow for the bonus
+// still unused, then outlines for what was used. Minutes in, bricks out.
+export function weekWallBricks(
+	{
+		totalMinutes,
+		remainingMinutes,
+		bonusMinutes,
+	}: { totalMinutes: number; remainingMinutes: number; bonusMinutes: number },
+	unit: number,
+): { bricks: BrickSpec[]; bonusLeft: number } {
+	const bonusLeft = Math.min(bonusMinutes, remainingMinutes);
+	const greenUntil = (remainingMinutes - bonusLeft) / unit;
+	const bricks = bricksFor(
+		remainingMinutes,
+		totalMinutes,
+		unit,
+		"var(--color-balance)",
+	).map((brick, index) =>
+		brick.fill > 0 && index + 0.5 > greenUntil
+			? { ...brick, color: "var(--color-bonus)" }
+			: brick,
+	);
+	return { bricks, bonusLeft };
+}
+
 // A fixed amount (asked, earned, planned, used): whole bricks plus a half
 // brick for the rest, to the nearest half. `used` draws them as outlines in
 // their colour (time already spent).
