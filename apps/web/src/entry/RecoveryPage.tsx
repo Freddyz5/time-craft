@@ -26,7 +26,16 @@ export default function RecoveryPage() {
 
 	async function submit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (mismatch || tooShort) {
+		if (email.trim() === "" || code.trim() === "") {
+			setError("Escribe tu correo y el código de recuperación.");
+			return;
+		}
+		if (password.length < 8) {
+			setError("La contraseña nueva lleva 8 caracteres como mínimo.");
+			return;
+		}
+		if (mismatch || repeat === "") {
+			setError("Repite la contraseña nueva igual que arriba.");
 			return;
 		}
 		setBusy(true);
@@ -154,14 +163,7 @@ export default function RecoveryPage() {
 					variant="primary"
 					block
 					busy={busy}
-					disabled={
-						email.trim() === "" ||
-						code.trim() === "" ||
-						password === "" ||
-						repeat === "" ||
-						mismatch ||
-						tooShort
-					}
+					disabled={busy}
 				>
 					Cambiar la contraseña
 				</Button>

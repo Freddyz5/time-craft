@@ -4,7 +4,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Pencil, Plus, PowerOff } from "lucide-react";
 import { useId, useState } from "react";
-import { BrickRow, bricksFor, brickUnit } from "../components/bricks";
+import { AmountBricks } from "../components/bricks";
 import {
 	Button,
 	Callout,
@@ -229,7 +229,6 @@ function TaskItem({ task }: { task: BonusTask }) {
 			},
 		},
 	);
-	const unit = brickUnit(task.rewardMinutes, 6);
 
 	if (editing) {
 		return (
@@ -255,19 +254,12 @@ function TaskItem({ task }: { task: BonusTask }) {
 					<p className="text-ink-soft">{task.description}</p>
 				)}
 				<div className="flex items-center gap-3">
-					<div className="w-24 shrink-0">
-						<BrickRow
-							bricks={bricksFor(
-								task.rewardMinutes,
-								task.rewardMinutes,
-								unit,
-								task.isActive ? "var(--color-bonus)" : "var(--color-ghost)",
-							)}
-							perRow={Math.max(3, Math.ceil(task.rewardMinutes / unit))}
-							gap="tight"
-							label={`Gana ${minutesText(task.rewardMinutes)}`}
-						/>
-					</div>
+					<AmountBricks
+						minutes={task.rewardMinutes}
+						color={task.isActive ? "var(--color-bonus)" : "var(--color-ghost)"}
+						size="sm"
+						label={`Gana ${minutesText(task.rewardMinutes)}`}
+					/>
 					<p className="tabular text-[0.9375rem] text-ink-soft">
 						+{minutesText(task.rewardMinutes)}
 						{task.maxPerWeek !== null &&
@@ -365,7 +357,7 @@ export function BonusTasks() {
 					className="flex flex-col gap-4 p-4 sm:p-5"
 					aria-labelledby="new-task"
 				>
-					<h2 id="new-task" className="text-lg font-semibold">
+					<h2 id="new-task" className="text-xl leading-tight font-semibold">
 						Nueva tarea
 					</h2>
 					<TaskForm
@@ -390,7 +382,10 @@ export function BonusTasks() {
 						className="flex flex-col gap-4 p-4 sm:p-5"
 						aria-labelledby="active-tasks"
 					>
-						<h2 id="active-tasks" className="text-lg font-semibold">
+						<h2
+							id="active-tasks"
+							className="text-xl leading-tight font-semibold"
+						>
 							Activas
 							{active.length > 0 && (
 								<span className="font-normal text-ink-soft">

@@ -5,7 +5,7 @@
 import { ArrowLeft, CalendarClock, Play } from "lucide-react";
 import { useId, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { BrickRow, bricksFor, brickUnit } from "../components/bricks";
+import { AmountBricks } from "../components/bricks";
 import {
 	Button,
 	buttonClass,
@@ -155,7 +155,7 @@ export function NewSession() {
 			<div className="mx-auto flex max-w-2xl flex-col gap-5">
 				{header}
 				<Callout className="flex flex-col items-start gap-3 p-5">
-					<h2 className="text-lg font-semibold">
+					<h2 className="text-xl leading-tight font-semibold">
 						{status === "scheduled"
 							? "Ya hay una sesión programada"
 							: status === "paused"
@@ -193,7 +193,12 @@ export function NewSession() {
 	}
 
 	const reasonMissing = extra && reason.trim() === "";
-	const unit = brickUnit(Math.max(value, 10), 12);
+	// At most four choices: up to three presets under the cap, plus "Todo".
+	const showAll = !extra && max > 0 && !PRESETS.includes(max);
+	const presets = PRESETS.filter((preset) => preset <= max).slice(
+		0,
+		showAll ? 3 : 4,
+	);
 
 	return (
 		<div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -242,7 +247,9 @@ export function NewSession() {
 									</span>
 									<span className="font-semibold">{activity.name}</span>
 									<span className="text-[0.9375rem] text-ink-soft">
-										{left > 0 ? `Le quedan ${minutesText(left)}` : "Sin tiempo"}
+										{left > 0
+											? `${minutesText(left)} por usar`
+											: "Sin tiempo hoy"}
 									</span>
 								</label>
 							);
@@ -260,14 +267,14 @@ export function NewSession() {
 						hint={
 							extra
 								? `No le queda tiempo de ${chosen?.name ?? "pantalla"}. Puedes darle tiempo extra: queda registrado con su motivo.`
-								: `Le quedan ${secondsText(bag?.availableSeconds ?? 0)}: no puedes pasarte de eso.`
+								: `Le quedan ${secondsText(bag?.availableSeconds ?? 0)} hoy. Cuando se le acabe, aquí mismo podrás darle tiempo extra.`
 						}
 					>
 						{extra ? "Tiempo extra" : "Minutos"}
 					</StepTitle>
 					<fieldset className="flex flex-wrap gap-2">
 						<legend className="sr-only">Atajos de minutos</legend>
-						{PRESETS.filter((preset) => preset <= max).map((preset) => (
+						{presets.map((preset) => (
 							<button
 								key={preset}
 								type="button"
@@ -278,14 +285,14 @@ export function NewSession() {
 								{preset} min
 							</button>
 						))}
-						{!extra && max > 0 && !PRESETS.includes(max) && (
+						{showAll && (
 							<button
 								type="button"
 								aria-pressed={value === max}
 								onClick={() => setMinutes(max)}
 								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white"
 							>
-								Todo ({max} min)
+								Todo: {max} min
 							</button>
 						)}
 					</fieldset>
@@ -296,14 +303,11 @@ export function NewSession() {
 						onChange={setMinutes}
 						max={Math.max(1, max)}
 					/>
-					<div className="w-full max-w-80">
-						<BrickRow
-							bricks={bricksFor(value, value, unit, look.color)}
-							perRow={Math.max(6, Math.ceil(value / unit))}
-							gap="tight"
-							label={`${minutesText(value)} en ladrillos`}
-						/>
-					</div>
+					<AmountBricks
+						minutes={value}
+						color={look.color}
+						label={`${minutesText(value)} en ladrillos`}
+					/>
 					{extra && (
 						<div className="flex flex-col gap-1.5">
 							<label htmlFor={ids.reason} className="font-medium">

@@ -4,7 +4,7 @@
 // minutes, so the card shows the time left.
 import { Check, SlidersHorizontal, X } from "lucide-react";
 import { useId, useState } from "react";
-import { BrickRow, bricksFor, brickUnit } from "../../components/bricks";
+import { PartsBox } from "../../components/bricks";
 import {
 	Button,
 	Callout,
@@ -106,10 +106,14 @@ export function RequestCard({
 					},
 				}),
 			),
-		{ success: "Solicitud rechazada" },
+		{
+			success: (_result, input) =>
+				input.note.trim() === ""
+					? "Solicitud rechazada"
+					: `Solicitud rechazada: ${childName} verá tu nota`,
+		},
 	);
 	const busy = approve.isPending || reject.isPending;
-	const unit = brickUnit(request.requestedMinutes, 12);
 
 	return (
 		<Callout
@@ -128,7 +132,11 @@ export function RequestCard({
 						pidió a las {timeText(request.createdAt, timeZone)} ·{" "}
 						<span className="tabular">
 							{expiresIn > 0
-								? `expira en ${countdown(expiresIn)}`
+								? `expira en ${
+										expiresIn > 60_000
+											? minutesText(Math.ceil(expiresIn / 60_000))
+											: countdown(expiresIn)
+									}`
 								: "expirando"}
 						</span>
 					</p>
@@ -148,19 +156,11 @@ export function RequestCard({
 				</blockquote>
 			)}
 
-			<div className="w-full max-w-72">
-				<BrickRow
-					bricks={bricksFor(
-						request.requestedMinutes,
-						request.requestedMinutes,
-						unit,
-						look.color,
-					)}
-					perRow={Math.max(6, Math.ceil(request.requestedMinutes / unit))}
-					gap="tight"
-					label={`${minutesText(request.requestedMinutes)} pedidos`}
-				/>
-			</div>
+			<PartsBox
+				minutes={request.requestedMinutes}
+				color={look.color}
+				label={`${minutesText(request.requestedMinutes)} pedidos`}
+			/>
 
 			{!extra && !fits && (
 				<p className="text-[0.9375rem] text-ink-soft">

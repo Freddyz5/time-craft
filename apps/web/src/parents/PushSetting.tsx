@@ -87,7 +87,7 @@ export function PushToggle({ compact = false }: { compact?: boolean }) {
 		</div>
 	) : (
 		<Button
-			variant="primary"
+			variant={compact ? "secondary" : "primary"}
 			icon={<Bell className="size-5" aria-hidden="true" />}
 			busy={busy}
 			onClick={() => void change(true)}
@@ -97,10 +97,22 @@ export function PushToggle({ compact = false }: { compact?: boolean }) {
 	);
 }
 
-// Inicio's offer, only while this device has no subscription.
+const OFFER_DISMISSED = "timecraft:push-offer-dismissed";
+
+function offerDismissed(): boolean {
+	try {
+		return window.localStorage.getItem(OFFER_DISMISSED) === "1";
+	} catch {
+		return false;
+	}
+}
+
+// Inicio's offer, only while this device has no subscription and nobody said
+// "Ahora no" here. Cuentas keeps the switch either way.
 export function PushOffer() {
 	const { state } = usePushState();
-	if (state !== "off") {
+	const [dismissed, setDismissed] = useState(offerDismissed);
+	if (state !== "off" || dismissed) {
 		return null;
 	}
 	return (
@@ -109,15 +121,33 @@ export function PushOffer() {
 			aria-labelledby="push-offer"
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id="push-offer" className="text-lg font-semibold">
-					Avisos en este teléfono
+				<h2 id="push-offer" className="text-xl leading-tight font-semibold">
+					Avisos en este dispositivo
 				</h2>
 				<p className="text-ink-soft">
 					Te avisamos cuando pida tiempo, cuando falten unos minutos y cuando se
 					acabe una sesión, aunque la app esté cerrada.
 				</p>
 			</div>
-			<PushToggle compact />
+			<div className="flex flex-wrap items-center gap-2">
+				<PushToggle compact />
+				<Button
+					variant="quiet"
+					onClick={() => {
+						setDismissed(true);
+						try {
+							window.localStorage.setItem(OFFER_DISMISSED, "1");
+						} catch {
+							// Private mode: it hides for this visit only.
+						}
+					}}
+				>
+					Ahora no
+				</Button>
+			</div>
+			<p className="text-[0.9375rem] text-ink-soft">
+				Puedes activarlos cuando quieras desde Cuentas.
+			</p>
 		</Callout>
 	);
 }

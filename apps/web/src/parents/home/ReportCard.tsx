@@ -3,7 +3,7 @@
 // bricks, up to the weekly bonus cap.
 import { Check, SlidersHorizontal, X } from "lucide-react";
 import { useId, useState } from "react";
-import { BrickRow, bricksFor, brickUnit } from "../../components/bricks";
+import { PartsBox } from "../../components/bricks";
 import {
 	Button,
 	Callout,
@@ -95,19 +95,11 @@ export function ReportCard({
 					«{report.note}»
 				</blockquote>
 			)}
-			<div className="w-full max-w-60">
-				<BrickRow
-					bricks={bricksFor(
-						reward,
-						reward,
-						brickUnit(reward, 12),
-						"var(--color-bonus)",
-					)}
-					perRow={6}
-					gap="tight"
-					label={`${minutesText(reward)} de bono`}
-				/>
-			</div>
+			<PartsBox
+				minutes={reward}
+				color="var(--color-bonus)"
+				label={`${minutesText(reward)} de bono`}
+			/>
 			{capLeft !== null && capLeft === 0 && (
 				<p className="text-[0.9375rem] text-bonus-ink">
 					Ya llegó al tope de bonos de esta semana: aprobarla queda registrado,

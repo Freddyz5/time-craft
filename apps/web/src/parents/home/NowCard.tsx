@@ -148,13 +148,14 @@ function LiveSession({
 	);
 	const busy = Object.values(commands).some((command) => command.isPending);
 	const startedBy = parentName(household, session.startedByParentId);
-	const elapsedMinutes = Math.ceil(t.elapsedMs / 60_000);
+	// Minutes round down, as the countdown does, so the numbers add up.
+	const elapsedMinutes = Math.floor(t.elapsedMs / 60_000);
 
 	let status: string;
 	if (scheduled) {
 		const at = session.scheduledStartAt ?? "";
 		const inMinutes = Math.max(0, Math.ceil((Date.parse(at) - now) / 60_000));
-		status = `Programada para las ${timeText(at, timeZone)} · empieza en ${minutesText(inMinutes)}`;
+		status = `Empieza en ${minutesText(inMinutes)} · ${minutesText(session.plannedDurationSeconds / 60)} de ${name}`;
 	} else if (paused) {
 		status =
 			pauseStart === null
@@ -168,12 +169,15 @@ function LiveSession({
 
 	return (
 		<Callout
-			tone={longPause ? "stop" : paused ? "pause" : "plain"}
+			tone={paused ? "pause" : "plain"}
 			className="flex flex-col gap-4 p-4 sm:p-5"
 			aria-labelledby="now-title"
 		>
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<h2 id="now-title" className="text-lg font-semibold">
+				<h2
+					id="now-title"
+					className={`text-xl leading-tight font-semibold ${longPause ? "text-pause-ink" : ""}`}
+				>
 					{longPause
 						? `Lleva ${minutesText(pausedMinutes)} en pausa`
 						: scheduled
@@ -195,12 +199,12 @@ function LiveSession({
 					aria-hidden="true"
 				>
 					{scheduled
-						? minutesText(session.plannedDurationSeconds / 60)
+						? timeText(session.scheduledStartAt ?? now, timeZone)
 						: countdown(t.remainingMs)}
 				</p>
 				<p className="sr-only" aria-live="polite">
 					{scheduled
-						? `Sesión programada de ${minutesText(session.plannedDurationSeconds / 60)}`
+						? `Empieza a las ${timeText(session.scheduledStartAt ?? now, timeZone)}`
 						: over
 							? `Se pasó ${minutesText(Math.ceil(-t.remainingMs / 60_000))}`
 							: `Quedan ${minutesText(Math.ceil(t.remainingMs / 60_000))}`}
@@ -218,7 +222,7 @@ function LiveSession({
 				/>
 				<p className="text-[0.9375rem] text-ink-soft">
 					{scheduled
-						? `${minutesText(session.plannedDurationSeconds / 60)} · la programó ${startedBy}`
+						? `La programó ${startedBy}`
 						: `Lleva ${minutesText(elapsedMinutes)} de ${minutesText(session.plannedDurationSeconds / 60)} · la inició ${startedBy}`}
 					{session.overrideId !== null && " · con tiempo extra"}
 					{unit !== BRICK_MINUTES && ` · 1 ladrillo = ${unit} min`}
@@ -226,13 +230,13 @@ function LiveSession({
 			</div>
 
 			{longPause && (
-				<p className="text-[#7d1206]">
+				<p className="text-pause-ink">
 					Una pausa no gasta tiempo, pero no deja empezar otra sesión. Si ya
 					terminó, detenla.
 				</p>
 			)}
 
-			<div className="grid grid-cols-2 gap-2">
+			<div className="grid grid-cols-2 gap-2 [&_button]:whitespace-nowrap [&_button]:px-3">
 				{scheduled ? (
 					<>
 						<Button
@@ -266,7 +270,8 @@ function LiveSession({
 							</Button>
 						) : (
 							<Button
-								variant="pause"
+								// Past its end, stopping is the main move; pausing stays at hand.
+								variant={over ? "secondary" : "pause"}
 								icon={<Pause className="size-5" aria-hidden="true" />}
 								busy={commands.pause.isPending}
 								disabled={busy}
@@ -325,10 +330,21 @@ function rechargeText(balance: Balance, timeZone: string): string {
 	return `Mañana vuelve a tener ${secondsText(balance.dailyLimitSeconds)}.`;
 }
 
-function NothingRunning({ balances }: { balances: readonly Balance[] }) {
-	const { child, timeZone } = useParents();
+function NothingRunning({
+	balances,
+	quiet,
+}: {
+	balances: readonly Balance[];
+	// A request is waiting above: answering it is the main move.
+	quiet: boolean;
+}) {
+	const { child, timeZone, activeActivities } = useParents();
 	const name = child?.name ?? "El niño";
-	// The bag with the most time left decides what can still be started.
+	// What each activity can still use (its own bag, or the general one).
+	const perActivity = activeActivities.map((activity) => ({
+		activity,
+		seconds: bagFor(balances, activity.id)?.availableSeconds ?? 0,
+	}));
 	const best = balances.reduce<Balance | undefined>(
 		(top, balance) =>
 			top === undefined || balance.availableSeconds > top.availableSeconds
@@ -336,14 +352,14 @@ function NothingRunning({ balances }: { balances: readonly Balance[] }) {
 				: top,
 		undefined,
 	);
-	const available = best?.availableSeconds ?? 0;
-	const exhausted = best !== undefined && available === 0;
+	const several = balances.length > 1;
+	const exhausted = best !== undefined && best.availableSeconds === 0;
 	return (
 		<Callout
 			className="flex flex-col gap-4 p-4 sm:p-5"
 			aria-labelledby="now-title"
 		>
-			<h2 id="now-title" className="text-lg font-semibold">
+			<h2 id="now-title" className="text-xl leading-tight font-semibold">
 				Ahora
 			</h2>
 			<p className="text-ink-soft">
@@ -351,21 +367,31 @@ function NothingRunning({ balances }: { balances: readonly Balance[] }) {
 					? "Todavía no hay reglas de tiempo. Define los límites para empezar."
 					: exhausted
 						? `${name} ya usó todo su tiempo de hoy. ${rechargeText(best, timeZone)}`
-						: `No hay nada corriendo. ${name} puede usar ${secondsText(available)} más hoy.`}
+						: several
+							? `No hay nada corriendo. Hoy le quedan: ${perActivity
+									.map(
+										({ activity, seconds }) =>
+											`${activity.name} ${secondsText(seconds)}`,
+									)
+									.join(" · ")}.`
+							: `No hay nada corriendo. ${name} puede usar ${secondsText(best.availableSeconds)} más hoy.`}
 			</p>
 			{best === undefined ? (
 				<Link href="/reglas" className={buttonClass("primary")}>
 					Definir los límites
 				</Link>
-			) : exhausted ? (
-				<Link href="/sesion" className={buttonClass("secondary")}>
-					<CalendarClock className="size-5" aria-hidden="true" />
-					Dar tiempo extra
-				</Link>
 			) : (
-				<Link href="/sesion" className={buttonClass("primary")}>
-					<Plus className="size-5" aria-hidden="true" />
-					Nueva sesión
+				// The desktop rail always carries "Nueva sesión".
+				<Link
+					href="/sesion"
+					className={`${buttonClass(exhausted || quiet ? "secondary" : "primary")} lg:hidden`}
+				>
+					{exhausted ? (
+						<CalendarClock className="size-5" aria-hidden="true" />
+					) : (
+						<Plus className="size-5" aria-hidden="true" />
+					)}
+					{exhausted ? "Dar tiempo extra" : "Nueva sesión"}
 				</Link>
 			)}
 		</Callout>
@@ -376,13 +402,15 @@ export function NowCard({
 	live,
 	balances,
 	policies,
+	quiet = false,
 }: {
 	live: LiveView["live"];
 	balances: readonly Balance[];
 	policies: readonly Policy[];
+	quiet?: boolean;
 }) {
 	if (live === null) {
-		return <NothingRunning balances={balances} />;
+		return <NothingRunning balances={balances} quiet={quiet} />;
 	}
 	return (
 		<LiveSession

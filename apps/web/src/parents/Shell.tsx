@@ -1,6 +1,8 @@
 // The parents' frame: on the phone a header and a tab bar within thumb's
 // reach; from a laptop width up, a side rail. The active tab wears a brick's
 // two studs.
+
+import { useQuery } from "@tanstack/react-query";
 import {
 	History,
 	House,
@@ -15,6 +17,8 @@ import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { BrandMark, Wordmark } from "../components/brand";
 import { buttonClass } from "../components/ui";
+import { api, call } from "../lib/api";
+import { keys } from "../lib/queries";
 import { signOut } from "../lib/session";
 import { useParents } from "./context";
 
@@ -54,9 +58,7 @@ function ChildSwitch() {
 	}
 	if (household.children.length < 2) {
 		return (
-			<span className="truncate rounded-full bg-sheet-sunk px-3 py-1 font-medium text-ink-soft">
-				{child.name}
-			</span>
+			<span className="truncate font-medium text-ink-soft">{child.name}</span>
 		);
 	}
 	return (
@@ -77,9 +79,28 @@ function ChildSwitch() {
 	);
 }
 
+// Whether the child has a session open (scheduled, running or paused), from
+// whatever the screens already fetched: the shell never polls on its own.
+// With one open, "Nueva sesión" can only explain why it can't start another,
+// so it steps back to a quiet style.
+function useSessionOpen(childId: string | undefined): boolean {
+	const { data } = useQuery({
+		queryKey: keys.live(childId ?? ""),
+		queryFn: () =>
+			call(
+				api.children[":childId"]["live-session"].$get({
+					param: { childId: childId ?? "" },
+				}),
+			),
+		enabled: false,
+	});
+	return data?.live != null;
+}
+
 export function Shell({ children }: { children: ReactNode }) {
 	const [location] = useLocation();
-	const { parentName } = useParents();
+	const { parentName, child } = useParents();
+	const sessionOpen = useSessionOpen(child?.id);
 
 	return (
 		<div className="min-h-dvh lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
@@ -99,7 +120,20 @@ export function Shell({ children }: { children: ReactNode }) {
 				>
 					<Wordmark />
 				</Link>
-				<ChildSwitch />
+				<div className="flex min-w-0 items-center gap-2">
+					<ChildSwitch />
+					<Link
+						href="/sesion"
+						aria-label="Nueva sesión"
+						className={`grid size-10 shrink-0 place-items-center rounded-full no-underline ${
+							sessionOpen
+								? "border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk"
+								: "bg-ink text-white hover:bg-[#2a3038]"
+						}`}
+					>
+						<Plus className="size-5" aria-hidden="true" />
+					</Link>
+				</div>
 			</header>
 
 			{/* Desktop rail */}
@@ -114,11 +148,14 @@ export function Shell({ children }: { children: ReactNode }) {
 				<div className="px-2">
 					<ChildSwitch />
 				</div>
-				<Link href="/sesion" className={`${buttonClass("primary")} w-full`}>
+				<Link
+					href="/sesion"
+					className={`${buttonClass(sessionOpen ? "secondary" : "primary")} w-full`}
+				>
 					<Plus className="size-5" aria-hidden="true" />
 					Nueva sesión
 				</Link>
-				<nav aria-label="Secciones" className="flex flex-col gap-1">
+				<nav aria-label="Secciones" className="flex flex-col gap-2.5">
 					{NAV.map(({ href, label, Icon }) => {
 						const active = isActive(location, href);
 						return (
@@ -126,7 +163,7 @@ export function Shell({ children }: { children: ReactNode }) {
 								key={href}
 								href={href}
 								aria-current={active ? "page" : undefined}
-								className={`flex min-h-11 items-center gap-3 rounded-control px-3 font-medium no-underline transition-colors ${
+								className={`relative flex min-h-11 items-center gap-3 rounded-control px-3 font-medium no-underline transition-colors ${
 									active
 										? "bg-page text-ink"
 										: "text-ink-soft hover:bg-sheet-sunk hover:text-ink"
@@ -134,7 +171,12 @@ export function Shell({ children }: { children: ReactNode }) {
 							>
 								<Icon className="size-5" aria-hidden="true" />
 								<span className="flex-1">{label}</span>
-								{active && <Studs />}
+								{active && (
+									// The active row is a brick: its studs on the top edge.
+									<span className="absolute -top-1.5 left-3">
+										<Studs />
+									</span>
+								)}
 							</Link>
 						);
 					})}

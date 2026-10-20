@@ -8,7 +8,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useId, useState } from "react";
 import { Link } from "wouter";
-import { BrickRow, bricksFor, brickUnit } from "../components/bricks";
+import {
+	AmountBricks,
+	amountBricks,
+	BrickRow,
+	brickUnit,
+} from "../components/bricks";
 import {
 	Button,
 	buttonClass,
@@ -92,6 +97,38 @@ function useInvalidateRules(childId: string) {
 		]);
 }
 
+// A weekly amount as a wall of bricks, like the week on Inicio. Large
+// amounts use a bigger brick, and the caption says how much it is worth.
+function WeekBricks({
+	minutes,
+	color,
+	label,
+}: {
+	minutes: number;
+	color: string;
+	label: string;
+}) {
+	if (minutes <= 0) {
+		return null;
+	}
+	const unit = brickUnit(minutes, 40);
+	return (
+		<div className="mt-1 flex flex-col gap-1">
+			<BrickRow
+				bricks={amountBricks(minutes, unit, color)}
+				perRow={10}
+				gap="tight"
+				label={label}
+			/>
+			{unit !== 10 && (
+				<p className="text-[0.8125rem] text-ink-soft">
+					1 ladrillo = {unit} min
+				</p>
+			)}
+		</div>
+	);
+}
+
 function LimitsForm({
 	initial,
 	color,
@@ -115,7 +152,6 @@ function LimitsForm({
 			setLimits((current) => ({ ...current, [key]: value }));
 	const weekTooSmall = limits.weeklyLimitMinutes < limits.dailyLimitMinutes;
 	const unchanged = sameLimits(limits, initial);
-	const dayUnit = brickUnit(limits.dailyLimitMinutes, 12);
 
 	return (
 		<form
@@ -125,101 +161,113 @@ function LimitsForm({
 				onSubmit(limits);
 			}}
 		>
-			<div className="grid gap-5 sm:grid-cols-2">
-				<div className="flex flex-col gap-1.5">
-					<label htmlFor={`${id}-daily`} className="font-medium">
-						Límite por día
-					</label>
-					<MinutesStepper
-						id={`${id}-daily`}
-						label="Límite por día"
-						value={limits.dailyLimitMinutes}
-						onChange={set("dailyLimitMinutes")}
-						step={10}
-						max={1440}
-					/>
-					<div className="mt-1 w-full max-w-72">
-						<BrickRow
-							bricks={bricksFor(
-								limits.dailyLimitMinutes,
-								limits.dailyLimitMinutes,
-								dayUnit,
-								color,
-							)}
-							perRow={Math.max(
-								6,
-								Math.ceil(limits.dailyLimitMinutes / dayUnit),
-							)}
-							gap="tight"
-							label={`${minutesText(limits.dailyLimitMinutes)} al día`}
+			<fieldset className="flex flex-col gap-4">
+				<legend className="mb-3 font-semibold">Tiempo</legend>
+				<div className="grid gap-5 sm:grid-cols-2">
+					<div className="flex flex-col gap-1.5">
+						<label htmlFor={`${id}-daily`} className="font-medium">
+							Límite por día
+						</label>
+						<MinutesStepper
+							id={`${id}-daily`}
+							label="Límite por día"
+							value={limits.dailyLimitMinutes}
+							onChange={set("dailyLimitMinutes")}
+							step={10}
+							max={1440}
 						/>
+						<div className="mt-1">
+							<AmountBricks
+								minutes={limits.dailyLimitMinutes}
+								color={color}
+								label={`${minutesText(limits.dailyLimitMinutes)} al día`}
+							/>
+						</div>
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<label htmlFor={`${id}-weekly`} className="font-medium">
+							Límite por semana
+						</label>
+						<MinutesStepper
+							id={`${id}-weekly`}
+							label="Límite por semana"
+							value={limits.weeklyLimitMinutes}
+							onChange={set("weeklyLimitMinutes")}
+							step={30}
+							max={10080}
+						/>
+						<WeekBricks
+							minutes={limits.weeklyLimitMinutes}
+							color={color}
+							label={`${minutesText(limits.weeklyLimitMinutes)} a la semana`}
+						/>
+						<p
+							className={`text-[0.9375rem] ${weekTooSmall ? "text-stop" : "text-ink-soft"}`}
+						>
+							{weekTooSmall
+								? "No puede ser menor que el límite por día."
+								: `${minutesText(limits.weeklyLimitMinutes)}: lo que se usa cada día se descuenta de aquí.`}
+						</p>
 					</div>
 				</div>
-				<div className="flex flex-col gap-1.5">
-					<label htmlFor={`${id}-weekly`} className="font-medium">
-						Límite por semana
-					</label>
-					<MinutesStepper
-						id={`${id}-weekly`}
-						label="Límite por semana"
-						value={limits.weeklyLimitMinutes}
-						onChange={set("weeklyLimitMinutes")}
-						step={30}
-						max={10080}
-					/>
-					<p
-						className={`text-[0.9375rem] ${weekTooSmall ? "text-stop" : "text-ink-soft"}`}
-					>
-						{weekTooSmall
-							? "No puede ser menor que el límite por día."
-							: `${minutesText(limits.weeklyLimitMinutes)}: lo que se usa cada día se descuenta de aquí.`}
-					</p>
+				<Switch
+					id={`${id}-carry`}
+					checked={limits.carryOverExcess}
+					onChange={set("carryOverExcess")}
+					label="Descontar al día siguiente lo que se pase"
+					description="Si un día se pasa del límite, al otro día tiene eso de menos."
+				/>
+			</fieldset>
+			<fieldset className="flex flex-col gap-4 border-t-[1.5px] border-rule pt-5">
+				<legend className="sr-only">Bonos y avisos</legend>
+				<p aria-hidden="true" className="-mt-1 font-semibold">
+					Bonos y avisos
+				</p>
+				<div className="grid gap-5 sm:grid-cols-2">
+					<div className="flex flex-col gap-1.5">
+						<label htmlFor={`${id}-bonus`} className="font-medium">
+							Tope de bonos por semana
+						</label>
+						<MinutesStepper
+							id={`${id}-bonus`}
+							label="Tope de bonos por semana"
+							value={limits.weeklyBonusCapMinutes}
+							onChange={set("weeklyBonusCapMinutes")}
+							min={0}
+							step={10}
+							max={10080}
+						/>
+						<WeekBricks
+							minutes={limits.weeklyBonusCapMinutes}
+							color="var(--color-bonus)"
+							label={`Bonos hasta ${minutesText(limits.weeklyBonusCapMinutes)}`}
+						/>
+						<p className="text-[0.9375rem] text-ink-soft">
+							Lo máximo que suman las tareas a la semana. No sube el límite del
+							día.
+						</p>
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<label htmlFor={`${id}-warning`} className="font-medium">
+							Aviso antes del final
+						</label>
+						<MinutesStepper
+							id={`${id}-warning`}
+							label="Minutos de aviso antes del final"
+							value={limits.warningMinutes}
+							onChange={set("warningMinutes")}
+							min={0}
+							step={1}
+							max={60}
+						/>
+						<p className="text-[0.9375rem] text-ink-soft">
+							{limits.warningMinutes > 0
+								? `Suena y llega un aviso ${limits.warningMinutes} min antes de terminar.`
+								: "Sin aviso previo: solo se avisa al terminar."}
+						</p>
+					</div>
 				</div>
-				<div className="flex flex-col gap-1.5">
-					<label htmlFor={`${id}-bonus`} className="font-medium">
-						Tope de bonos por semana
-					</label>
-					<MinutesStepper
-						id={`${id}-bonus`}
-						label="Tope de bonos por semana"
-						value={limits.weeklyBonusCapMinutes}
-						onChange={set("weeklyBonusCapMinutes")}
-						min={0}
-						step={10}
-						max={10080}
-					/>
-					<p className="text-[0.9375rem] text-ink-soft">
-						Lo máximo que suman las tareas a la semana. No sube el límite del
-						día.
-					</p>
-				</div>
-				<div className="flex flex-col gap-1.5">
-					<label htmlFor={`${id}-warning`} className="font-medium">
-						Aviso antes del final
-					</label>
-					<MinutesStepper
-						id={`${id}-warning`}
-						label="Minutos de aviso antes del final"
-						value={limits.warningMinutes}
-						onChange={set("warningMinutes")}
-						min={0}
-						step={1}
-						max={60}
-					/>
-					<p className="text-[0.9375rem] text-ink-soft">
-						{limits.warningMinutes > 0
-							? `Suena y llega un aviso ${limits.warningMinutes} min antes de terminar.`
-							: "Sin aviso previo: solo se avisa al terminar."}
-					</p>
-				</div>
-			</div>
-			<Switch
-				id={`${id}-carry`}
-				checked={limits.carryOverExcess}
-				onChange={set("carryOverExcess")}
-				label="Descontar al día siguiente lo que se pase"
-				description="Si un día se pasa del límite, al otro día tiene eso de menos."
-			/>
+			</fieldset>
 			<div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
 				{onCancel && (
 					<Button variant="quiet" disabled={busy} onClick={onCancel}>
@@ -369,6 +417,18 @@ function HistoryList({ policies }: { policies: readonly Policy[] }) {
 			{policies.map((policy) => {
 				const activity = activities.find((a) => a.id === policy.activityId);
 				const current = policy.validTo === null;
+				// Which activities a current general policy covers: those without
+				// limits of their own.
+				const generalFor = activities
+					.filter(
+						(a) =>
+							a.isActive &&
+							!policies.some(
+								(other) => other.validTo === null && other.activityId === a.id,
+							),
+					)
+					.map((a) => a.name)
+					.join(" y ");
 				return (
 					<li
 						key={policy.id}
@@ -380,7 +440,11 @@ function HistoryList({ policies }: { policies: readonly Policy[] }) {
 							</span>
 							{current && (
 								<span className="rounded-full bg-balance-tint px-2 py-0.5 text-[0.8125rem] font-semibold text-balance-ink">
-									Vigente
+									{activity
+										? `Vigente para ${activity.name}`
+										: generalFor
+											? `Vigente para ${generalFor}`
+											: "Vigente"}
 								</span>
 							)}
 						</div>
@@ -460,7 +524,10 @@ export function Rules() {
 						aria-labelledby="general-title"
 					>
 						<div className="flex flex-col gap-1">
-							<h2 id="general-title" className="text-lg font-semibold">
+							<h2
+								id="general-title"
+								className="text-xl leading-tight font-semibold"
+							>
 								Cuota general
 							</h2>
 							<p className="text-ink-soft">
@@ -483,7 +550,10 @@ export function Rules() {
 						aria-labelledby="activities-title"
 					>
 						<div className="flex flex-col gap-1">
-							<h2 id="activities-title" className="text-lg font-semibold">
+							<h2
+								id="activities-title"
+								className="text-xl leading-tight font-semibold"
+							>
 								Límites por actividad
 							</h2>
 							<p className="text-ink-soft">
@@ -513,7 +583,10 @@ export function Rules() {
 				aria-labelledby="history-title"
 			>
 				<div className="flex flex-col gap-1">
-					<h2 id="history-title" className="text-lg font-semibold">
+					<h2
+						id="history-title"
+						className="text-xl leading-tight font-semibold"
+					>
 						Historial de reglas
 					</h2>
 					<p className="text-ink-soft">

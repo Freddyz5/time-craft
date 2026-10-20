@@ -204,7 +204,7 @@ function CreateChild() {
 			aria-labelledby={`${id}-title`}
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id={`${id}-title`} className="text-lg font-semibold">
+				<h2 id={`${id}-title`} className="text-xl leading-tight font-semibold">
 					Crear la cuenta del niño
 				</h2>
 				<p className="text-ink-soft">
@@ -345,9 +345,8 @@ function ChildDevices({ child }: { child: HouseholdChild }) {
 									<p className="text-[0.9375rem] text-ink-soft">
 										Entró {relativeDayText(login.createdAt, now, timeZone)} a
 										las {timeText(login.createdAt, timeZone)}
-										{" · "}usada{" "}
+										{" · "}último uso:{" "}
 										{relativeDayText(login.updatedAt, now, timeZone)}
-										{login.ipAddress ? ` · IP ${login.ipAddress}` : ""}
 									</p>
 								</div>
 							</div>
@@ -408,7 +407,7 @@ function ChildAccount({ child }: { child: HouseholdChild }) {
 			aria-labelledby="child-title"
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id="child-title" className="text-lg font-semibold">
+				<h2 id="child-title" className="text-xl leading-tight font-semibold">
 					Cuenta de {child.name}
 				</h2>
 				<p className="text-ink-soft">
@@ -596,7 +595,7 @@ function RecoveryCode() {
 			aria-labelledby="recovery-title"
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id="recovery-title" className="text-lg font-semibold">
+				<h2 id="recovery-title" className="text-xl leading-tight font-semibold">
 					Código de recuperación
 				</h2>
 				<p className="text-ink-soft">
@@ -609,7 +608,8 @@ function RecoveryCode() {
 					<CopyCode code={code} />
 					<Notice>
 						Guárdalo fuera de este teléfono (impreso o en un gestor de
-						contraseñas). No se vuelve a mostrar.
+						contraseñas) y avísale al otro padre: el código anterior ya no
+						sirve. No se vuelve a mostrar.
 					</Notice>
 					<div>
 						<Button variant="primary" onClick={() => setCode(null)}>
@@ -673,7 +673,10 @@ export function Accounts() {
 				aria-labelledby="parents-title"
 			>
 				<div className="flex flex-col gap-1">
-					<h2 id="parents-title" className="text-lg font-semibold">
+					<h2
+						id="parents-title"
+						className="text-xl leading-tight font-semibold"
+					>
 						Padres
 					</h2>
 					<p className="text-ink-soft">
@@ -694,7 +697,7 @@ export function Accounts() {
 				aria-labelledby="push-title"
 			>
 				<div className="flex flex-col gap-1">
-					<h2 id="push-title" className="text-lg font-semibold">
+					<h2 id="push-title" className="text-xl leading-tight font-semibold">
 						Avisos en este dispositivo
 					</h2>
 					<p className="text-ink-soft">

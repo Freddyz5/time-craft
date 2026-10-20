@@ -10,18 +10,19 @@ import {
 	useId,
 	useRef,
 } from "react";
+import { Brick } from "./bricks";
 
 type Variant = "primary" | "secondary" | "quiet" | "danger" | "pause";
 
 const variants: Record<Variant, string> = {
 	primary:
-		"bg-ink text-white hover:bg-[#2a3038] active:bg-black disabled:bg-[#8a949e]",
+		"bg-ink text-white hover:bg-[#2a3038] active:bg-black disabled:bg-[#c5ced7] disabled:text-ink-soft",
 	secondary:
 		"bg-sheet text-ink border-[1.5px] border-rule-strong hover:bg-sheet-sunk active:bg-page disabled:text-ink-faint disabled:border-rule",
 	quiet:
 		"bg-transparent text-ink hover:bg-sheet-sunk active:bg-page disabled:text-ink-faint underline-offset-4",
 	danger:
-		"bg-stop text-white hover:bg-[#b01607] active:bg-[#951305] disabled:bg-[#d98f88]",
+		"bg-stop text-white hover:bg-[#b01607] active:bg-[#951305] disabled:bg-stop-tint disabled:text-[#7d1206]",
 	pause:
 		"bg-pause text-ink hover:bg-[#f07d0c] active:bg-[#e07000] disabled:bg-pause-tint",
 };
@@ -56,7 +57,7 @@ export function Button({
 			type={type}
 			disabled={disabled || busy}
 			aria-busy={busy || undefined}
-			className={`inline-flex select-none items-center justify-center rounded-control font-medium transition-colors duration-150 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${block ? "w-full" : ""} ${className}`}
+			className={`inline-flex select-none items-center justify-center rounded-control font-medium text-balance transition-colors duration-150 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${block ? "w-full" : ""} ${className}`}
 			{...rest}
 		>
 			{busy ? (
@@ -383,20 +384,29 @@ export function ConfirmDialog({
 	);
 }
 
-// Loading: three bricks dropping in turn, instead of a generic spinner.
+// Loading: three bricks drop onto each other in turn, like a small tower
+// being built, instead of a generic spinner.
+const LOADING_BRICKS = [
+	"var(--color-balance)",
+	"var(--color-bonus)",
+	"var(--color-game)",
+];
+
 export function LoadingBricks({ label = "Cargando…" }: { label?: string }) {
 	return (
 		<div
 			role="status"
 			className="flex flex-col items-center gap-3 py-10 text-ink-soft"
 		>
-			<div className="flex items-end gap-1.5" aria-hidden="true">
-				{[0, 1, 2].map((index) => (
-					<span
-						key={index}
-						className="block h-4 w-7 rounded-[3px] bg-balance motion-safe:animate-bounce"
-						style={{ animationDelay: `${index * 140}ms` }}
-					/>
+			<div className="flex w-10 flex-col-reverse gap-px" aria-hidden="true">
+				{LOADING_BRICKS.map((color, index) => (
+					<div
+						key={color}
+						className="motion-safe:animate-brick-stack"
+						style={{ animationDelay: `${index * 220}ms` }}
+					>
+						<Brick fill={1} color={color} />
+					</div>
 				))}
 			</div>
 			<span>{label}</span>
@@ -415,7 +425,7 @@ export function SectionTitle({
 }) {
 	return (
 		<div className="flex items-end justify-between gap-3">
-			<h2 id={id} className="text-lg font-semibold leading-tight">
+			<h2 id={id} className="text-xl leading-tight font-semibold leading-tight">
 				{children}
 			</h2>
 			{action}

@@ -7,7 +7,7 @@ const messages: Record<string, string> = {
 	unauthenticated: "Tu sesión terminó. Vuelve a entrar.",
 	no_role: "Esta cuenta no pertenece a ninguna familia.",
 	rate_limited:
-		"Demasiados intentos seguidos. Espera un rato y prueba otra vez.",
+		"Demasiados intentos seguidos. Espera un poco y prueba otra vez.",
 	invalid_request: "La solicitud no es válida.",
 	internal_error: "Algo salió mal en el servidor. Prueba otra vez.",
 
@@ -59,9 +59,10 @@ const messages: Record<string, string> = {
 	PASSWORD_TOO_SHORT: "La contraseña es demasiado corta.",
 	PASSWORD_TOO_LONG: "La contraseña es demasiado larga.",
 	INVALID_USERNAME_OR_PASSWORD: "El usuario o el PIN no son correctos.",
+	// Better Auth's sign-in window is one minute.
 	TOO_MANY_REQUESTS:
-		"Demasiados intentos seguidos. Espera un rato y prueba otra vez.",
-	http_429: "Demasiados intentos seguidos. Espera un rato y prueba otra vez.",
+		"Demasiados intentos seguidos. Espera un minuto y prueba otra vez.",
+	http_429: "Demasiados intentos seguidos. Espera un minuto y prueba otra vez.",
 };
 
 // Field-specific texts for invalid_input (core names the field).
@@ -103,6 +104,15 @@ export function errorMessage(error: unknown): string {
 			return fieldMessages[field] as string;
 		}
 		return "Revisa los datos: hay un valor que no es válido.";
+	}
+	if (error.code === "rate_limited") {
+		const seconds = error.details.retryAfterSeconds;
+		if (typeof seconds === "number") {
+			const minutes = Math.ceil(seconds / 60);
+			return `Demasiados intentos seguidos. Prueba otra vez en ${
+				minutes >= 60 ? "una hora" : `${minutes} min`
+			}.`;
+		}
 	}
 	if (error.code === "exceeds_available") {
 		const available = minutesFrom(error.details.availableSeconds);

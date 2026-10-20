@@ -84,11 +84,19 @@ export default function LoginPage() {
 
 	async function submit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
+		// Read the form itself: Chrome's autofill may not have reached state.
+		const form = new FormData(event.currentTarget);
+		const typedEmail = String(form.get("email") ?? "").trim();
+		const typedPassword = String(form.get("password") ?? "");
+		if (typedEmail === "" || typedPassword === "") {
+			setError("Escribe tu correo y tu contraseña.");
+			return;
+		}
 		setError(null);
 		setBusy("email");
 		const result = await authClient.signIn.email({
-			email: email.trim(),
-			password,
+			email: typedEmail,
+			password: typedPassword,
 		});
 		if (result.error) {
 			setBusy(null);
@@ -171,6 +179,7 @@ export default function LoginPage() {
 				<Field label="Correo" htmlFor={emailId}>
 					<input
 						id={emailId}
+						name="email"
 						type="email"
 						inputMode="email"
 						autoComplete="email"
@@ -184,6 +193,7 @@ export default function LoginPage() {
 					<div className="relative">
 						<input
 							id={passwordId}
+							name="password"
 							type={showPassword ? "text" : "password"}
 							autoComplete="current-password"
 							required
@@ -213,7 +223,7 @@ export default function LoginPage() {
 					variant="primary"
 					block
 					busy={busy === "email"}
-					disabled={busy !== null || email.trim() === "" || password === ""}
+					disabled={busy !== null}
 				>
 					Entrar
 				</Button>

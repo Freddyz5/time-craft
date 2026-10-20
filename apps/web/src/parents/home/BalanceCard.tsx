@@ -1,30 +1,42 @@
-// The balance as the api computes it, one block per bag (the global quota and
-// any activity with limits of its own): today and the week in bricks, bonus
-// bricks in yellow, and when each recharges. Nothing is computed here but how
-// many bricks to draw.
+// The balance as the api computes it, one block per bag (the general quota
+// and any activity with limits of its own): today and the week in bricks,
+// and when each recharges. Nothing is computed here but how many bricks to
+// draw and how to say it. Minutes are rounded down everywhere, as in the
+// countdown, so numbers on screen always add up.
 import {
 	BrickRow,
+	type BrickSpec,
 	bricksFor,
 	brickUnit,
 	overrunBricks,
 } from "../../components/bricks";
 import { Callout } from "../../components/ui";
 import { activityById, activityLook } from "../../lib/activity";
-import { dayText, secondsText } from "../../lib/format";
-import type { Balance } from "../../lib/types";
+import { useServerNow } from "../../lib/clock";
+import { dayText, minutesText, secondsText } from "../../lib/format";
+import { timing } from "../../lib/timer";
+import type { Activity, Balance, Session } from "../../lib/types";
 import { useParents } from "../context";
 
 const DAY_BRICKS = 12;
 const WEEK_PER_ROW = 10;
 const WEEK_BRICKS = 40;
 
-function Legend({ unit, bonus }: { unit: number; bonus: boolean }) {
-	const swatch = "inline-block h-3 w-5 rounded-[3px] align-[-1px]";
+const BONUS = "var(--color-bonus)";
+
+function Legend({ bonus }: { bonus: boolean }) {
+	const swatch =
+		"inline-block h-3 w-5 rounded-[3px] align-[-1px] border border-[rgb(21_25_30/0.3)]";
 	return (
-		<p className="flex flex-wrap gap-x-4 gap-y-1 text-[0.9375rem] text-ink-soft">
+		<p className="flex flex-wrap gap-x-3.5 gap-y-1 text-[0.9375rem] text-ink-soft">
 			<span>
 				<span className={`${swatch} bg-balance`} aria-hidden="true" /> por usar
 			</span>
+			{bonus && (
+				<span>
+					<span className={`${swatch} bg-bonus`} aria-hidden="true" /> bono
+				</span>
+			)}
 			<span>
 				<span
 					className={`${swatch} border-[1.5px] border-dashed border-ghost`}
@@ -32,12 +44,61 @@ function Legend({ unit, bonus }: { unit: number; bonus: boolean }) {
 				/>{" "}
 				usado
 			</span>
-			{bonus && (
-				<span>
-					<span className={`${swatch} bg-bonus`} aria-hidden="true" /> bono
-				</span>
-			)}
-			<span>1 ladrillo = {unit} min</span>
+		</p>
+	);
+}
+
+// The week's wall: what is left is solid, its tail in yellow for the bonus
+// still unused, then outlines for what was used.
+function weekWall(
+	balance: Balance,
+	unit: number,
+): { bricks: BrickSpec[]; bonusLeft: number } {
+	const minutes = (seconds: number) => seconds / 60;
+	const total = minutes(balance.weeklyLimitSeconds + balance.bonusSeconds);
+	const remaining = minutes(balance.weeklyRemainingSeconds);
+	const bonusLeft = Math.min(minutes(balance.bonusSeconds), remaining);
+	const greenUntil = (remaining - bonusLeft) / unit;
+	const bricks = bricksFor(remaining, total, unit, "var(--color-balance)").map(
+		(brick, index) =>
+			brick.fill > 0 && index + 0.5 > greenUntil
+				? { ...brick, color: BONUS }
+				: brick,
+	);
+	return { bricks, bonusLeft };
+}
+
+interface LiveInBag {
+	session: Session;
+	activityName: string;
+}
+
+function LiveNote({ live }: { live: LiveInBag }) {
+	const now = useServerNow(30_000);
+	const { session, activityName } = live;
+	if (session.status === "scheduled") {
+		return (
+			<p className="text-[0.9375rem] text-ink-soft">
+				La sesión programada aún no se descuenta.
+			</p>
+		);
+	}
+	// What is left of a session rounds up ("quedan 13 min" until 12:00), so it
+	// adds up with the minutes used, which round down.
+	const left = Math.max(
+		0,
+		Math.ceil(timing(session, now).remainingMs / 60_000),
+	);
+	if (left === 0) {
+		return (
+			<p className="text-[0.9375rem] text-ink-soft">
+				Lo que siga corriendo en {activityName} también se descuenta.
+			</p>
+		);
+	}
+	return (
+		<p className="text-[0.9375rem] text-ink-soft">
+			Incluye los {minutesText(left)} de la sesión de {activityName}.
 		</p>
 	);
 }
@@ -45,12 +106,21 @@ function Legend({ unit, bonus }: { unit: number; bonus: boolean }) {
 function BagBlock({
 	balance,
 	label,
+	live,
+	single,
+	headingId,
 }: {
 	balance: Balance;
-	label: string | null;
+	// With several bags: whose bag this is and which kind.
+	label: { names: string; scope: string } | null;
+	live: LiveInBag | null;
+	single: boolean;
+	headingId: string;
 }) {
 	const { timeZone, child } = useParents();
 	const toMin = (seconds: number) => seconds / 60;
+	const name = child?.name ?? "El niño";
+	const Heading = single ? "h2" : "h3";
 
 	const dayLimit = toMin(balance.dailyLimitSeconds);
 	const dayUnit = brickUnit(dayLimit, DAY_BRICKS);
@@ -67,61 +137,54 @@ function BagBlock({
 		...overrunBricks(dayOver, dayUnit),
 	];
 
-	const weekBase = toMin(balance.weeklyLimitSeconds);
-	const weekBonus = toMin(balance.bonusSeconds);
 	const weekUnit = Math.max(
 		dayUnit,
-		brickUnit(weekBase + weekBonus, WEEK_BRICKS),
-	);
-	const weekRemaining = toMin(balance.weeklyRemainingSeconds);
-	const baseCount = Math.ceil(weekBase / weekUnit);
-	const bonusCount = Math.ceil(weekBonus / weekUnit);
-	// Remaining bricks fill the wall from the start: base first, then bonus.
-	const weekBricks = [
-		...bricksFor(
-			weekRemaining,
-			baseCount * weekUnit,
-			weekUnit,
-			"var(--color-balance)",
+		brickUnit(
+			toMin(balance.weeklyLimitSeconds + balance.bonusSeconds),
+			WEEK_BRICKS,
 		),
-		...bricksFor(
-			weekRemaining - baseCount * weekUnit,
-			bonusCount * weekUnit,
-			weekUnit,
-			"var(--color-bonus)",
-			"#c9a514",
-		).slice(0, bonusCount),
-	];
+	);
+	const { bricks: weekBricks, bonusLeft } = weekWall(balance, weekUnit);
 
 	const available = balance.availableSeconds;
 	const weekLimits =
 		balance.weeklyRemainingSeconds < balance.dailyRemainingSeconds;
-	const name = child?.name ?? "El niño";
 	const bonusCapped = balance.bonusEarnedSeconds > balance.bonusCapSeconds;
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="flex flex-col gap-0.5">
-				{label && <p className="font-medium text-ink-soft">{label}</p>}
-				<p className="text-2xl leading-tight font-bold tracking-[-0.01em]">
-					{available > 0
-						? `Le quedan ${secondsText(available)}`
-						: "No le queda tiempo"}
-				</p>
-				<p className="text-ink-soft">
-					{available === 0
-						? balance.weeklyRemainingSeconds === 0
+			<div className="flex flex-col gap-1">
+				<Heading
+					id={headingId}
+					className="text-2xl leading-tight font-bold tracking-[-0.01em]"
+				>
+					{label === null && <span className="sr-only">Saldo: </span>}
+					{label === null
+						? available > 0
+							? `Le quedan ${secondsText(available)} hoy`
+							: "No le queda tiempo hoy"
+						: available > 0
+							? `${label.names}: le quedan ${secondsText(available)} hoy`
+							: `${label.names}: no le queda tiempo hoy`}
+				</Heading>
+				{label && <p className="text-ink-soft">{label.scope}</p>}
+				{available === 0 ? (
+					<p className="text-ink-soft">
+						{balance.weeklyRemainingSeconds === 0
 							? `${name} usó toda la semana. Se recarga el ${dayText(balance.nextWeeklyRechargeAt, timeZone)}.`
-							: `${name} usó todo lo de hoy. Mañana vuelve a tener ${secondsText(balance.dailyLimitSeconds)}.`
-						: weekLimits
-							? "Lo limita lo que queda de la semana."
-							: "Lo que puede usar hoy, sin pasarse de la semana."}
-				</p>
+							: `${name} usó todo lo de hoy. Mañana vuelve a tener ${secondsText(balance.dailyLimitSeconds)}.`}
+					</p>
+				) : weekLimits ? (
+					<p className="text-ink-soft">Lo limita lo que queda de la semana.</p>
+				) : null}
+				{live && <LiveNote live={live} />}
 			</div>
 
+			<Legend bonus={bonusLeft > 0} />
+
 			<div className="flex flex-col gap-2">
-				<div className="flex items-baseline justify-between gap-3">
-					<h3 className="font-semibold">Hoy</h3>
+				<div className="flex items-baseline justify-between gap-3 whitespace-nowrap">
+					<p className="font-semibold">Hoy</p>
 					<p className="tabular text-ink-soft">
 						{secondsText(balance.dailyRemainingSeconds)} de{" "}
 						{secondsText(balance.dailyLimitSeconds)}
@@ -132,6 +195,9 @@ function BagBlock({
 					perRow={Math.max(6, Math.min(DAY_BRICKS, dayBricks.length))}
 					label={`Hoy: ${secondsText(balance.dailyRemainingSeconds)} por usar de ${secondsText(balance.dailyLimitSeconds)}`}
 				/>
+				<p className="text-[0.8125rem] text-ink-soft">
+					1 ladrillo = {dayUnit} min
+				</p>
 				{balance.carriedExcessSeconds > 0 && (
 					<p className="text-[0.9375rem] text-ink-soft">
 						Se descontaron {secondsText(balance.carriedExcessSeconds, true)} que
@@ -147,7 +213,7 @@ function BagBlock({
 
 			<div className="flex flex-col gap-2">
 				<div className="flex items-baseline justify-between gap-3">
-					<h3 className="font-semibold">Semana</h3>
+					<p className="font-semibold">Semana</p>
 					<p className="tabular text-right text-ink-soft">
 						{secondsText(balance.weeklyRemainingSeconds)} de{" "}
 						{secondsText(balance.weeklyLimitSeconds + balance.bonusSeconds)}
@@ -157,11 +223,11 @@ function BagBlock({
 					bricks={weekBricks}
 					perRow={WEEK_PER_ROW}
 					gap="tight"
-					label={`Semana: ${secondsText(balance.weeklyRemainingSeconds)} por usar, ${secondsText(balance.bonusSeconds)} de bonos incluidos`}
+					label={`Semana: ${secondsText(balance.weeklyRemainingSeconds)} por usar${bonusLeft > 0 ? `, ${minutesText(Math.floor(bonusLeft))} de bonos` : ""}`}
 				/>
 				<p className="text-[0.9375rem] text-ink-soft">
 					{balance.bonusSeconds > 0
-						? `Incluye ${secondsText(balance.bonusSeconds)} de bonos${
+						? `Ganó ${secondsText(balance.bonusSeconds)} con tareas${
 								bonusCapped
 									? ` (llegó al tope de ${secondsText(balance.bonusCapSeconds)})`
 									: ` de ${secondsText(balance.bonusCapSeconds)} posibles`
@@ -171,25 +237,41 @@ function BagBlock({
 							: ""}
 					Se recarga el {dayText(balance.nextWeeklyRechargeAt, timeZone)}.
 				</p>
+				{weekUnit !== dayUnit && (
+					<p className="text-[0.9375rem] text-ink-soft">
+						En la semana, 1 ladrillo = {weekUnit} min.
+					</p>
+				)}
 			</div>
-
-			<Legend
-				unit={weekUnit === dayUnit ? dayUnit : weekUnit}
-				bonus={balance.bonusSeconds > 0}
-			/>
-			{weekUnit !== dayUnit && (
-				<p className="-mt-2 text-[0.9375rem] text-ink-soft">
-					Hoy, 1 ladrillo = {dayUnit} min.
-				</p>
-			)}
 		</div>
 	);
 }
 
-export function BalanceCard({ balances }: { balances: readonly Balance[] }) {
+// The activities that draw from a bag: its own, or every one without its own
+// for the general quota.
+function bagActivities(
+	balance: Balance,
+	balances: readonly Balance[],
+	activities: readonly Activity[],
+): Activity[] {
+	if (balance.activityId !== null) {
+		return activities.filter((a) => a.id === balance.activityId);
+	}
+	return activities.filter(
+		(a) => a.isActive && !balances.some((b) => b.activityId === a.id),
+	);
+}
+
+export function BalanceCard({
+	balances,
+	live,
+}: {
+	balances: readonly Balance[];
+	live: Session | null;
+}) {
 	const { activities } = useParents();
 	const several = balances.length > 1;
-	// The global bag first, then the activities with their own.
+	// The general quota first, then the activities with their own.
 	const ordered = [...balances].sort(
 		(a, b) => Number(a.activityId !== null) - Number(b.activityId !== null),
 	);
@@ -198,36 +280,54 @@ export function BalanceCard({ balances }: { balances: readonly Balance[] }) {
 			className="flex flex-col gap-5 p-4 sm:p-5"
 			aria-labelledby="balance-title"
 		>
-			<h2 id="balance-title" className="text-lg font-semibold">
-				Saldo
-			</h2>
+			{several && (
+				<h2 id="balance-title" className="text-xl leading-tight font-semibold">
+					Saldo
+				</h2>
+			)}
 			{ordered.map((balance, index) => {
-				const activity = activityById(activities, balance.activityId);
-				const otherNames = activities
-					.filter(
-						(a) => a.isActive && !balances.some((b) => b.activityId === a.id),
-					)
-					.map((a) => a.name);
+				const members = bagActivities(balance, balances, activities);
+				const names = members.map((a) => a.name).join(" y ");
 				const label = !several
 					? null
-					: activity === undefined
-						? otherNames.length > 0
-							? `Cuota general: ${otherNames.join(" y ")}`
-							: "Cuota general"
-						: `Solo ${activity.name}`;
+					: {
+							names: names || "Las demás",
+							scope:
+								balance.activityId === null
+									? "Cuota general, compartida."
+									: "Límite propio.",
+						};
+				const liveHere =
+					live !== null && members.some((a) => a.id === live.activityId)
+						? {
+								session: live,
+								activityName:
+									activityById(activities, live.activityId)?.name ??
+									"la actividad",
+							}
+						: null;
+				const own = activityById(activities, balance.activityId);
 				return (
 					<div
 						key={balance.policyId}
 						className={index > 0 ? "border-t-[1.5px] border-rule pt-5" : ""}
 						style={
-							activity
+							own
 								? ({
-										"--color-balance": activityLook(activity.code).color,
+										"--color-balance": activityLook(own.code).color,
 									} as React.CSSProperties)
 								: undefined
 						}
 					>
-						<BagBlock balance={balance} label={label} />
+						<BagBlock
+							balance={balance}
+							label={label}
+							live={liveHere}
+							single={!several}
+							headingId={
+								several ? `balance-${balance.policyId}` : "balance-title"
+							}
+						/>
 					</div>
 				);
 			})}

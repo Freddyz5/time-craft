@@ -80,7 +80,7 @@ export function Home() {
 
 	const reportsSection = toReview.length > 0 && (
 		<section aria-labelledby="reports-title" className="flex flex-col gap-3">
-			<h2 id="reports-title" className="text-lg font-semibold">
+			<h2 id="reports-title" className="text-xl leading-tight font-semibold">
 				Tareas por revisar
 			</h2>
 			{toReview.map((report) => (
@@ -99,6 +99,7 @@ export function Home() {
 			live={live.data.live}
 			balances={balances}
 			policies={policies.data?.policies ?? []}
+			quiet={pending.length > 0}
 		/>
 	);
 
@@ -131,7 +132,10 @@ export function Home() {
 							aria-labelledby="requests-title"
 							className="flex flex-col gap-3"
 						>
-							<h2 id="requests-title" className="text-lg font-semibold">
+							<h2
+								id="requests-title"
+								className="text-xl leading-tight font-semibold"
+							>
 								{pending.length === 1
 									? "Una solicitud"
 									: `${pending.length} solicitudes`}
@@ -152,7 +156,10 @@ export function Home() {
 				</div>
 
 				<div className="flex flex-col gap-5">
-					<BalanceCard balances={balances} />
+					<BalanceCard
+						balances={balances}
+						live={live.data.live?.session ?? null}
+					/>
 
 					{!wide && reportsSection}
 

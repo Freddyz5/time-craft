@@ -4,7 +4,7 @@
 // Read-only: the api computes every number.
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { BrickRow, bricksFor, brickUnit } from "../components/bricks";
+import { amountBricks, BrickRow, brickUnit } from "../components/bricks";
 import { Callout, LoadingBricks, Notice } from "../components/ui";
 import { activityById, activityLook } from "../lib/activity";
 import { useServerNow } from "../lib/clock";
@@ -14,6 +14,7 @@ import {
 	dayRangeText,
 	dayText,
 	minutesText,
+	relativeDayText,
 	secondsText,
 	timeText,
 } from "../lib/format";
@@ -53,7 +54,7 @@ function sessionStatus(session: Session): { label: string; tone: Tone } {
 				? { label: "Cerrada sola", tone: "bad" }
 				: session.endReason === "stopped_early"
 					? { label: "Detenida antes", tone: "neutral" }
-					: { label: "Completa", tone: "good" };
+					: { label: "Completa", tone: "neutral" };
 		case "cancelled":
 			return { label: "Cancelada", tone: "neutral" };
 		case "running":
@@ -94,7 +95,7 @@ function Section({
 }) {
 	return (
 		<Callout className="flex flex-col gap-4 p-4 sm:p-5" aria-labelledby={id}>
-			<h2 id={id} className="text-lg font-semibold">
+			<h2 id={id} className="text-xl leading-tight font-semibold">
 				{title}
 			</h2>
 			{children}
@@ -104,13 +105,18 @@ function Section({
 
 function Usage({ view }: { view: HistoryView }) {
 	const { activities } = useParents();
+	// Whole minutes per activity, rounded down; the total is their sum, so the
+	// numbers on screen always add up.
+	const minutesOf = (seconds: number) => Math.floor(seconds / 60);
 	const total = view.usageByActivity.reduce(
-		(sum, item) => sum + item.consumedSeconds,
+		(sum, item) => sum + minutesOf(item.consumedSeconds),
 		0,
 	);
 	if (total === 0) {
 		return (
-			<p className="text-ink-soft">No usó tiempo de pantalla esta semana.</p>
+			<Section id="usage-title" title="Uso por actividad">
+				<p className="text-ink-soft">No usó tiempo de pantalla esta semana.</p>
+			</Section>
 		);
 	}
 	const unit = brickUnit(
@@ -118,10 +124,17 @@ function Usage({ view }: { view: HistoryView }) {
 		30,
 	);
 	return (
-		<div className="flex flex-col gap-4">
-			<p className="text-2xl font-bold tracking-[-0.01em]">
-				{secondsText(total)} en total
-			</p>
+		<Callout
+			className="flex flex-col gap-4 p-4 sm:p-5"
+			aria-labelledby="usage-title"
+		>
+			<h2
+				id="usage-title"
+				className="text-2xl leading-tight font-bold tracking-[-0.01em]"
+			>
+				<span className="sr-only">Uso por actividad: </span>
+				{minutesText(total)} en total
+			</h2>
 			<ul className="flex flex-col gap-4">
 				{view.usageByActivity.map((item) => {
 					const activity = activityById(activities, item.activityId);
@@ -139,11 +152,12 @@ function Usage({ view }: { view: HistoryView }) {
 									{activity?.name ?? "Actividad"}
 								</span>
 								<span className="tabular text-ink-soft">
-									{secondsText(item.consumedSeconds)}
+									{minutesText(minutesOf(item.consumedSeconds))}
 								</span>
 							</div>
 							<BrickRow
-								bricks={bricksFor(minutes, minutes, unit, look.color)}
+								// Used time: outlines in the activity's colour.
+								bricks={amountBricks(minutes, unit, look.color, { used: true })}
 								perRow={10}
 								gap="tight"
 								label={`${activity?.name ?? "Actividad"}: ${secondsText(item.consumedSeconds)}`}
@@ -153,7 +167,7 @@ function Usage({ view }: { view: HistoryView }) {
 				})}
 			</ul>
 			<p className="text-[0.9375rem] text-ink-soft">1 ladrillo = {unit} min</p>
-		</div>
+		</Callout>
 	);
 }
 
@@ -209,7 +223,7 @@ function SessionRow({ session, now }: { session: Session; now: number }) {
 				<p className="tabular text-[0.9375rem] text-ink-soft">
 					{session.status === "cancelled" || session.status === "scheduled"
 						? `${minutesText(session.plannedDurationSeconds / 60)} planeados`
-						: `Usó ${secondsText(consumed, true)} de ${minutesText(session.plannedDurationSeconds / 60)}`}
+						: `Usó ${secondsText(consumed)} de ${minutesText(session.plannedDurationSeconds / 60)}`}
 					{over && (
 						<span className="font-medium text-stop">
 							{" "}
@@ -243,15 +257,17 @@ function Sessions({ view }: { view: HistoryView }) {
 		<div className="flex flex-col gap-5">
 			{[...days].map(([day, sessions]) => {
 				const first = sessions[0];
-				const label = first
-					? dayText(
+				const relative = first
+					? relativeDayText(
 							first.startedAt ?? first.scheduledStartAt ?? first.createdAt,
+							now,
 							timeZone,
 						)
 					: day;
+				const label = relative.charAt(0).toUpperCase() + relative.slice(1);
 				return (
 					<section key={day} className="flex flex-col gap-2" aria-label={label}>
-						<h3 className="font-semibold capitalize">{label}</h3>
+						<h3 className="font-semibold">{label}</h3>
 						<ul className="flex flex-col">
 							{sessions.map((session) => (
 								<SessionRow key={session.id} session={session} now={now} />
@@ -435,7 +451,7 @@ export function History() {
 						onClick={() => setWeeksBack((weeks) => weeks + 1)}
 						disabled={currentStart === null || weeksBack >= 12}
 						aria-label="Semana anterior"
-						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:text-ink-faint"
+						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
 					>
 						<ChevronLeft className="size-5" aria-hidden="true" />
 					</button>
@@ -456,7 +472,7 @@ export function History() {
 						onClick={() => setWeeksBack((weeks) => Math.max(0, weeks - 1))}
 						disabled={weeksBack === 0}
 						aria-label="Semana siguiente"
-						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:text-ink-faint"
+						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
 					>
 						<ChevronRight className="size-5" aria-hidden="true" />
 					</button>
@@ -477,9 +493,7 @@ export function History() {
 				<div
 					className={`flex flex-col gap-5 transition-opacity ${query.isPlaceholderData ? "opacity-60" : ""}`}
 				>
-					<Section id="usage-title" title="Uso por actividad">
-						<Usage view={view} />
-					</Section>
+					<Usage view={view} />
 					<Section id="sessions-title" title="Sesiones">
 						<Sessions view={view} />
 					</Section>

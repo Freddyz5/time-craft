@@ -22,7 +22,7 @@ export function StepTitle({
 				{number}
 			</span>
 			<div className="flex flex-col gap-0.5">
-				<h2 id={id} className="text-lg leading-tight font-semibold">
+				<h2 id={id} className="text-xl leading-tight font-semibold">
 					<span className="sr-only">Paso {number}: </span>
 					{children}
 				</h2>
