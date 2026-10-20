@@ -173,7 +173,7 @@ export function BonusMeter({
 }
 
 function LiveNote({ session, activityName }: LiveInBag) {
-	const now = useServerNow(30_000);
+	const now = useServerNow(5_000);
 	if (session.status === "scheduled") {
 		return (
 			<p className="text-ink-soft">
@@ -186,12 +186,16 @@ function LiveNote({ session, activityName }: LiveInBag) {
 		0,
 		Math.ceil(timing(session, now).remainingMs / 60_000),
 	);
-	return left > 0 ? (
+	if (left === 0) {
+		return null;
+	}
+	return (
 		<p className="text-ink-soft">
-			Incluye los {minutesText(left)} que le quedan a tu sesión de{" "}
-			{activityName}.
+			{left === 1
+				? `Incluye el minuto que le queda a tu sesión de ${activityName}.`
+				: `Incluye los ${minutesText(left)} que le quedan a tu sesión de ${activityName}.`}
 		</p>
-	) : null;
+	);
 }
 
 // "Te quedan 40 min hoy", or "Juego: te quedan 20 min hoy" for a bag of its own.
@@ -256,7 +260,7 @@ function BagBatteries({
 			<div className="flex flex-col gap-1">
 				<Heading
 					id={main ? "balance-title" : undefined}
-					className={`${main ? "text-[1.75rem]" : "text-2xl"} leading-tight font-bold tracking-[-0.01em]`}
+					className={`${main ? "text-2xl sm:text-[1.75rem]" : "text-xl sm:text-2xl"} leading-tight font-bold tracking-[-0.01em]`}
 				>
 					{headline(
 						title,
