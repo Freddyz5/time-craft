@@ -23,6 +23,7 @@ const { app } = createContainer({
 	db,
 	auth: {
 		baseURL: env.BETTER_AUTH_URL,
+		trustedOrigins: env.BETTER_AUTH_TRUSTED_ORIGINS,
 		secret: env.BETTER_AUTH_SECRET,
 		google:
 			env.GOOGLE_CLIENT_ID !== undefined &&

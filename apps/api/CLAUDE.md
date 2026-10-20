@@ -14,6 +14,7 @@ API REST con Hono, desplegada en Vercel. Contiene las rutas, la autenticación (
 
 ## Better Auth
 
+- El navegador llega a `/api/auth` por el dominio de la web (la web reescribe `/api/*` hacia la api), así que `BETTER_AUTH_URL` es el origen de la web, no el de la api. En el ambiente Preview, `BETTER_AUTH_TRUSTED_ORIGINS` agrega las URLs de las previews de PR de la web (un patrón con `*`), que hablan con la api de dev.
 - No se usa el plugin `admin`: su `setUserPassword` exige una sesión de administrador y el flujo del código de recuperación no tiene sesión. `IdentityService` hace lo mismo que esos endpoints por dentro (`password.hash` + `internalAdapter`).
 - Tras subir de versión Better Auth o cambiar sus plugins, compara su schema con `packages/db/src/schema/auth.ts`: crea un archivo temporal que exporte `auth = createAuth({...})` (con una base PGlite) y corre `bunx auth@<versión> generate --config <archivo> --output <scratch>`. Si falta algo, ajústalo en `packages/db` con una migración. Better Auth además valida tablas y columnas al primer request.
 

@@ -99,6 +99,7 @@ export interface TestAppOptions {
 	// Better Auth's per-IP rate limit; off unless a test is about it.
 	rateLimit?: boolean;
 	google?: { clientId: string; clientSecret: string };
+	trustedOrigins?: string[];
 }
 
 // The services on any database: what the seed and the app run on.
@@ -115,6 +116,7 @@ export function createTestServices(db: Db, options: TestAppOptions = {}) {
 			secret: "test-secret-with-at-least-32-characters",
 			rateLimit: options.rateLimit ?? false,
 			google: options.google,
+			trustedOrigins: options.trustedOrigins,
 			silent: true,
 		},
 		clock,

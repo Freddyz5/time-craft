@@ -26,6 +26,27 @@ export const envSchema = z
 		),
 		// Where the web serves /api/auth (same origin as the web).
 		BETTER_AUTH_URL: url,
+		// More web origins that may call /api/auth, comma separated; `*` is a
+		// wildcard. Only on Vercel's Preview: the web's preview URLs, which
+		// reach the dev api through their rewrite.
+		BETTER_AUTH_TRUSTED_ORIGINS: z
+			.preprocess(blankAsMissing, z.string().optional())
+			.transform((value) =>
+				(value ?? "")
+					.split(",")
+					.map((origin) => origin.trim())
+					.filter((origin) => origin !== ""),
+			)
+			.pipe(
+				z.array(
+					z
+						.string()
+						.regex(
+							/^https?:\/\/[^/\s]+$/,
+							"must be comma-separated origins, like https://web.example.com",
+						),
+				),
+			),
 
 		// Google sign-in, only on dev and production: both or neither.
 		GOOGLE_CLIENT_ID: optional,

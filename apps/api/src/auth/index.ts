@@ -28,6 +28,9 @@ export { CHILD_EMAIL_DOMAIN } from "./hooks";
 export interface AuthOptions {
 	db: Db;
 	baseURL: string;
+	// Origins besides baseURL's that may call it (patterns with `*`): the
+	// web's preview URLs on Vercel.
+	trustedOrigins?: string[] | undefined;
 	secret: string;
 	// Google sign-in is only offered when configured (dev and production).
 	google?: { clientId: string; clientSecret: string } | undefined;
@@ -56,6 +59,7 @@ export function createAuth(options: AuthOptions) {
 	return betterAuth({
 		appName: "Time Craft",
 		baseURL: options.baseURL,
+		trustedOrigins: options.trustedOrigins,
 		basePath: "/api/auth",
 		secret: options.secret,
 		database: drizzleAdapter(options.db, {
