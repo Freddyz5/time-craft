@@ -23,3 +23,6 @@ coverage/
 # OS / editor
 .DS_Store
 .idea/
+
+# Impeccable review captures (local evidence, not source)
+apps/web/.impeccable/review/

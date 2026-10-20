@@ -30,7 +30,12 @@ import { getChildHistory } from "./history";
 import { getHousehold } from "./household";
 import { handleJob } from "./jobs";
 import { grantOverride } from "./overrides";
-import { listCurrentPolicies, setPolicy } from "./policies";
+import {
+	clearActivityPolicy,
+	listCurrentPolicies,
+	listPolicyHistory,
+	setPolicy,
+} from "./policies";
 import { registerSubscription, removeSubscription } from "./push";
 import {
 	approveRequest,
@@ -96,7 +101,9 @@ export function createCore(deps: CoreDeps) {
 		// Overrides and limits
 		grantOverride: bind(deps, grantOverride),
 		listCurrentPolicies: bind(deps, listCurrentPolicies),
+		listPolicyHistory: bind(deps, listPolicyHistory),
 		setPolicy: bind(deps, setPolicy),
+		clearActivityPolicy: bind(deps, clearActivityPolicy),
 		// Bonuses
 		listBonusTasks: (actor: Actor) => listBonusTasks(deps, actor),
 		listPendingTaskReports: (actor: Actor) =>

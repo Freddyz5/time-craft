@@ -1,20 +1,13 @@
 ---
-import "../styles/global.css";
+import LoadingFrame from "../components/LoadingFrame.astro";
+import RoleRedirect from "../entry/RoleRedirect";
+// Sends each person to their side: parents to /padres, the child to /nino,
+// anyone else to /login.
+import Base from "../layouts/Base.astro";
 ---
 
-<html lang="es">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Time Craft</title>
-	</head>
-	<body class="grid min-h-dvh place-items-center bg-slate-50 text-slate-900 antialiased">
-		<main class="max-w-md px-6 text-center">
-			<h1 class="text-4xl font-bold tracking-tight">Time Craft</h1>
-			<p class="mt-4 text-lg text-slate-600">
-				Aquí vas a ver y controlar el tiempo de juegos y TV de la familia.
-			</p>
-			<p class="mt-2 text-sm text-slate-500">Estamos preparando todo. Vuelve pronto.</p>
-		</main>
-	</body>
-</html>
+<Base title="Time Craft">
+	<RoleRedirect client:only="react">
+		<LoadingFrame slot="fallback" />
+	</RoleRedirect>
+</Base>

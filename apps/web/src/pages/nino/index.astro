@@ -1,0 +1,13 @@
+---
+import LoadingFrame from "../../components/LoadingFrame.astro";
+import ChildPlaceholder from "../../entry/ChildPlaceholder";
+// The child's island arrives in Phase 5b; until then the guard keeps parents
+// out and tells the child it is on its way.
+import Base from "../../layouts/Base.astro";
+---
+
+<Base title="Time Craft">
+	<ChildPlaceholder client:only="react">
+		<LoadingFrame slot="fallback" />
+	</ChildPlaceholder>
+</Base>

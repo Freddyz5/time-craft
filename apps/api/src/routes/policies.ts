@@ -18,28 +18,55 @@ const setPolicyBody = z.object({
 });
 
 export function policyRoutes({ core }: AppDeps) {
-	return new Hono<AppEnv>()
-		.get(
-			"/children/:childId/policies",
-			validate("param", childParam),
-			async (c) => {
-				const policies = await core.listCurrentPolicies(
-					actorOf(c),
-					c.req.valid("param"),
-				);
-				return c.json({ policies }, 200);
-			},
-		)
-		.post(
-			"/children/:childId/policies",
-			validate("param", childParam),
-			validate("json", setPolicyBody),
-			async (c) => {
-				const policy = await core.setPolicy(actorOf(c), {
-					...c.req.valid("param"),
-					...c.req.valid("json"),
-				});
-				return c.json({ policy }, 201);
-			},
-		);
+	return (
+		new Hono<AppEnv>()
+			.get(
+				"/children/:childId/policies",
+				validate("param", childParam),
+				async (c) => {
+					const policies = await core.listCurrentPolicies(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json({ policies }, 200);
+				},
+			)
+			// Current and closed policies, newest first.
+			.get(
+				"/children/:childId/policies/history",
+				validate("param", childParam),
+				async (c) => {
+					const policies = await core.listPolicyHistory(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json({ policies }, 200);
+				},
+			)
+			.post(
+				"/children/:childId/policies",
+				validate("param", childParam),
+				validate("json", setPolicyBody),
+				async (c) => {
+					const policy = await core.setPolicy(actorOf(c), {
+						...c.req.valid("param"),
+						...c.req.valid("json"),
+					});
+					return c.json({ policy }, 201);
+				},
+			)
+			// The activity goes back to the global quota; its policy stays in the
+			// history. policy is null if it had none.
+			.delete(
+				"/children/:childId/policies/:activityId",
+				validate("param", childParam.extend({ activityId: id })),
+				async (c) => {
+					const policy = await core.clearActivityPolicy(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json({ policy }, 200);
+				},
+			)
+	);
 }

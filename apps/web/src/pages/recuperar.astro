@@ -1,0 +1,11 @@
+---
+import LoadingFrame from "../components/LoadingFrame.astro";
+import RecoveryPage from "../entry/RecoveryPage";
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Recuperar el acceso · Time Craft">
+	<RecoveryPage client:only="react">
+		<LoadingFrame slot="fallback" />
+	</RecoveryPage>
+</Base>

@@ -8,6 +8,11 @@
 			"dependsOn": ["^build", "transit"],
 			"outputs": ["dist/**"]
 		},
+		"@time-craft/web#build": {
+			"dependsOn": ["^build", "transit"],
+			"outputs": ["dist/**"],
+			"env": ["VAPID_PUBLIC_KEY", "GOOGLE_CLIENT_ID"]
+		},
 		"//#lint:root": {},
 		"lint": {
 			"dependsOn": ["//#lint:root"]
@@ -21,6 +26,11 @@
 		"dev": {
 			"cache": false,
 			"persistent": true
+		},
+		"@time-craft/web#dev": {
+			"cache": false,
+			"persistent": true,
+			"passThroughEnv": ["API_DEV_URL", "VAPID_PUBLIC_KEY", "GOOGLE_CLIENT_ID"]
 		},
 		"db:generate": {
 			"cache": false

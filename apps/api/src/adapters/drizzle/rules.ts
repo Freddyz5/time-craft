@@ -1,7 +1,7 @@
 // Rules: quota policies, with history (valid_to null = current).
 import type { QuotaPolicyRepository } from "@time-craft/core";
 import { type Db, quotaPolicies } from "@time-craft/db";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 export function quotaPolicyRepository(db: Db): QuotaPolicyRepository {
 	return {
@@ -15,6 +15,13 @@ export function quotaPolicyRepository(db: Db): QuotaPolicyRepository {
 						isNull(quotaPolicies.validTo),
 					),
 				);
+		},
+		async listByChild(childId) {
+			return db
+				.select()
+				.from(quotaPolicies)
+				.where(eq(quotaPolicies.childId, childId))
+				.orderBy(desc(quotaPolicies.validFrom));
 		},
 		async closeCurrent(childId, activityId, validTo) {
 			await db

@@ -50,6 +50,8 @@ export interface QuotaPolicyRepository {
 	// Current policies of the child (valid_to IS NULL): the global one and/or
 	// one per activity.
 	listCurrent(childId: string): Promise<QuotaPolicy[]>;
+	// Every policy of the child, current and closed, newest first (valid_from).
+	listByChild(childId: string): Promise<QuotaPolicy[]>;
 	// Sets valid_to on the current policy for (child, activity), if any.
 	closeCurrent(
 		childId: string,
