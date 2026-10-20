@@ -3,15 +3,18 @@
 
 const MINUTE_MS = 60_000;
 
+// A number never wraps away from its unit ("30 min", not "30 / min").
+const NBSP = "\u00a0";
+
 // "45 min", "1 h", "1 h 20 min". Whole minutes, rounded down unless `ceil`.
 export function minutesText(minutes: number): string {
 	const total = Math.max(0, Math.round(minutes));
 	const hours = Math.floor(total / 60);
 	const rest = total % 60;
 	if (hours === 0) {
-		return `${rest} min`;
+		return `${rest}${NBSP}min`;
 	}
-	return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+	return rest === 0 ? `${hours}${NBSP}h` : `${hours}${NBSP}h ${rest}${NBSP}min`;
 }
 
 export function secondsText(seconds: number, ceil = false): string {
