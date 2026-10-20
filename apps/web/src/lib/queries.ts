@@ -128,6 +128,8 @@ export function useBonusTasks() {
 export function useHistory(
 	childId: string | undefined,
 	period?: { from: string; to: string },
+	// Poll while an answer is awaited (the child's pending request or report).
+	{ poll = false }: { poll?: boolean } = {},
 ) {
 	return useQuery({
 		queryKey: keys.history(childId ?? "", period?.from, period?.to),
@@ -140,6 +142,7 @@ export function useHistory(
 			),
 		enabled: childId !== undefined,
 		placeholderData: (previous) => previous,
+		refetchInterval: poll ? LIVE_POLL_MS : false,
 	});
 }
 

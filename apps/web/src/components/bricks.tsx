@@ -3,7 +3,9 @@
 // - a dashed outline is time already used;
 // - the brick in use drains from the top (only in live counts);
 // - a half brick, one stud wide, is half a brick's worth (in static amounts:
-//   a request, a task's reward, a session's length).
+//   a request, a task's reward, a session's length);
+// - an empty socket, a plain outline on a sunk ground, is a place a brick can
+//   still go (bonus minutes not earned yet). It never means "used".
 // One brick is 10 minutes unless a limit is too large to fit a row; then each
 // brick is worth more and the legend says so.
 import { useEffect, useId, useRef } from "react";
@@ -29,10 +31,14 @@ export interface BrickSpec {
 	outline?: string | undefined;
 	// A one-stud brick: half a brick's worth.
 	half?: boolean;
+	// An empty place for a brick (fill and colour are ignored).
+	socket?: boolean;
 }
 
 interface BrickProps extends BrickSpec {
 	animate?: "release" | "snap" | undefined;
+	// Staggers an entrance: this brick's motion starts after the others'.
+	delayMs?: number | undefined;
 }
 
 // Molded plastic edge: a thin dark rim gives light bricks (yellow on white)
@@ -44,7 +50,9 @@ export function Brick({
 	color,
 	outline,
 	half = false,
+	socket = false,
 	animate,
+	delayMs,
 }: BrickProps) {
 	const id = useId();
 	const level = Math.min(1, Math.max(0, fill));
@@ -58,10 +66,38 @@ export function Brick({
 			: animate === "snap"
 				? "motion-safe:animate-brick-snap"
 				: "";
+	if (socket) {
+		return (
+			<svg
+				viewBox="0 0 40 26"
+				className={`block h-auto w-full overflow-visible ${animation}`}
+				aria-hidden="true"
+			>
+				<g
+					fill="var(--color-sheet-sunk)"
+					stroke="var(--color-rule-strong)"
+					strokeWidth="1.25"
+				>
+					{studs.map((x) => (
+						<rect
+							key={x}
+							x={x + 0.75}
+							y="1.75"
+							width="8.5"
+							height="5"
+							rx="1.4"
+						/>
+					))}
+					<rect x="1.75" y="6.75" width={width - 1.5} height="17.5" rx="2.4" />
+				</g>
+			</svg>
+		);
+	}
 	return (
 		<svg
 			viewBox="0 0 40 26"
 			className={`block h-auto w-full overflow-visible ${animation}`}
+			style={delayMs ? { animationDelay: `${delayMs}ms` } : undefined}
 			aria-hidden="true"
 		>
 			<defs>
@@ -159,6 +195,9 @@ interface BrickRowProps {
 	label: string;
 	gap?: "tight" | "normal";
 	className?: string;
+	// The bricks arrive (an approved request): each solid one snaps in, one
+	// after another, on first paint. Instant with reduced motion.
+	enter?: boolean;
 }
 
 // Remembers each brick's fill between renders, so only a brick that changed
@@ -171,6 +210,9 @@ function useBrickMotion(bricks: readonly BrickSpec[]) {
 			return undefined;
 		}
 		const before = previous.current[index];
+		if (brick.socket) {
+			return undefined;
+		}
 		if (before === undefined) {
 			return brick.fill > 0 ? ("snap" as const) : undefined;
 		}
@@ -183,7 +225,7 @@ function useBrickMotion(bricks: readonly BrickSpec[]) {
 		return undefined;
 	});
 	useEffect(() => {
-		previous.current = bricks.map((brick) => brick.fill);
+		previous.current = bricks.map((brick) => (brick.socket ? 0 : brick.fill));
 	});
 	return motions;
 }
@@ -194,8 +236,12 @@ export function BrickRow({
 	label,
 	gap = "normal",
 	className = "",
+	enter = false,
 }: BrickRowProps) {
-	const motions = useBrickMotion(bricks);
+	const changes = useBrickMotion(bricks);
+	const motions = enter
+		? bricks.map((brick) => (brick.fill > 0 ? ("snap" as const) : undefined))
+		: changes;
 	return (
 		<div
 			role="img"
@@ -210,6 +256,7 @@ export function BrickRow({
 					key={index}
 					{...brick}
 					animate={motions[index]}
+					delayMs={enter ? index * 70 : undefined}
 				/>
 			))}
 		</div>
@@ -232,6 +279,31 @@ export function bricksFor(
 		color,
 		outline,
 	}));
+}
+
+// The week's wall: what is left is solid, its tail in yellow for the bonus
+// still unused, then outlines for what was used. Minutes in, bricks out.
+export function weekWallBricks(
+	{
+		totalMinutes,
+		remainingMinutes,
+		bonusMinutes,
+	}: { totalMinutes: number; remainingMinutes: number; bonusMinutes: number },
+	unit: number,
+): { bricks: BrickSpec[]; bonusLeft: number } {
+	const bonusLeft = Math.min(bonusMinutes, remainingMinutes);
+	const greenUntil = (remainingMinutes - bonusLeft) / unit;
+	const bricks = bricksFor(
+		remainingMinutes,
+		totalMinutes,
+		unit,
+		"var(--color-balance)",
+	).map((brick, index) =>
+		brick.fill > 0 && index + 0.5 > greenUntil
+			? { ...brick, color: "var(--color-bonus)" }
+			: brick,
+	);
+	return { bricks, bonusLeft };
 }
 
 // A fixed amount (asked, earned, planned, used): whole bricks plus a half
@@ -270,12 +342,15 @@ export function AmountBricks({
 	label,
 	used = false,
 	size = "md",
+	enter = false,
 }: {
 	minutes: number;
 	color: string;
 	label: string;
 	used?: boolean;
 	size?: "sm" | "md";
+	// Snap in one after another on first paint (see BrickRow).
+	enter?: boolean;
 }) {
 	const unit = brickUnit(minutes, 12);
 	const bricks = amountBricks(minutes, unit, color, { used });
@@ -291,7 +366,11 @@ export function AmountBricks({
 					key={index}
 					className={size === "sm" ? "w-6" : "w-9"}
 				>
-					<Brick {...brick} />
+					<Brick
+						{...brick}
+						animate={enter ? "snap" : undefined}
+						delayMs={enter ? index * 70 : undefined}
+					/>
 				</div>
 			))}
 		</div>

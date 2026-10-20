@@ -74,6 +74,23 @@ export function dayText(value: DateLike, timeZone: string): string {
 	}).format(toDate(value));
 }
 
+// "lunes"
+export function weekdayText(value: DateLike, timeZone: string): string {
+	return formatter(timeZone, { weekday: "long" }).format(toDate(value));
+}
+
+// When something comes back, from the child's side: "mañana" or "el lunes".
+export function rechargeText(
+	value: DateLike,
+	now: number,
+	timeZone: string,
+): string {
+	return calendarDay(value, timeZone) ===
+		calendarDay(now + 24 * 60 * MINUTE_MS, timeZone)
+		? "mañana"
+		: `el ${weekdayText(value, timeZone)}`;
+}
+
 // "19 oct. 2026, 18:30"
 export function dateTimeText(value: DateLike, timeZone: string): string {
 	return formatter(timeZone, {

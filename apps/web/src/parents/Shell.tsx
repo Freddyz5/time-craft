@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { BrandMark, Wordmark } from "../components/brand";
+import { Studs, Wordmark } from "../components/brand";
 import { buttonClass } from "../components/ui";
 import { api, call } from "../lib/api";
 import { keys } from "../lib/queries";
@@ -40,15 +40,6 @@ function isActive(location: string, href: string): boolean {
 	return href === "/"
 		? location === "/" || location === "/sesion"
 		: location.startsWith(href);
-}
-
-function Studs() {
-	return (
-		<span aria-hidden="true" className="flex gap-1.5">
-			<span className="h-1.5 w-3 rounded-t-[3px] bg-bonus" />
-			<span className="h-1.5 w-3 rounded-t-[3px] bg-bonus" />
-		</span>
-	);
 }
 
 function ChildSwitch() {
@@ -233,19 +224,6 @@ export function Shell({ children }: { children: ReactNode }) {
 					})}
 				</ul>
 			</nav>
-		</div>
-	);
-}
-
-// Small screens: a compact brand block for full-page states (loading,
-// errors) that render before the shell.
-export function StandaloneFrame({ children }: { children: ReactNode }) {
-	return (
-		<div className="grid min-h-dvh place-items-center px-4 py-10">
-			<div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
-				<BrandMark className="size-12" />
-				{children}
-			</div>
 		</div>
 	);
 }

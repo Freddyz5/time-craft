@@ -8,18 +8,19 @@ Frontend en Astro con salida estática, islas React (una grande por rol: `/padre
 
 ## Estructura
 
-- `src/pages/`: una página por ruta. `padres/[...path].astro` genera un HTML por pantalla del enrutado interno (`getStaticPaths`), así un reload o el enlace de un push abren la pantalla correcta. `/` redirige según el rol; `/nino` es un lugar provisional hasta la Fase 5b.
+- `src/pages/`: una página por ruta. `padres/[...path].astro` y `nino/[...path].astro` generan un HTML por pantalla del enrutado interno (`getStaticPaths`), así un reload o el enlace de un push abren la pantalla correcta. `/` redirige según el rol. `/login` es la entrada de los padres y `/nino/entrar` la del niño (una ruta estática, que gana a `nino/[...path]`).
 - `src/parents/`: la isla de padres (`ParentsApp.tsx`: guard, shell y rutas con wouter bajo `/padres`) y sus pantallas: Inicio (`Home.tsx` y `home/`), Nueva sesión, Historial, Reglas, Bonos y Cuentas.
-- `src/entry/`: las islas públicas (login, recuperación, redirección por rol) y el lugar de `/nino`.
-- `src/components/`: piezas compartidas con 5b: controles (`ui.tsx`), toasts, la marca, los ladrillos (`bricks.tsx`) y los providers.
-- `src/lib/`: cliente tipado `hc<AppType>` y `call()` (`api.ts`, con los errores de la api como `ApiError`), Better Auth (`auth.ts`), TanStack Query (`queries.ts`, consulta cada 5 s en las vistas en vivo), guard de rol (`guard.ts`), reloj del servidor (`clock.ts`), cuenta regresiva (`timer.ts`), alarma de la pestaña (`alarm.ts`), Web Push (`push.ts`), textos de error (`errors.ts`) y formatos en la zona de la familia (`format.ts`).
+- `src/child/`: la isla del niño (`ChildApp.tsx`: guard, shell y rutas bajo `/nino`) y sus pantallas: Inicio (`Home.tsx`, `home/`: baterías de ladrillos y «Ahora» de solo lectura), Pedir (`Ask.tsx`, `ask/BrickPicker.tsx`), Tareas y Avisos. `requests.tsx` reúne el pedido pendiente y las respuestas; `errors.ts` dice los errores con la voz del niño y cae a `lib/errors.ts`. El niño nunca ve iniciar, pausar ni detener.
+- `src/entry/`: las islas públicas: login de padres, login del niño (`ChildLoginPage.tsx` y el teclado `PinPad.tsx`; el navegador recuerda el usuario, nunca el PIN), recuperación y redirección por rol.
+- `src/components/`: piezas compartidas por las dos islas: controles (`ui.tsx`), toasts, la marca y los pernos de la pestaña activa (`brand.tsx`), los ladrillos (`bricks.tsx`, con el muro de la semana y el hueco «por ganar»), el título de paso numerado, el marco de pantalla completa y los providers.
+- `src/lib/`: cliente tipado `hc<AppType>` y `call()` (`api.ts`, con los errores de la api como `ApiError`), Better Auth (`auth.ts`), TanStack Query (`queries.ts`, consulta cada 5 s en las vistas en vivo), comandos con toast (`useCommand.ts`), guard de rol (`guard.ts`, cada rol con su login), reloj del servidor (`clock.ts`), cuenta regresiva (`timer.ts`), alarma de la pestaña (`alarm.ts`), Web Push (`push.ts`), textos de error (`errors.ts`) y formatos en la zona de la familia (`format.ts`).
 - `public/sw.js`: service worker de Web Push (muestra el aviso, abre la página al tocarlo y avisa a la pestaña abierta). `public/manifest.webmanifest` e `icons/`.
 
 ## Tiempo real
 
 - El servidor manda: la web nunca calcula saldos. Solo cuenta el restante en vivo a partir del inicio, la duración y las pausas que devuelve la api, con la hora del servidor (`serverTime` en cada respuesta del cronómetro corrige el desfase del reloj del teléfono).
 - Polling de 5 s con TanStack Query, solo con la pestaña visible. Un push con la pestaña abierta refresca todo al instante.
-- La alarma de la pestaña suena (Web Audio) y vibra al aviso previo y al fin. Complementa al push, no lo reemplaza: Android congela los timers de las pestañas en segundo plano.
+- La alarma de la pestaña suena (Web Audio) y vibra al aviso previo y al fin, en las dos islas; del lado del niño, también cuando una sesión programada le deja empezar. Complementa al push, no lo reemplaza: Android congela los timers de las pestañas en segundo plano.
 
 No debe:
 

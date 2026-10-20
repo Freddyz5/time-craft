@@ -1,10 +1,11 @@
 // The open tab's own alarm: a chime and a vibration at the exact second of
-// the warning and of the end. It complements push, which Android may delay;
+// the warning and of the end (and, on the child's side, when a scheduled
+// session lets them start or a parent says yes). It complements push, which Android may delay;
 // it does not replace it, since background tabs freeze their timers.
 import { useEffect, useRef } from "react";
 import { serverNow } from "./clock";
 
-export type AlarmKind = "warning" | "end";
+export type AlarmKind = "warning" | "end" | "ready" | "answer";
 
 let audio: AudioContext | null = null;
 
@@ -27,10 +28,13 @@ export function unlockAudioOnFirstTap(): () => void {
 	};
 }
 
-// Soft bell-like notes: two rising for the warning, three falling for the end.
+// Soft bell-like notes: two rising for the warning, three falling for the
+// end, three rising for "you can start", a bright fifth for a "yes".
 const NOTES: Record<AlarmKind, number[]> = {
 	warning: [659.25, 880],
 	end: [880, 739.99, 587.33],
+	ready: [523.25, 659.25, 783.99],
+	answer: [783.99, 1174.66],
 };
 
 function chime(kind: AlarmKind): void {
@@ -59,7 +63,20 @@ function chime(kind: AlarmKind): void {
 const VIBRATION: Record<AlarmKind, number[]> = {
 	warning: [180, 120, 180],
 	end: [400, 150, 400, 150, 400],
+	ready: [120, 80, 120, 80, 260],
+	answer: [90, 60, 90],
 };
+
+// "Probar el sonido": a tap unlocks the sound, then it rings at once.
+export async function testRing(kind: AlarmKind = "warning"): Promise<void> {
+	try {
+		audio ??= new AudioContext();
+		await audio.resume();
+	} catch {
+		// No Web Audio: the vibration still works.
+	}
+	ring(kind);
+}
 
 export function ring(kind: AlarmKind): void {
 	chime(kind);

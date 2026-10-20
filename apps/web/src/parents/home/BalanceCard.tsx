@@ -5,10 +5,10 @@
 // countdown, so numbers on screen always add up.
 import {
 	BrickRow,
-	type BrickSpec,
 	bricksFor,
 	brickUnit,
 	overrunBricks,
+	weekWallBricks,
 } from "../../components/bricks";
 import { Callout } from "../../components/ui";
 import { activityById, activityLook } from "../../lib/activity";
@@ -21,8 +21,6 @@ import { useParents } from "../context";
 const DAY_BRICKS = 12;
 const WEEK_PER_ROW = 10;
 const WEEK_BRICKS = 40;
-
-const BONUS = "var(--color-bonus)";
 
 function Legend({ bonus }: { bonus: boolean }) {
 	const swatch =
@@ -48,24 +46,15 @@ function Legend({ bonus }: { bonus: boolean }) {
 	);
 }
 
-// The week's wall: what is left is solid, its tail in yellow for the bonus
-// still unused, then outlines for what was used.
-function weekWall(
-	balance: Balance,
-	unit: number,
-): { bricks: BrickSpec[]; bonusLeft: number } {
-	const minutes = (seconds: number) => seconds / 60;
-	const total = minutes(balance.weeklyLimitSeconds + balance.bonusSeconds);
-	const remaining = minutes(balance.weeklyRemainingSeconds);
-	const bonusLeft = Math.min(minutes(balance.bonusSeconds), remaining);
-	const greenUntil = (remaining - bonusLeft) / unit;
-	const bricks = bricksFor(remaining, total, unit, "var(--color-balance)").map(
-		(brick, index) =>
-			brick.fill > 0 && index + 0.5 > greenUntil
-				? { ...brick, color: BONUS }
-				: brick,
+function weekWall(balance: Balance, unit: number) {
+	return weekWallBricks(
+		{
+			totalMinutes: (balance.weeklyLimitSeconds + balance.bonusSeconds) / 60,
+			remainingMinutes: balance.weeklyRemainingSeconds / 60,
+			bonusMinutes: balance.bonusSeconds / 60,
+		},
+		unit,
 	);
-	return { bricks, bonusLeft };
 }
 
 interface LiveInBag {

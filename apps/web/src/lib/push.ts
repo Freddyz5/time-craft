@@ -2,6 +2,7 @@
 // subscription the api sends notifications to. On Android, Chrome delivers
 // them without installing the app.
 import { VAPID_PUBLIC_KEY } from "astro:env/client";
+import { useCallback, useEffect, useState } from "react";
 import { api, call } from "./api";
 import { labelFromUserAgent } from "./device";
 
@@ -136,4 +137,14 @@ export function onPushMessage(listener: (kind: string) => void): () => void {
 	};
 	navigator.serviceWorker.addEventListener("message", handler);
 	return () => navigator.serviceWorker.removeEventListener("message", handler);
+}
+
+// This browser's push state, read once on mount; `refresh` reads it again.
+export function usePushState() {
+	const [state, setState] = useState<PushState | null>(null);
+	const refresh = useCallback(() => {
+		void pushState().then(setState);
+	}, []);
+	useEffect(refresh, [refresh]);
+	return { state, setState, refresh };
 }

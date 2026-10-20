@@ -30,8 +30,8 @@ import { errorMessage } from "../lib/errors";
 import { dateTimeText, minutesText } from "../lib/format";
 import { keys, usePolicies, usePolicyHistory } from "../lib/queries";
 import type { Activity, Policy } from "../lib/types";
+import { useCommand } from "../lib/useCommand";
 import { parentName, useParents } from "./context";
-import { useCommand } from "./useCommand";
 
 interface Limits {
 	dailyLimitMinutes: number;

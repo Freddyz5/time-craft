@@ -1,26 +1,12 @@
 // Turning Web Push on for this browser. Inicio offers it once, quietly, while
 // it is off; Cuentas always shows its state.
 import { Bell, BellOff } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useToast } from "../components/toast";
 import { Button, Callout } from "../components/ui";
 import { ApiError } from "../lib/api";
 import { errorMessage } from "../lib/errors";
-import {
-	disablePush,
-	enablePush,
-	type PushState,
-	pushState,
-} from "../lib/push";
-
-export function usePushState() {
-	const [state, setState] = useState<PushState | null>(null);
-	const refresh = useCallback(() => {
-		void pushState().then(setState);
-	}, []);
-	useEffect(refresh, [refresh]);
-	return { state, setState, refresh };
-}
+import { disablePush, enablePush, usePushState } from "../lib/push";
 
 const deniedHelp =
 	"Están bloqueados para este sitio. En Chrome: toca el candado junto a la dirección › Permisos › Notificaciones › Permitir, y vuelve aquí.";

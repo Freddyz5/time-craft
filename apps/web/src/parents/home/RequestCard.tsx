@@ -16,8 +16,8 @@ import { api, call } from "../../lib/api";
 import { useServerNow } from "../../lib/clock";
 import { countdown, minutesText, timeText } from "../../lib/format";
 import type { Balance, ChildRequest } from "../../lib/types";
+import { useCommand } from "../../lib/useCommand";
 import { useParents } from "../context";
-import { useCommand } from "../useCommand";
 import {
 	defaultLater,
 	laterIsValid,

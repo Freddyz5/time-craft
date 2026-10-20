@@ -1,11 +1,12 @@
 // Runs a command against the api: busy state, then a toast with the result
-// and a refresh of the live views. When the other parent got there first
-// (already resolved, the session changed), the refresh shows what happened.
+// and a refresh of the live views. When someone else got there first (the
+// other parent resolved it, the session changed), the refresh shows what
+// happened. Parents and the child share it; each passes its own error texts.
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "../components/toast";
-import { ApiError } from "../lib/api";
-import { errorMessage } from "../lib/errors";
-import { useRefreshLive } from "../lib/queries";
+import { ApiError } from "./api";
+import { errorMessage } from "./errors";
+import { useRefreshLive } from "./queries";
 
 const STALE_CODES = new Set([
 	"request_already_resolved",
@@ -16,6 +17,8 @@ const STALE_CODES = new Set([
 	"session_already_open",
 	"session_not_found",
 	"request_not_found",
+	"request_already_pending",
+	"report_already_pending",
 ]);
 
 export function useCommand<Input, Output>(
@@ -25,11 +28,14 @@ export function useCommand<Input, Output>(
 		onSuccess?: (output: Output, input: Input) => void;
 		// Refresh the live views afterwards (default true).
 		refresh?: boolean;
+		// The text for a failure (default: the parents' wording).
+		errorText?: (error: unknown) => string;
 	} = {},
 ) {
 	const toast = useToast();
 	const refreshLive = useRefreshLive();
 	const refresh = options.refresh ?? true;
+	const errorText = options.errorText ?? errorMessage;
 	return useMutation({
 		mutationFn: run,
 		onSuccess: async (output, input) => {
@@ -46,7 +52,7 @@ export function useCommand<Input, Output>(
 			options.onSuccess?.(output, input);
 		},
 		onError: (error) => {
-			toast.show("error", errorMessage(error));
+			toast.show("error", errorText(error));
 			if (error instanceof ApiError && STALE_CODES.has(error.code)) {
 				void refreshLive();
 			}

@@ -6,6 +6,7 @@ import { ArrowLeft, CalendarClock, Play } from "lucide-react";
 import { useId, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { AmountBricks } from "../components/bricks";
+import { StepTitle } from "../components/StepTitle";
 import {
 	Button,
 	buttonClass,
@@ -21,6 +22,7 @@ import { errorMessage } from "../lib/errors";
 import { minutesText, secondsText } from "../lib/format";
 import { useBalance, useLiveSession } from "../lib/queries";
 import type { Balance } from "../lib/types";
+import { useCommand } from "../lib/useCommand";
 import { useParents } from "./context";
 import {
 	defaultLater,
@@ -29,8 +31,6 @@ import {
 	type When,
 	WhenPicker,
 } from "./home/WhenPicker";
-import { StepTitle } from "./StepTitle";
-import { useCommand } from "./useCommand";
 
 const PRESETS = [15, 30, 45, 60];
 const MAX_EXTRA_MINUTES = 240;

@@ -1,5 +1,6 @@
 // The Time Craft mark: a yellow 2×2 brick seen from the front, with a clock
-// hand pressed into it, and the name beside it.
+// hand pressed into it, and the name beside it. Plus the two yellow studs the
+// active tab or row wears on its top edge.
 
 export function BrandMark({ className = "size-8" }: { className?: string }) {
 	return (
@@ -60,6 +61,15 @@ export function Wordmark({ className = "" }: { className?: string }) {
 		<span className={`flex items-center gap-2.5 ${className}`}>
 			<BrandMark />
 			<span className="text-lg font-bold tracking-[-0.01em]">Time Craft</span>
+		</span>
+	);
+}
+
+export function Studs() {
+	return (
+		<span aria-hidden="true" className="flex gap-1.5">
+			<span className="h-1.5 w-3 rounded-t-[3px] bg-bonus" />
+			<span className="h-1.5 w-3 rounded-t-[3px] bg-bonus" />
 		</span>
 	);
 }

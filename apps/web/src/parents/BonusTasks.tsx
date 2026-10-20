@@ -20,8 +20,8 @@ import { errorMessage } from "../lib/errors";
 import { minutesText, secondsText } from "../lib/format";
 import { keys, useBalance, useBonusTasks } from "../lib/queries";
 import type { BonusTask } from "../lib/types";
+import { useCommand } from "../lib/useCommand";
 import { useParents } from "./context";
-import { useCommand } from "./useCommand";
 
 interface TaskFields {
 	name: string;

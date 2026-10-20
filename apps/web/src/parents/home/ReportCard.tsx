@@ -19,8 +19,8 @@ import {
 	timeText,
 } from "../../lib/format";
 import type { Balance, BonusTask, TaskReport } from "../../lib/types";
+import { useCommand } from "../../lib/useCommand";
 import { useParents } from "../context";
-import { useCommand } from "../useCommand";
 
 type Mode = "idle" | "adjust" | "reject";
 

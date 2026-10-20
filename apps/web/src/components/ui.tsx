@@ -78,7 +78,8 @@ export function buttonClass(
 	return `inline-flex select-none items-center justify-center rounded-control font-medium no-underline transition-colors duration-150 ${variants[variant]} ${sizes[size]}`;
 }
 
-// The manual's white box. `tone` tints it for the one state it reports.
+// The manual's white box. `tone` tints it for the one state it reports
+// (balance: a yes, on the child's side).
 export function Callout({
 	children,
 	className = "",
@@ -88,7 +89,7 @@ export function Callout({
 }: {
 	children: ReactNode;
 	className?: string;
-	tone?: "plain" | "pause" | "stop" | "bonus";
+	tone?: "plain" | "pause" | "stop" | "bonus" | "balance";
 	as?: "section" | "div" | "article" | "li" | "form";
 	"aria-labelledby"?: string;
 	"aria-label"?: string;
@@ -99,6 +100,7 @@ export function Callout({
 		pause: "bg-pause-tint border-pause",
 		stop: "bg-stop-tint border-stop",
 		bonus: "bg-bonus-tint border-[#d9b21f]",
+		balance: "bg-balance-tint border-balance",
 	};
 	return (
 		<Tag

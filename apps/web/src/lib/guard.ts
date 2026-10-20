@@ -1,7 +1,8 @@
 // Client-side session guard. The page is static, so the browser asks the api
 // who is signed in (/api/me) and sends each person where they belong:
-// nobody → /login, a parent → /padres, the child → /nino. The api enforces
-// every permission anyway; this only avoids showing the wrong screen.
+// nobody → that side's login (/login for parents, /nino/entrar for the
+// child), a parent → /padres, the child → /nino. The api enforces every
+// permission anyway; this only avoids showing the wrong screen.
 import { useEffect } from "react";
 import { ApiError } from "./api";
 import { useHousehold } from "./queries";
@@ -10,16 +11,20 @@ import type { Household } from "./types";
 export type Role = "parent" | "child";
 
 const HOME: Record<Role, string> = { parent: "/padres", child: "/nino" };
+const LOGIN: Record<Role, string> = { parent: "/login", child: "/nino/entrar" };
 
 export function homeFor(role: Role): string {
 	return HOME[role];
 }
 
-export function loginUrl(): string {
+// The login for that side, coming back here afterwards (unless here is just
+// the side's home, where it lands anyway).
+export function loginUrl(role: Role): string {
+	const login = LOGIN[role];
 	const here = `${window.location.pathname}${window.location.search}`;
-	return here === "/" || here.startsWith("/login")
-		? "/login"
-		: `/login?next=${encodeURIComponent(here)}`;
+	return here === "/" || here === homeFor(role) || here.startsWith(login)
+		? login
+		: `${login}?next=${encodeURIComponent(here)}`;
 }
 
 // Only paths of this app, never another origin.
@@ -47,11 +52,11 @@ export function useRoleGuard(role: Role): GuardState {
 
 	useEffect(() => {
 		if (unauthenticated) {
-			window.location.replace(loginUrl());
+			window.location.replace(loginUrl(role));
 		} else if (wrongRole && kind !== undefined) {
 			window.location.replace(homeFor(kind));
 		}
-	}, [unauthenticated, wrongRole, kind]);
+	}, [unauthenticated, wrongRole, kind, role]);
 
 	if (unauthenticated || wrongRole) {
 		return { status: "redirecting" };
