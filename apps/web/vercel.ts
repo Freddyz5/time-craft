@@ -19,5 +19,8 @@ export const config = {
 	installCommand: "bun install --frozen-lockfile",
 	buildCommand: "cd ../.. && bun run build --filter=@time-craft/web",
 	outputDirectory: "dist",
+	// Builds only when the web changed: the api counts only through its types.
+	ignoreCommand:
+		"node ../../scripts/vercel-ignore.mjs @time-craft/web --type-only @time-craft/api",
 	rewrites: [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }],
 };

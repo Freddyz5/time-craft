@@ -9,7 +9,7 @@ API REST con Hono, desplegada en Vercel. Contiene las rutas, la autenticación (
 - `src/adapters/`: repositorios Drizzle y `UnitOfWork` (`drizzle/`), QStash (`qstash.ts`), Web Push (`web-push.ts`), identidad sobre `auth.$context` (`identity.ts`), código de recuperación con scrypt (`recovery-codes.ts`), reloj e ids (`system.ts`).
 - `src/http/`: formato de error único `{ error: { code, message, details? } }` (validation 400, unauthorized 401, forbidden 403, not_found 404, conflict 409, rule 422), validación con `@hono/zod-validator`, sesión → `Actor` y rate limit propio para el código de recuperación.
 - `src/routes/`: un archivo por módulo. Las respuestas del cronómetro incluyen `serverTime`.
-- `scripts/build.ts` empaqueta `src/index.ts` en `dist/index.js`: incluye los paquetes del workspace y deja externas las dependencias npm de este `package.json`. `vercel.json` le indica a Vercel que use `dist`.
+- `scripts/build.ts` empaqueta `src/index.ts` en `dist/index.js`: incluye los paquetes del workspace y deja externas las dependencias npm de este `package.json`. `vercel.json` configura el proyecto de Vercel: preset Hono, instalación con Bun, build con turbo, salida `dist` y el paso de ignorar el build (`scripts/vercel-ignore.mjs` en la raíz: solo construye si cambió la api o algo de lo que depende). `engines` fija Node 22 para la función.
 - `bun run dev` sirve la api en http://localhost:3000 con el `.env` de la raíz. `bun run db:seed` (`scripts/seed.ts`) siembra el hogar completo e imprime el código de recuperación una sola vez.
 
 ## Better Auth

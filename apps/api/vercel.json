@@ -3,5 +3,6 @@
 	"framework": "hono",
 	"installCommand": "bun install --frozen-lockfile",
 	"buildCommand": "cd ../.. && bun run build --filter=@time-craft/api",
-	"outputDirectory": "dist"
+	"outputDirectory": "dist",
+	"ignoreCommand": "node ../../scripts/vercel-ignore.mjs @time-craft/api"
 }
