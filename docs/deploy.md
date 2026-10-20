@@ -1,0 +1,292 @@
+# Despliegue
+
+Cómo se publica Time Craft y qué hay que configurar a mano, una sola vez, en Vercel, Neon, GitHub, Google Cloud y Upstash. Lo que vive en el código no se toca en los dashboards:
+
+| Qué | Dónde |
+|---|---|
+| Build, instalación, salida y reescritura `/api/*` de la web | [`apps/web/vercel.ts`](../apps/web/vercel.ts) |
+| Build, instalación y salida de la api | [`apps/api/vercel.json`](../apps/api/vercel.json) |
+| Saltar el build de la app que un commit no afecta | [`scripts/vercel-ignore.mjs`](../scripts/vercel-ignore.mjs) (el `ignoreCommand` de cada app) |
+| Lint, typecheck, tests y build en cada PR | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) |
+| Migraciones de Neon al hacer push a `dev` o `prod` | [`.github/workflows/migrate.yml`](../.github/workflows/migrate.yml) |
+| Versión de Node (22) | `engines` en `apps/api/package.json` y `apps/web/package.json` |
+
+## Cómo fluye un cambio
+
+```
+feat/*  ──PR──▶  dev  ──PR (release)──▶  prod
+         CI       │                      │
+     previews     ├─ Migrate: Neon dev   ├─ Migrate: Neon main
+                  └─ Vercel: dominio     └─ Vercel: producción
+                     fijo de dev            (la api espera a Migrate)
+```
+
+| | Producción | Dev | Previews de PR |
+|---|---|---|---|
+| Rama | `prod` | `dev` | cualquier otra |
+| Web | `<WEB_PROD>` | `<WEB_DEV>` (fijo) | una URL por deployment |
+| La web habla con | api de producción | api de dev | api de dev |
+| Base de datos | Neon `main` | Neon `dev` | Neon `dev` |
+| Login con Google | sí | sí | no: email y contraseña |
+| Alarmas (QStash) | api de producción | api de dev | las procesa la api de dev |
+| Protección de Vercel (web) | pública | solo tú, con tu sesión de Vercel | solo tú |
+
+- Cada push crea deployments solo de la app que cambió: un cambio solo en la api no reconstruye la web, y al revés. La web usa de la api solo sus tipos, así que un cambio en `api`, `core` o `db` no la reconstruye. Un cambio en `turbo.json`, el `package.json` raíz o `bunfig.toml` reconstruye las dos; uno en `bun.lock`, las apps cuyas dependencias cambiaron. Uno solo en `docs/`, `.github/` o los `CLAUDE.md` raíz no reconstruye ninguna. En el primer push de una rama no hay un deployment anterior con qué comparar, así que el paso de ignorar construye todo lo que Vercel no haya saltado por su cuenta.
+- Las previews de PR de la web hablan con la api de **dev**, no con una preview de la api. Si un PR cambia la api y la web a la vez, prueba la pareja completa en dev después del merge.
+- Las migraciones corren en GitHub Actions al mismo tiempo que Vercel despliega. Por eso deben ser **compatibles hacia atrás** (la regla está en el [`CLAUDE.md`](../CLAUDE.md) raíz). En producción, Vercel no publica la api nueva hasta que el job `Migrate database` termina bien (paso 9).
+
+## Tus valores
+
+El resto del documento usa estos nombres. Anótalos a medida que los obtienes:
+
+| Nombre | Qué es | Ejemplo |
+|---|---|---|
+| `<WEB_PROD>` | Dominio de producción del proyecto web (Vercel lo asigna, paso 4) | `https://time-craft-web.vercel.app` |
+| `<API_PROD>` | Dominio de producción del proyecto api (paso 3) | `https://time-craft-api.vercel.app` |
+| `<WEB_DEV>` | Dominio fijo de la web para la rama `dev` (lo eliges, paso 5) | `https://time-craft-web-dev.vercel.app` |
+| `<API_DEV>` | Dominio fijo de la api para la rama `dev` (paso 5) | `https://time-craft-api-dev.vercel.app` |
+| `<SCOPE>` | Sufijo de tu cuenta en las URLs de Vercel (paso 4) | `freddyz5s-projects` |
+
+Los cuatro dominios van con `https://` y sin `/` al final.
+
+---
+
+## Parte A. Configuración inicial (una vez, antes de fusionar la fase 6 en `dev`)
+
+### 1. Neon: una rama por ambiente
+
+- [ ] En la consola de Neon, abre el proyecto. La rama `main` es **producción**.
+- [ ] **Branches → New branch**: nombre `dev`, rama padre `main`, desde *Current point in time* → **Create**. `dev` nace como copia de `main`: si `main` ya tiene el hogar de fases anteriores, `dev` también; si está vacía, el seed va en el paso 10. Las migraciones que falten las aplica GitHub Actions (pasos 9 y 12).
+- [ ] Para cada rama (`main` y `dev`), saca dos cadenas con el botón **Connect** del proyecto (elige la rama en el selector *Branch*):
+  - con **Connection pooling** activado (el host lleva `-pooler`): es `DATABASE_URL`, la que usa la api;
+  - con **Connection pooling** desactivado: es `DATABASE_URL_UNPOOLED`, la de las migraciones.
+- [ ] Anota la región del proyecto (Settings → General, p. ej. `AWS US East 1 (N. Virginia)`). La usarás en el paso 3.
+- [ ] **No instales** la integración de Neon en Vercel: crea una rama de Neon por cada preview y reescribe `DATABASE_URL`. Aquí las previews usan la rama `dev`.
+
+### 2. GitHub: un Environment por rama, con la cadena de migraciones
+
+En el repo: **Settings → Environments → New environment**.
+
+- [ ] Nombre `dev` → **Configure environment**:
+  - **Deployment branches and tags** → *Selected branches and tags* → **Add deployment branch or tag rule** → *Ref type* Branch, *Name pattern* `dev` → **Add rule**.
+  - **Environment secrets → Add environment secret**: nombre `DATABASE_URL_UNPOOLED`, valor la cadena **directa** (sin pooling) de la rama `dev` de Neon.
+- [ ] Lo mismo con el nombre `prod`: regla de rama `prod` y la cadena **directa** de `main`.
+
+El workflow `Migrate` elige el Environment por el nombre de la rama, y la regla impide que otra rama lea esos secretos.
+
+### 3. Vercel: proyecto de la api
+
+Si ya creaste el proyecto de la api en la fase 1, ábrelo y revisa cada punto en lugar de importarlo de nuevo.
+
+- [ ] [vercel.com/new](https://vercel.com/new) → **Import** del repo `Freddyz5/time-craft`.
+  - *Project Name*: `time-craft-api`.
+  - *Root Directory* → **Edit** → `apps/api`.
+  - *Framework Preset* y *Build and Output Settings*: déjalos como estén; `apps/api/vercel.json` manda.
+  - **Deploy**. Este primer deployment sale de la rama `prod` tal como está (fase 2) y puede fallar o quedar incompleto: es normal hasta el primer release (parte B).
+- [ ] **Settings → Environments → Production → Branch Tracking**: la rama es `prod`. En versiones anteriores del panel está en **Settings → Git → Production Branch**.
+- [ ] **Settings → Build and Deployment**:
+  - *Root Directory*: `apps/api`, con **Include files outside the root directory in the Build Step** activado (la api empaqueta `packages/*`) y **Skip deployments when there are no changes to the root directory or its dependencies** activado.
+  - *Node.js Version*: `22.x`.
+  - *Ignored Build Step*: no lo cambies; `vercel.json` ya trae el `ignoreCommand`.
+- [ ] **Settings → Functions → Function Region**: la más cercana a la región de Neon. Por ejemplo, Neon en `AWS US East 1` → `Washington, D.C., USA (iad1)`; `AWS US East 2` → `Cleveland, USA (cle1)`; `AWS US West 2` → `Portland, USA (pdx1)`; `AWS São Paulo` → `São Paulo, Brazil (gru1)`.
+- [ ] **Settings → Deployment Protection → Vercel Authentication**: **desactivado** → **Save**. La api la llaman la reescritura de la web y QStash, de servidor a servidor, y ninguno de los dos tiene tu sesión de Vercel. Sus rutas ya están protegidas: todo `/api/*` exige sesión de Better Auth (salvo el login y el código de recuperación, con su rate limit) y `/internal/jobs` exige la firma de QStash. Más detalles en [QStash y la protección de Vercel](#qstash-y-la-protección-de-vercel).
+- [ ] **Settings → Domains**: anota el dominio de producción que asignó Vercel → es `<API_PROD>`.
+
+### 4. Vercel: proyecto de la web
+
+- [ ] [vercel.com/new](https://vercel.com/new) → **Import** del mismo repo otra vez.
+  - *Project Name*: `time-craft-web`.
+  - *Root Directory* → **Edit** → `apps/web`.
+  - **Environment Variables**: agrega `API_ORIGIN` = `<API_PROD>` (al importar se aplica a todos los ambientes; en el paso 7 ajustas Preview).
+  - **Deploy**. Igual que la api, este primer deployment sale de la fase 2 de `prod`.
+- [ ] **Settings → Environments → Production → Branch Tracking**: `prod`.
+- [ ] **Settings → Build and Deployment**: *Root Directory* `apps/web`, con **Include files outside the root directory in the Build Step** y **Skip deployments when there are no changes…** activados; *Node.js Version* `22.x`; *Ignored Build Step* sin tocar (lo trae `vercel.ts`).
+- [ ] **Settings → Deployment Protection → Vercel Authentication**: déjalo en **Standard Protection** (el valor por defecto). Las previews y el dominio de dev solo los abre quien tiene sesión en tu cuenta de Vercel; producción es pública.
+- [ ] **Settings → Domains**: anota el dominio de producción → es `<WEB_PROD>`.
+- [ ] Busca `<SCOPE>`: es el final de cualquier URL de deployment del proyecto (en **Deployments**, abre uno: `time-craft-web-abc123-<SCOPE>.vercel.app`). También aparece en la URL del panel: `vercel.com/<SCOPE>/time-craft-web`.
+
+### 5. Vercel: dominio fijo para `dev`
+
+Google exige registrar la URL de retorno y QStash necesita una URL estable a la que llamar, así que `dev` tiene dominios fijos en los dos proyectos.
+
+- [ ] Proyecto **time-craft-api** → **Settings → Domains → Add Domain** → escribe `time-craft-api-dev.vercel.app` → en *Connect to an environment* elige **Preview** y en **Git Branch** escribe `dev` → **Save**. Si Vercel dice que el nombre no está libre, prueba otro (`time-craft-api-dev-<algo>.vercel.app`). Ese es `<API_DEV>`.
+- [ ] Proyecto **time-craft-web** → lo mismo con `time-craft-web-dev.vercel.app`, Preview, rama `dev`. Ese es `<WEB_DEV>`.
+
+### 6. Secretos y claves por ambiente
+
+Genera en tu máquina, una vez por ambiente (Production y Preview), sin reutilizarlos entre ambientes:
+
+```sh
+openssl rand -base64 32          # BETTER_AUTH_SECRET
+bunx web-push generate-vapid-keys  # VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY
+```
+
+**Google Cloud** ([console.cloud.google.com/auth](https://console.cloud.google.com/auth)). Si ya tienes el cliente OAuth de la fase 4, solo agrega las URLs:
+
+- [ ] **Audience**: modo *Testing*, con los correos de los dos padres en *Test users*.
+- [ ] **Clients** → tu cliente *Web application* (o **Create client** → *Web application*):
+  - *Authorized JavaScript origins*: `<WEB_PROD>` y `<WEB_DEV>`.
+  - *Authorized redirect URIs*: `<WEB_PROD>/api/auth/callback/google` y `<WEB_DEV>/api/auth/callback/google`. Para probar Google en local, agrega también `http://localhost:4321/api/auth/callback/google`.
+- [ ] Copia el *Client ID* y el *Client secret*. Producción y dev usan el mismo cliente.
+
+**QStash** ([console.upstash.com/qstash](https://console.upstash.com/qstash)):
+
+- [ ] Arriba, elige la región. Recomendada: **US East**, cerca de la api; los mensajes, las claves y la facturación son de cada región.
+- [ ] De la sección **Quickstart** copia `QSTASH_URL`, `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY` y `QSTASH_NEXT_SIGNING_KEY`. Producción y dev usan la misma cuenta (el plan gratis da 1.000 mensajes al día entre los dos). En la región EU, `QSTASH_URL` puede quedar vacío.
+
+### 7. Vercel: variables de entorno
+
+**Settings → Environment Variables → Add Environment Variable**. En *Environments* marca solo lo que dice cada columna; para "Preview, solo `dev`" marca Preview y en *Branch* escribe `dev` (un valor por rama gana al de Preview general). No marques *Development*: en local se usa el `.env`.
+
+Proyecto **time-craft-api**:
+
+| Variable | Production | Preview (todas las ramas) | Preview, solo `dev` |
+|---|---|---|---|
+| `DATABASE_URL` | Neon `main`, con pooling | Neon `dev`, con pooling | |
+| `BETTER_AUTH_SECRET` | el de producción | el de preview | |
+| `BETTER_AUTH_URL` | `<WEB_PROD>` | `<WEB_DEV>` | |
+| `BETTER_AUTH_TRUSTED_ORIGINS` | | `https://time-craft-web-*-<SCOPE>.vercel.app` | |
+| `GOOGLE_CLIENT_ID` | el del cliente | | el del cliente |
+| `GOOGLE_CLIENT_SECRET` | el del cliente | | el del cliente |
+| `QSTASH_URL` | la de tu región | la de tu región | |
+| `QSTASH_TOKEN` | de Quickstart | de Quickstart | |
+| `QSTASH_CURRENT_SIGNING_KEY` | de Quickstart | de Quickstart | |
+| `QSTASH_NEXT_SIGNING_KEY` | de Quickstart | de Quickstart | |
+| `PUBLIC_API_URL` | `<API_PROD>` | `<API_DEV>` | |
+| `VAPID_PUBLIC_KEY` | par de producción | par de preview | |
+| `VAPID_PRIVATE_KEY` | par de producción | par de preview | |
+| `VAPID_SUBJECT` | `mailto:<tu correo>` | `mailto:<tu correo>` | |
+
+Proyecto **time-craft-web** (edita el `API_ORIGIN` que pusiste al importar):
+
+| Variable | Production | Preview (todas las ramas) | Preview, solo `dev` |
+|---|---|---|---|
+| `API_ORIGIN` | `<API_PROD>` | `<API_DEV>` | |
+| `VAPID_PUBLIC_KEY` | par de producción (la misma que en la api) | par de preview | |
+| `GOOGLE_CLIENT_ID` | el del cliente | | el del cliente |
+
+Por qué así:
+
+- `BETTER_AUTH_URL` es el dominio de la **web**, no el de la api: el navegador llega a `/api/auth` a través de la reescritura de la web, y ahí quedan las cookies.
+- Todas las previews (dev y las de PR) usan la api de dev. `BETTER_AUTH_TRUSTED_ORIGINS` deja que las previews de PR de la web, cada una con su URL, inicien sesión contra ella.
+- Google va solo en Production y en la rama `dev`: las previews de PR cambian de URL y Google no las aceptaría. Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
+- No van en Vercel: `DATABASE_URL_UNPOOLED` (está en GitHub, paso 2), `SEED_*` (solo para el seed desde tu máquina) ni `API_DEV_URL` (solo local).
+- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar.
+
+### 8. GitHub: reglas de las ramas
+
+En el repo: **Settings → Rules → Rulesets → New ruleset → New branch ruleset**. Crea dos.
+
+Ruleset **`prod`**:
+
+- [ ] *Enforcement status*: **Active**. *Bypass list*: vacía.
+- [ ] *Target branches* → **Add target → Include by pattern** → `prod`.
+- [ ] **Restrict deletions** y **Block force pushes**.
+- [ ] **Require a pull request before merging**: *Required approvals* `0` (trabajas solo); en *Allowed merge methods* deja solo **Merge**.
+- [ ] **Require status checks to pass** → **Add checks**: `Lint, typecheck, test, build` y `PR to prod comes from dev`. Deja **sin** marcar *Require branches to be up to date before merging*: cada release deja en `prod` un commit de merge que `dev` no tiene, y esa opción obligaría a traerlo a `dev` antes de cada release.
+- [ ] **Create**.
+
+Ruleset **`dev`**:
+
+- [ ] *Enforcement status* **Active**, *Bypass list* vacía, target `dev`.
+- [ ] **Restrict deletions**, **Block force pushes**, **Require a pull request before merging** (`0` aprobaciones, merge method **Merge**).
+- [ ] **Require status checks to pass** → `Lint, typecheck, test, build`, con *Require branches to be up to date before merging* marcado.
+- [ ] **Create**.
+
+GitHub no puede limitar de qué rama viene un PR. Lo hace el job `PR to prod comes from dev` de `ci.yml`: falla si el PR hacia `prod` no sale de la rama `dev` de este repo. Un check solo aparece en *Add checks* después de haber corrido una vez; si `PR to prod comes from dev` todavía no aparece, escríbelo tal cual.
+
+Usa siempre **Merge** (no squash ni rebase) en los PR de `dev` a `prod`: así `prod` contiene los mismos commits que `dev` y el siguiente release solo muestra lo nuevo.
+
+---
+
+## Parte B. Primer despliegue
+
+### 9. Fusionar la fase 6 en `dev`
+
+Las previews del propio PR de esta fase no funcionan del todo: su web apunta a la api de dev, que se despliega por primera vez con este merge.
+
+- [ ] Fusiona el PR de esta fase en `dev`. Eso dispara:
+  - **CI** sobre `dev`.
+  - **Migrate** (Actions): aplica en Neon `dev` las migraciones pendientes. En su log, `drizzle-kit migrate` termina sin error.
+  - **Vercel**: un deployment de cada proyecto para `dev`, en `<WEB_DEV>` y `<API_DEV>`. Es el primero de `dev` en estos proyectos, así que el paso de ignorar no tiene con qué comparar y construye.
+- [ ] Proyecto **time-craft-api** → **Settings → Build and Deployment → Deployment Checks → Add Checks** → *GitHub* → elige `Migrate database` → guarda. Desde ahora, un deployment de producción de la api no se publica hasta que ese job pasa en el mismo commit. Si algún día necesitas saltarlo: **Force Promote** en el deployment.
+
+### 10. Seed de una base vacía
+
+Solo si la rama de Neon no tiene el hogar todavía (SQL Editor: `select name from families;` no devuelve filas). El seed crea la familia, los padres, las actividades, la cuenta del niño y su política desde las variables `SEED_*` de tu `.env`, y es idempotente. Corre en tu máquina, contra la cadena **directa** de la rama, después de que `Migrate` la haya migrado:
+
+```sh
+env DATABASE_URL_UNPOOLED='<cadena directa de la rama>' \
+    BETTER_AUTH_SECRET='<el secreto de ese ambiente>' \
+    BETTER_AUTH_URL='<WEB_DEV o WEB_PROD>' \
+    bun run db:seed
+```
+
+- [ ] Ahora, para `dev` (con `<WEB_DEV>` y el secreto de Preview).
+- [ ] Después del primer release (paso 12), para `main` si hace falta (con `<WEB_PROD>` y el secreto de Production).
+
+Las variables de la línea de comandos ganan a las del `.env`. El seed imprime el **código de recuperación** de la familia una sola vez: guárdalo en un lugar seguro. Cada base tiene el suyo.
+
+### 11. Comprobar `dev`
+
+- [ ] `curl <API_DEV>/health` responde `{"ok":true,…}`.
+- [ ] Abre `<WEB_DEV>`. Vercel te pide tu sesión (es una preview protegida); después ves el login de Time Craft.
+- [ ] Inicia sesión como padre con **Continuar con Google**. En las herramientas del navegador, las llamadas van a `<WEB_DEV>/api/…` (mismo origen) y la cookie `__Secure-better-auth.session_token` es de `<WEB_DEV>`.
+- [ ] Alarmas: activa las notificaciones y crea una sesión de 6 minutos. Con el aviso por defecto (5 minutos antes), al minuto llega el aviso y a los 6 el fin. En la consola de QStash (**Logs**) aparecen los mensajes entregados a `<API_DEV>/internal/jobs` con estado 200.
+- [ ] En el SQL Editor de Neon (rama `dev`): `select ip_address, user_agent from auth_session order by created_at desc limit 3;`. La IP debe ser la tuya. Si es una IP de Vercel, la reescritura no pasa la IP del cliente y los límites por IP (5 inicios de sesión por minuto) los comparten todos: avísalo para ajustar `advanced.ipAddress` en `apps/api/src/auth/index.ts`.
+
+### 12. Primer release: `dev` → `prod`
+
+- [ ] Abre un PR de `dev` a `prod`. Corren `Lint, typecheck, test, build` y `PR to prod comes from dev`.
+- [ ] Fusiónalo con **Merge**. Eso dispara **Migrate** en Neon `main` y los deployments de producción. La api queda en *Waiting for checks* hasta que `Migrate database` pasa, y luego se publica en `<API_PROD>`.
+- [ ] Si `main` no tiene el hogar, haz el seed (paso 10) con los valores de producción.
+
+### 13. Comprobar producción
+
+- [ ] `curl <API_PROD>/health` responde `{"ok":true,…}`.
+- [ ] `<WEB_PROD>` abre sin pedir sesión de Vercel. Los dos padres entran con Google y el niño con su usuario y PIN.
+- [ ] Cada uno activa las notificaciones en su teléfono (en Android, con Chrome).
+- [ ] Una sesión de 6 minutos dispara el aviso al minuto y el fin a los 6 (QStash → `<API_PROD>/internal/jobs`).
+
+---
+
+## Parte C. Día a día
+
+1. Rama desde `dev` (`feat/f7-…`), commits, PR hacia `dev`. CI corre y Vercel comenta las previews de lo que cambió. Las previews de PR de la web usan la api de dev: entra con email y contraseña.
+2. Merge a `dev`: migraciones en Neon `dev` y deploy en `<WEB_DEV>` / `<API_DEV>`. Ahí se prueba todo junto, incluidos Google y las alarmas.
+3. Release: PR de `dev` a `prod`, merge con **Merge**. Migraciones en `main` y producción.
+
+Una migración nueva se genera con `bun run db:generate` y nunca se edita a mano. Se aplica sola al llegar a `dev` y a `prod`.
+
+Para forzar el build de una app que el paso de ignorar saltó: **Deployments → ⋯ → Redeploy** y desmarca **Use project's Ignore Build Step**.
+
+## QStash y la protección de Vercel
+
+Vercel Authentication protege las previews: quien no tiene sesión en tu cuenta de Vercel recibe un 401. QStash no tiene esa sesión, y la reescritura de la web hacia la api tampoco, porque es de servidor a servidor.
+
+**Cómo está configurado:** la api no tiene Vercel Authentication (paso 3) y la web sí. Así:
+
+- QStash llega a la api en dev y en producción sin nada más. Las alarmas se prueban en **dev**.
+- Una preview de PR de la api (si alguien la usa directamente) programa sus alarmas contra `PUBLIC_API_URL`, que en Preview es `<API_DEV>`: las procesa la api de dev, sobre la misma base Neon `dev`.
+- La web de dev y de las previews sigue protegida: solo tú la abres.
+
+**Si quisieras proteger también la api**, Vercel ofrece *Protection Bypass for Automation*: en el proyecto de la api, **Settings → Deployment Protection → Protection Bypass for Automation → Add Secret**. Vercel expone ese secreto en los deployments de la api como `VERCEL_AUTOMATION_BYPASS_SECRET`, y quien lo envíe en la cabecera `x-vercel-protection-bypass` (o como `?x-vercel-protection-bypass=…` en la URL) pasa la protección. Harían falta dos cambios de código que hoy **no están hechos**:
+
+1. En `apps/api/src/adapters/qstash.ts`, publicar cada mensaje con la cabecera `x-vercel-protection-bypass: <secreto>` (QStash reenvía las cabeceras que recibe al publicar).
+2. En `apps/web/vercel.ts`, añadir esa cabecera a la reescritura de `/api/*`, con el secreto en una variable del proyecto web.
+
+Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o fallan el login (la reescritura recibe un 401) y las alarmas.
+
+## Problemas frecuentes
+
+| Síntoma | Causa y arreglo |
+|---|---|
+| El build de la web falla con `API_ORIGIN must be the api's origin` | Falta `API_ORIGIN` en el proyecto web para ese ambiente (paso 7). Agrégala y haz Redeploy. |
+| Un deployment queda *Canceled* con `Skip: …` en el log | Es el paso de ignorar: el commit no afecta a esa app. Para construir igual, Redeploy sin *Use project's Ignore Build Step*. |
+| La api responde 500 y el log de la función dice `Invalid environment variables` | El mensaje nombra la variable que falta o es inválida en ese ambiente (paso 7). |
+| Iniciar sesión da 403 `Invalid origin` | En dev o producción: `BETTER_AUTH_URL` no es exactamente el dominio de la web (`https://`, sin `/` final). En una preview de PR: revisa `<SCOPE>` en `BETTER_AUTH_TRUSTED_ORIGINS`. |
+| Google responde `redirect_uri_mismatch` | Falta `<dominio de la web>/api/auth/callback/google` en el cliente OAuth (paso 6). |
+| En QStash los mensajes fallan con 401 | La api tiene Vercel Authentication activado (paso 3), o las claves de firma son de otra región. Con 404, `PUBLIC_API_URL` no apunta a la api. |
+| La api de producción queda en *Waiting for checks* | El job `Migrate database` de ese commit falló o no corrió: revisa Actions → Migrate. |
+| `Migrate` falla con `has no DATABASE_URL_UNPOOLED secret` | Falta el secreto en el Environment de esa rama (paso 2). Después, Actions → Migrate → **Run workflow** en esa rama (el botón aparece cuando `migrate.yml` ya está en `prod`). |
+| `bun install --frozen-lockfile` falla en Vercel | Revisa en el log la versión de Bun de Vercel (`bun install v…`): si es más vieja que la de `packageManager`, el lockfile puede no coincidir. |

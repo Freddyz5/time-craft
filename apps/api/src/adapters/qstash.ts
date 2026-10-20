@@ -16,7 +16,7 @@ export interface QStashConfig {
 	nextSigningKey: string;
 	// The api's public URL; the callback goes to its /internal/jobs.
 	publicApiUrl: string;
-	// Only for QStash's local development server.
+	// QStash's regional URL (default: EU) or its local development server.
 	baseUrl?: string | undefined;
 }
 

@@ -40,7 +40,7 @@ QStash no puede llamar a `localhost`, así que hay dos caminos:
    PUBLIC_API_URL=http://localhost:3000
    ```
    Los mensajes viven en memoria: se pierden al reiniciarlo. Su consola está en https://console.upstash.com/qstash/local-mode-user?port=8080.
-2. **Túnel** (ngrok, cloudflared) hacia `localhost:3000` con las credenciales reales de QStash: `PUBLIC_API_URL` es la URL pública del túnel y `QSTASH_URL` queda vacío.
+2. **Túnel** (ngrok, cloudflared) hacia `localhost:3000` con las credenciales reales de QStash: `PUBLIC_API_URL` es la URL pública del túnel y `QSTASH_URL` es la de la región de tu cuenta (vacío si es EU).
 
 La firma se verifica contra `PUBLIC_API_URL + /internal/jobs` (la URL a la que se publicó el mensaje). No uses `QSTASH_DEV`: el adaptador configura el SDK explícitamente y lo ignora.
 

@@ -189,7 +189,7 @@ Archivo de referencia: `timecraft_v1.sql` (validado contra PostgreSQL 16, inclui
 | `QSTASH_TOKEN` | Publicar y cancelar mensajes |
 | `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` | Verificar la firma de los callbacks |
 | `PUBLIC_API_URL` | URL pública a la que QStash llama de vuelta |
-| `QSTASH_URL` | Solo en local: el servidor de desarrollo de QStash (opcional) |
+| `QSTASH_URL` | URL de QStash (opcional): la de la región si no es EU (`https://qstash-us-east-1.upstash.io`) o, en local, el servidor de desarrollo |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Web Push (la pública también la usa la web) |
 
 Se validan al arrancar con un schema de zod: si falta una, la api falla de inmediato en lugar de fallar a mitad de un flujo.

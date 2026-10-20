@@ -55,7 +55,7 @@ export const envSchema = z
 		QSTASH_TOKEN: required,
 		QSTASH_CURRENT_SIGNING_KEY: required,
 		QSTASH_NEXT_SIGNING_KEY: required,
-		// Only to use QStash's local development server.
+		// QStash's region (empty: EU) or its local development server.
 		QSTASH_URL: z.preprocess(blankAsMissing, z.url().optional()),
 		// The api's own public URL, which QStash calls back.
 		PUBLIC_API_URL: url,
