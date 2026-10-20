@@ -1,9 +1,9 @@
 // Inicio. Phone order: what is happening now (a running, paused or scheduled
 // session), the request waiting for an answer or the answer that just came,
 // then the batteries of today and the week with the bonuses and when each
-// recharges, and the way to ask for more; while this device has no
-// notifications, a quiet offer to turn them on. On a laptop "Ahora" and the
-// batteries sit side by side.
+// recharges, and the way to ask for more; below, the rules folded, and while
+// this device has no notifications, a quiet offer to turn them on. On a
+// laptop "Ahora" and the batteries sit side by side.
 import { Hand } from "lucide-react";
 import { Link } from "wouter";
 import { buttonClass, LoadingBricks, Notice } from "../components/ui";
@@ -12,8 +12,14 @@ import { useChild } from "./context";
 import { childErrorMessage } from "./errors";
 import { Batteries } from "./home/Batteries";
 import { NowCard } from "./home/NowCard";
+import { Rules } from "./home/Rules";
 import { PushOffer } from "./Notifications";
-import { AnswerCard, PendingStrip, useMyRequests } from "./requests";
+import {
+	AnswerAnnouncer,
+	AnswerCard,
+	PendingStrip,
+	useMyRequests,
+} from "./requests";
 
 export function Home() {
 	const { childId } = useChild();
@@ -21,6 +27,7 @@ export function Home() {
 	const balance = useBalance(childId);
 	const policies = usePolicies(childId);
 	const requests = useMyRequests();
+	const { arrival } = requests;
 
 	if (live.data === undefined || balance.data === undefined) {
 		const error = live.error ?? balance.error;
@@ -40,7 +47,10 @@ export function Home() {
 	const strip = requests.pending ? (
 		<PendingStrip request={requests.pending} />
 	) : requests.freshAnswer ? (
-		<AnswerCard request={requests.freshAnswer} />
+		<AnswerCard
+			request={requests.freshAnswer}
+			arrived={arrival?.requestId === requests.freshAnswer.id}
+		/>
 	) : null;
 	const now = (session !== null || strip !== null) && (
 		<>
@@ -49,6 +59,9 @@ export function Home() {
 					key={session.id}
 					session={session}
 					policies={policies.data?.policies ?? []}
+					enter={
+						arrival?.yes === true && arrival.requestId === session.requestId
+					}
 				/>
 			)}
 			{strip}
@@ -64,10 +77,12 @@ export function Home() {
 			}`}
 		>
 			<h1 className="sr-only">Tu tiempo</h1>
+			<AnswerAnnouncer arrival={arrival} />
 			{now && <div className="flex flex-col gap-5">{now}</div>}
 			<div className="flex flex-col gap-5">
 				<Batteries
 					balances={balances}
+					asOf={Date.parse(balance.data.serverTime)}
 					live={session}
 					action={
 						balances.length > 0 &&
@@ -83,6 +98,7 @@ export function Home() {
 						)
 					}
 				/>
+				<Rules policies={policies.data?.policies ?? []} />
 				<PushOffer />
 			</div>
 		</div>

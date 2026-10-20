@@ -37,6 +37,8 @@ export interface BrickSpec {
 
 interface BrickProps extends BrickSpec {
 	animate?: "release" | "snap" | undefined;
+	// Staggers an entrance: this brick's motion starts after the others'.
+	delayMs?: number | undefined;
 }
 
 // Molded plastic edge: a thin dark rim gives light bricks (yellow on white)
@@ -50,6 +52,7 @@ export function Brick({
 	half = false,
 	socket = false,
 	animate,
+	delayMs,
 }: BrickProps) {
 	const id = useId();
 	const level = Math.min(1, Math.max(0, fill));
@@ -94,6 +97,7 @@ export function Brick({
 		<svg
 			viewBox="0 0 40 26"
 			className={`block h-auto w-full overflow-visible ${animation}`}
+			style={delayMs ? { animationDelay: `${delayMs}ms` } : undefined}
 			aria-hidden="true"
 		>
 			<defs>
@@ -191,6 +195,9 @@ interface BrickRowProps {
 	label: string;
 	gap?: "tight" | "normal";
 	className?: string;
+	// The bricks arrive (an approved request): each solid one snaps in, one
+	// after another, on first paint. Instant with reduced motion.
+	enter?: boolean;
 }
 
 // Remembers each brick's fill between renders, so only a brick that changed
@@ -229,8 +236,12 @@ export function BrickRow({
 	label,
 	gap = "normal",
 	className = "",
+	enter = false,
 }: BrickRowProps) {
-	const motions = useBrickMotion(bricks);
+	const changes = useBrickMotion(bricks);
+	const motions = enter
+		? bricks.map((brick) => (brick.fill > 0 ? ("snap" as const) : undefined))
+		: changes;
 	return (
 		<div
 			role="img"
@@ -245,6 +256,7 @@ export function BrickRow({
 					key={index}
 					{...brick}
 					animate={motions[index]}
+					delayMs={enter ? index * 70 : undefined}
 				/>
 			))}
 		</div>
@@ -330,12 +342,15 @@ export function AmountBricks({
 	label,
 	used = false,
 	size = "md",
+	enter = false,
 }: {
 	minutes: number;
 	color: string;
 	label: string;
 	used?: boolean;
 	size?: "sm" | "md";
+	// Snap in one after another on first paint (see BrickRow).
+	enter?: boolean;
 }) {
 	const unit = brickUnit(minutes, 12);
 	const bricks = amountBricks(minutes, unit, color, { used });
@@ -351,7 +366,11 @@ export function AmountBricks({
 					key={index}
 					className={size === "sm" ? "w-6" : "w-9"}
 				>
-					<Brick {...brick} />
+					<Brick
+						{...brick}
+						animate={enter ? "snap" : undefined}
+						delayMs={enter ? index * 70 : undefined}
+					/>
 				</div>
 			))}
 		</div>

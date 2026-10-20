@@ -52,7 +52,7 @@
 	--ease-out-quick: cubic-bezier(0.16, 1, 0.3, 1);
 
 	--animate-brick-release: brick-release 180ms var(--ease-out-quick);
-	--animate-brick-snap: brick-snap 260ms var(--ease-out-quick);
+	--animate-brick-snap: brick-snap 260ms var(--ease-out-quick) both;
 	--animate-brick-stack: brick-stack 1500ms var(--ease-out-quick) infinite both;
 	--animate-rise: rise 260ms var(--ease-out-quick);
 	--animate-shake: shake 360ms var(--ease-out-quick);

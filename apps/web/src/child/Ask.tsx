@@ -2,8 +2,10 @@
 // 2 how much (bricks, never more than what is left of its bag), and, when
 // the time is used up, 3 why (extra time always carries a reason). While a
 // request waits, it shows here with the way to cancel it; while a session is
-// open, nothing can be asked. Below, today's requests and their answers.
-import { Send } from "lucide-react";
+// open, nothing can be asked. After a "no" the form waits folded behind
+// "Pedir otra cosa", so a new request is a choice, not a reflex. Below,
+// today's requests and their answers.
+import { Check, CircleHelp, Plus, Send } from "lucide-react";
 import { type ReactNode, useEffect, useId, useState } from "react";
 import { Link } from "wouter";
 import { StepTitle } from "../components/StepTitle";
@@ -23,12 +25,46 @@ import { useCommand } from "../lib/useCommand";
 import { BrickPicker } from "./ask/BrickPicker";
 import { useChild } from "./context";
 import { childErrorMessage } from "./errors";
-import { AnswerCard, PendingCard, TodayList, useMyRequests } from "./requests";
+import {
+	AnswerAnnouncer,
+	AnswerCard,
+	PendingCard,
+	TodayList,
+	useMyRequests,
+} from "./requests";
 
 // Extra time: up to six bricks; a parent may give less.
 const EXTRA_OPTIONS = [10, 20, 30, 40, 50, 60];
 const DEFAULT_MINUTES = 30;
 const REASON_MAX = 500;
+// Reasons a child can tap instead of typing (and then edit).
+const REASONS = [
+	"Quiero terminar lo que empecé",
+	"Estoy jugando con alguien",
+	"Ya hice todos mis deberes",
+];
+// The extra-time reason survives a trip to another tab.
+const DRAFT_KEY = "timecraft:ask-reason";
+
+function readDraft(): string {
+	try {
+		return window.sessionStorage.getItem(DRAFT_KEY) ?? "";
+	} catch {
+		return "";
+	}
+}
+
+function saveDraft(text: string): void {
+	try {
+		if (text === "") {
+			window.sessionStorage.removeItem(DRAFT_KEY);
+		} else {
+			window.sessionStorage.setItem(DRAFT_KEY, text);
+		}
+	} catch {
+		// Private mode: the draft lasts while the screen is open.
+	}
+}
 
 // The minutes a start request can take: a brick at a time, the last one
 // worth whatever is left. Bricks grow past 10 min only when a lot is left.
@@ -70,11 +106,20 @@ function AskForm() {
 	const ids = { activity: useId(), minutes: useId(), reason: useId() };
 	const [activityId, setActivityId] = useState<string | null>(null);
 	const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
-	const [reason, setReason] = useState("");
+	const [reason, setReasonState] = useState(readDraft);
 	const [reasonError, setReasonError] = useState<string | null>(null);
+	const setReason = (text: string) => {
+		setReasonState(text);
+		saveDraft(text);
+		setReasonError(null);
+	};
 
 	const balances = balance.data?.balances ?? [];
-	const chosenId = activityId ?? activities[0]?.id ?? null;
+	// Start on an activity that still has time, if any does.
+	const withTime = activities.find(
+		(a) => (bagFor(balances, a.id)?.availableSeconds ?? 0) >= 60,
+	);
+	const chosenId = activityId ?? withTime?.id ?? activities[0]?.id ?? null;
 	const chosen = activities.find((a) => a.id === chosenId);
 	const look = activityLook(chosen?.code);
 	const bag = chosenId === null ? undefined : bagFor(balances, chosenId);
@@ -139,7 +184,7 @@ function AskForm() {
 			onSubmit={(event) => {
 				event.preventDefault();
 				if (extra && reason.trim() === "") {
-					setReasonError("Cuenta por qué lo necesitas: es obligatorio.");
+					setReasonError("Cuéntales por qué, así pueden decidir.");
 					document.getElementById(ids.reason)?.focus();
 					return;
 				}
@@ -163,8 +208,14 @@ function AskForm() {
 						return (
 							<label
 								key={activity.id}
-								className="flex cursor-pointer flex-col gap-2 rounded-control border-[1.5px] border-rule-strong bg-sheet p-3 transition-colors hover:bg-sheet-sunk has-checked:border-ink has-checked:shadow-[inset_0_0_0_1.5px_var(--color-ink)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
+								className="group relative flex cursor-pointer flex-col gap-2 rounded-control border-[1.5px] border-rule-strong bg-sheet p-3 transition-colors hover:bg-sheet-sunk has-checked:border-ink has-checked:shadow-[inset_0_0_0_1.5px_var(--color-ink)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
 							>
+								<span
+									className="absolute top-2.5 right-2.5 hidden size-6 place-items-center rounded-full bg-ink text-white group-has-checked:grid"
+									aria-hidden="true"
+								>
+									<Check className="size-4" strokeWidth={3} />
+								</span>
 								<input
 									type="radio"
 									name="activity"
@@ -207,15 +258,17 @@ function AskForm() {
 				>
 					{extra ? "¿Cuánto tiempo extra?" : "¿Cuánto tiempo?"}
 				</StepTitle>
-				<BrickPicker
-					options={options}
-					value={value}
-					onChange={setMinutes}
-					unit={unit}
-					color={look.color}
-					rest={extra ? "socket" : "balance"}
-					label={extra ? "Minutos extra" : "Minutos"}
-				/>
+				<div className="max-w-md">
+					<BrickPicker
+						options={options}
+						value={value}
+						onChange={setMinutes}
+						unit={unit}
+						color={look.color}
+						rest={extra ? "socket" : "balance"}
+						label={extra ? "Minutos extra" : "Minutos"}
+					/>
+				</div>
 				<p className="flex flex-wrap items-baseline gap-x-2">
 					<span className="tabular text-[2rem] leading-none font-extrabold tracking-[-0.02em]">
 						{minutesText(value)}
@@ -238,31 +291,42 @@ function AskForm() {
 					>
 						¿Por qué lo necesitas?
 					</StepTitle>
+					<fieldset className="flex flex-wrap gap-2">
+						<legend className="sr-only">Motivos rápidos</legend>
+						{REASONS.map((text) => (
+							<button
+								key={text}
+								type="button"
+								aria-pressed={reason === text}
+								onClick={() => setReason(text)}
+								className="min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-3.5 text-left font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white"
+							>
+								{text}
+							</button>
+						))}
+					</fieldset>
 					<div className="flex flex-col gap-1.5">
-						<label htmlFor={ids.reason} className="sr-only">
-							Motivo
+						<label htmlFor={ids.reason} className="font-medium">
+							O escríbelo tú
 						</label>
 						<textarea
 							id={ids.reason}
-							rows={3}
+							rows={2}
 							maxLength={REASON_MAX}
 							required
-							aria-invalid={reasonError !== null || undefined}
 							aria-describedby={reasonError ? `${ids.reason}-error` : undefined}
 							value={reason}
-							onChange={(event) => {
-								setReason(event.target.value);
-								setReasonError(null);
-							}}
-							className={`${inputClass} py-3 text-lg`}
-							placeholder="Quiero terminar la partida con mi primo"
+							onChange={(event) => setReason(event.target.value)}
+							className={`${inputClass} py-3`}
+							placeholder="Por ejemplo: quiero ver el final del capítulo"
 						/>
 						{reasonError && (
 							<p
 								id={`${ids.reason}-error`}
-								className="text-[0.9375rem] text-stop"
+								className="flex items-center gap-1.5 font-medium text-ink"
 								role="alert"
 							>
+								<CircleHelp className="size-5 shrink-0" aria-hidden="true" />
 								{reasonError}
 							</p>
 						)}
@@ -309,6 +373,8 @@ export function Ask() {
 	const { childId } = useChild();
 	const live = useLiveSession(childId);
 	const requests = useMyRequests();
+	const { arrival } = requests;
+	const [askAgain, setAskAgain] = useState(false);
 	const cancel = useCommand(
 		(requestId: string) =>
 			call(api.requests[":requestId"].cancel.$post({ param: { requestId } })),
@@ -334,6 +400,16 @@ export function Ask() {
 		);
 	} else if (live.data.live !== null) {
 		body = <SessionOpen status={live.data.live.session.status} />;
+	} else if (requests.freshAnswer?.status === "rejected" && !askAgain) {
+		body = (
+			<Button
+				icon={<Plus className="size-5" aria-hidden="true" />}
+				onClick={() => setAskAgain(true)}
+				className="text-lg sm:w-fit"
+			>
+				Pedir otra cosa
+			</Button>
+		);
 	} else {
 		body = <AskForm />;
 	}
@@ -344,7 +420,10 @@ export function Ask() {
 	return (
 		<div className="mx-auto flex max-w-xl flex-col gap-5">
 			<Header />
-			{fresh && <AnswerCard request={fresh} />}
+			<AnswerAnnouncer arrival={arrival} />
+			{fresh && (
+				<AnswerCard request={fresh} arrived={arrival?.requestId === fresh.id} />
+			)}
 			{body}
 			<TodayList requests={earlier} />
 		</div>

@@ -1,6 +1,7 @@
 // The child's balance as batteries made of bricks: today in one row, the week
 // as a wall (its unused bonus in yellow), the bonuses earned against the
-// weekly cap, and when each one recharges. The numbers are the api's; this
+// weekly cap, and when each one recharges. Both batteries use the same brick
+// size, so the day's is the shorter one. The numbers are the api's; this
 // only decides how many bricks to draw and how to say it to a 9-year-old.
 // Minutes round down, as in the countdown, so the figures always add up.
 import { ArrowRight, BatteryCharging } from "lucide-react";
@@ -24,28 +25,53 @@ import type { Activity, Balance, Session } from "../../lib/types";
 import { useChild } from "../context";
 
 const DAY_BRICKS = 12;
-const WEEK_PER_ROW = 10;
 const WEEK_BRICKS = 40;
 const BONUS_BRICKS = 12;
+// The battery's frame around its bricks: border, padding and terminal.
+const FRAME_PX = 30;
 
 const toMin = (seconds: number) => seconds / 60;
 
+// How many bricks per row the week's wall takes: 8 to 12, the one that
+// leaves the fullest last row (ten when it is a tie).
+function wallColumns(count: number): number {
+	if (count <= 8) {
+		return Math.max(1, count);
+	}
+	const fullness = (columns: number) =>
+		count % columns === 0 ? 1 : (count % columns) / columns;
+	return [10, 9, 8, 12, 11].reduce((best, columns) =>
+		fullness(columns) > fullness(best) ? columns : best,
+	);
+}
+
 // A battery: a thick ink outline with its terminal, cells made of bricks.
+// `columns` of `basis` sizes it so its bricks match another battery's.
 export function Battery({
 	bricks,
-	perRow,
+	columns,
+	basis = columns,
 	label,
 	gap = "normal",
 }: {
 	bricks: readonly BrickSpec[];
-	perRow: number;
+	columns: number;
+	basis?: number;
 	label: string;
 	gap?: "tight" | "normal";
 }) {
+	const share = Math.min(1, columns / basis);
 	return (
-		<div className="flex items-stretch">
+		<div
+			className="flex items-stretch"
+			style={
+				share < 1
+					? { width: `calc((100% - ${FRAME_PX}px) * ${share} + ${FRAME_PX}px)` }
+					: undefined
+			}
+		>
 			<div className="min-w-0 flex-1 rounded-[14px] border-[3px] border-ink bg-sheet px-2 pt-1.5 pb-2">
-				<BrickRow bricks={bricks} perRow={perRow} label={label} gap={gap} />
+				<BrickRow bricks={bricks} perRow={columns} label={label} gap={gap} />
 			</div>
 			<div className="flex items-center" aria-hidden="true">
 				<span className="block h-[38%] min-h-3 w-2 rounded-r-[4px] bg-ink" />
@@ -54,30 +80,48 @@ export function Battery({
 	);
 }
 
-function Swatch({ kind }: { kind: "solid" | "bonus" | "used" | "socket" }) {
+function Swatch({
+	kind,
+	color,
+}: {
+	kind: "solid" | "used" | "socket";
+	color?: string;
+}) {
 	const look = {
-		solid: "bg-balance border border-[rgb(21_25_30/0.3)]",
-		bonus: "bg-bonus border border-[rgb(21_25_30/0.3)]",
+		solid: "border border-[rgb(21_25_30/0.3)]",
 		used: "border-[1.5px] border-dashed border-ghost",
 		socket: "border-[1.25px] border-rule-strong bg-sheet-sunk",
 	}[kind];
 	return (
 		<span
 			className={`inline-block h-3 w-5 rounded-[3px] align-[-1px] ${look}`}
+			style={kind === "solid" ? { background: color } : undefined}
 			aria-hidden="true"
 		/>
 	);
 }
 
-function Legend({ bonus }: { bonus: boolean }) {
+function Legend({
+	session,
+	bonus,
+}: {
+	// The open session's colour, when its bricks are set apart.
+	session: string | null;
+	bonus: boolean;
+}) {
 	return (
 		<p className="flex flex-wrap gap-x-3.5 gap-y-1 text-[0.9375rem] text-ink-soft">
 			<span>
-				<Swatch kind="solid" /> por usar
+				<Swatch kind="solid" color="var(--color-balance)" /> por usar
 			</span>
+			{session && (
+				<span>
+					<Swatch kind="solid" color={session} /> tu sesión
+				</span>
+			)}
 			{bonus && (
 				<span>
-					<Swatch kind="bonus" /> bono
+					<Swatch kind="solid" color="var(--color-bonus)" /> bono
 				</span>
 			)}
 			<span>
@@ -96,11 +140,39 @@ function Recharge({ children }: { children: ReactNode }) {
 	);
 }
 
-function RowHead({ title, figure }: { title: string; figure: string }) {
+function RowHead({
+	title,
+	figure,
+	as: Heading = "h3",
+}: {
+	title: string;
+	figure: string;
+	as?: "h2" | "h3";
+}) {
 	return (
 		<div className="flex items-baseline justify-between gap-3">
-			<h3 className="text-lg leading-tight font-semibold">{title}</h3>
+			<Heading className="text-lg leading-tight font-semibold">{title}</Heading>
 			<p className="tabular text-right text-ink-soft">{figure}</p>
+		</div>
+	);
+}
+
+// Where tasks lead: bonuses add to the week, never to today.
+function TasksLink({ dayIsOut }: { dayIsOut: boolean }) {
+	return (
+		<div className="flex flex-col gap-0.5">
+			<Link
+				href="/tareas"
+				className="inline-flex w-fit items-center gap-1.5 rounded-control py-1 font-medium text-ink underline underline-offset-4"
+			>
+				{dayIsOut ? "Gana minutos para tu semana" : "Gana más con tareas"}
+				<ArrowRight className="size-4.5" aria-hidden="true" />
+			</Link>
+			{dayIsOut && (
+				<p className="text-[0.9375rem] text-ink-soft">
+					Las tareas suman a tu semana, no a hoy.
+				</p>
+			)}
 		</div>
 	);
 }
@@ -110,11 +182,14 @@ function RowHead({ title, figure }: { title: string; figure: string }) {
 export function BonusMeter({
 	earnedSeconds,
 	capSeconds,
-	link = true,
+	heading = "h3",
+	footer,
 }: {
 	earnedSeconds: number;
 	capSeconds: number;
-	link?: boolean;
+	heading?: "h2" | "h3";
+	// What follows the meter while the cap is not reached (a link to tasks).
+	footer?: ReactNode;
 }) {
 	const cap = toMin(capSeconds);
 	const earned = Math.min(toMin(earnedSeconds), cap);
@@ -127,6 +202,7 @@ export function BonusMeter({
 	return (
 		<div className="flex flex-col gap-2">
 			<RowHead
+				as={heading}
 				title="Bonos de la semana"
 				figure={`${minutesText(Math.floor(earned))} de ${minutesText(cap)}`}
 			/>
@@ -155,7 +231,7 @@ export function BonusMeter({
 			</div>
 			<p className="flex flex-wrap gap-x-3.5 gap-y-1 text-[0.9375rem] text-ink-soft">
 				<span>
-					<Swatch kind="bonus" /> ganado
+					<Swatch kind="solid" color="var(--color-bonus)" /> bono
 				</span>
 				<span>
 					<Swatch kind="socket" /> por ganar
@@ -167,43 +243,9 @@ export function BonusMeter({
 					¡Llegaste al tope! Esta semana los bonos ya no suman más.
 				</p>
 			) : (
-				link && (
-					<Link
-						href="/tareas"
-						className="inline-flex w-fit items-center gap-1.5 rounded-control py-1 font-medium text-ink underline underline-offset-4"
-					>
-						Gana más con tareas
-						<ArrowRight className="size-4.5" aria-hidden="true" />
-					</Link>
-				)
+				footer
 			)}
 		</div>
-	);
-}
-
-function LiveNote({ session, activityName }: LiveInBag) {
-	const now = useServerNow(5_000);
-	if (session.status === "scheduled") {
-		return (
-			<p className="text-ink-soft">
-				Tu sesión programada todavía no se descuenta.
-			</p>
-		);
-	}
-	// What is left of a session rounds up, so it adds up with what was used.
-	const left = Math.max(
-		0,
-		Math.ceil(timing(session, now).remainingMs / 60_000),
-	);
-	if (left === 0) {
-		return null;
-	}
-	return (
-		<p className="text-ink-soft">
-			{left === 1
-				? `Incluye el minuto que le queda a tu sesión de ${activityName}.`
-				: `Incluye los ${minutesText(left)} que le quedan a tu sesión de ${activityName}.`}
-		</p>
 	);
 }
 
@@ -214,34 +256,56 @@ function headline(title: string | null, text: string): string {
 		: `${title}: ${text}`;
 }
 
-interface LiveInBag {
-	session: Session;
-	activityName: string;
-}
-
 function BagBatteries({
 	balance,
 	title,
-	live,
+	session,
+	asOf,
 	main,
+	action,
 }: {
 	balance: Balance;
 	// With several bags: whose bag this is ("Juego").
 	title: string | null;
-	live: LiveInBag | null;
+	// The open session drawing from this bag, if any.
+	session: Session | null;
+	// When the api computed this balance (its serverTime).
+	asOf: number;
 	main: boolean;
+	action?: ReactNode;
 }) {
-	const { timeZone } = useChild();
+	const { timeZone, activities } = useChild();
 	const now = useServerNow(60_000);
 	const available = balance.availableSeconds;
+	const dayIsOut = balance.dailyRemainingSeconds === 0;
+	const weekIsOut = balance.weeklyRemainingSeconds === 0;
+
+	// What the open session will still take, at the same instant as the
+	// balance, so "after this session" never flickers between polls.
+	const running = session !== null && session.status !== "scheduled";
+	const reserved = running
+		? Math.max(0, timing(session, asOf).remainingMs / 1000)
+		: 0;
+	const after = Math.max(0, available - reserved);
+	const sessionColor =
+		running && reserved > 0
+			? activityLook(activityById(activities, session.activityId)?.code).color
+			: null;
 
 	const dayLimit = toMin(balance.dailyLimitSeconds);
 	const dayUnit = brickUnit(dayLimit, DAY_BRICKS);
+	const freeToday = toMin(
+		Math.max(0, balance.dailyRemainingSeconds - reserved),
+	);
 	const dayBricks = bricksFor(
 		toMin(balance.dailyRemainingSeconds),
 		dayLimit,
 		dayUnit,
 		"var(--color-balance)",
+	).map((brick, index) =>
+		sessionColor !== null && brick.fill > 0 && index + 0.5 > freeToday / dayUnit
+			? { ...brick, color: sessionColor }
+			: brick,
 	);
 	const dayOver =
 		balance.consumedTodaySeconds +
@@ -258,11 +322,16 @@ function BagBatteries({
 		},
 		weekUnit,
 	);
+	const columns = wallColumns(weekBricks.length);
 	const weekLimits =
 		available > 0 &&
 		balance.weeklyRemainingSeconds < balance.dailyRemainingSeconds;
 	const weekDay = rechargeText(balance.nextWeeklyRechargeAt, now, timeZone);
 	const Heading = main ? "h2" : "h3";
+	// Out of time, what to do next comes first, not under the batteries.
+	const actionsFirst = available === 0 && main;
+	// Tasks only help while bonuses can still be earned this week.
+	const canEarn = balance.bonusCapSeconds > balance.bonusEarnedSeconds;
 
 	return (
 		<div className="flex flex-col gap-5">
@@ -273,16 +342,20 @@ function BagBatteries({
 				>
 					{headline(
 						title,
-						available > 0
-							? `te quedan ${secondsText(available)} hoy`
-							: balance.weeklyRemainingSeconds === 0
+						available === 0
+							? weekIsOut
 								? "se acabó tu tiempo de esta semana"
-								: "se acabó tu tiempo de hoy",
+								: "se acabó tu tiempo de hoy"
+							: running
+								? after >= 60
+									? `después de esta sesión te quedan ${secondsText(after)} hoy`
+									: "después de esta sesión se acaba tu tiempo de hoy"
+								: `te quedan ${secondsText(available)} hoy`,
 					)}
 				</Heading>
 				{available === 0 ? (
 					<p className="text-ink-soft">
-						{balance.weeklyRemainingSeconds === 0
+						{weekIsOut
 							? `Tu semana se recarga ${weekDay}.`
 							: `Mañana vuelves a tener ${secondsText(balance.dailyLimitSeconds)}.`}
 					</p>
@@ -291,10 +364,21 @@ function BagBatteries({
 						Es lo que le queda a tu semana, aunque tu día tenga más.
 					</p>
 				) : null}
-				{live && <LiveNote {...live} />}
+				{session?.status === "scheduled" && (
+					<p className="text-ink-soft">
+						Tu sesión de más tarde todavía no usa tiempo.
+					</p>
+				)}
 			</div>
 
-			<Legend bonus={bonusLeft > 0} />
+			{actionsFirst && (
+				<div className="flex flex-col gap-3">
+					{action}
+					{canEarn && <TasksLink dayIsOut={dayIsOut && !weekIsOut} />}
+				</div>
+			)}
+
+			<Legend session={sessionColor} bonus={bonusLeft > 0} />
 
 			<section className="flex flex-col gap-2" aria-label="Hoy">
 				<RowHead
@@ -303,8 +387,10 @@ function BagBatteries({
 				/>
 				<Battery
 					bricks={dayBricks}
-					perRow={Math.max(6, Math.min(DAY_BRICKS, dayBricks.length))}
+					columns={dayBricks.length}
+					basis={dayUnit === weekUnit ? columns : dayBricks.length}
 					label={`Hoy: te quedan ${secondsText(balance.dailyRemainingSeconds)} de ${secondsText(balance.dailyLimitSeconds)}`}
+					gap={dayUnit === weekUnit ? "tight" : "normal"}
 				/>
 				<Recharge>
 					Se recarga mañana
@@ -318,7 +404,7 @@ function BagBatteries({
 				)}
 				{dayOver > 0 && (
 					<p className="text-[0.9375rem] text-ink-soft">
-						Hoy te pasaste {secondsText(dayOver, true)}: también cuentan.
+						Hoy te pasaste {secondsText(dayOver, true)}: se restan de tu semana.
 					</p>
 				)}
 			</section>
@@ -330,7 +416,7 @@ function BagBatteries({
 				/>
 				<Battery
 					bricks={weekBricks}
-					perRow={WEEK_PER_ROW}
+					columns={columns}
 					gap="tight"
 					label={`Semana: te quedan ${secondsText(balance.weeklyRemainingSeconds)}${bonusLeft > 0 ? `, ${minutesText(Math.floor(bonusLeft))} de bonos` : ""}`}
 				/>
@@ -345,9 +431,12 @@ function BagBatteries({
 					<BonusMeter
 						earnedSeconds={balance.bonusEarnedSeconds}
 						capSeconds={balance.bonusCapSeconds}
+						footer={actionsFirst ? null : <TasksLink dayIsOut={false} />}
 					/>
 				</section>
 			)}
+
+			{!actionsFirst && action}
 		</div>
 	);
 }
@@ -367,12 +456,16 @@ function bagActivities(
 
 export function Batteries({
 	balances,
+	asOf,
 	live,
 	action,
 }: {
 	balances: readonly Balance[];
+	// The balance's serverTime.
+	asOf: number;
 	live: Session | null;
-	// What the child can do next (ask for time), under the batteries.
+	// What the child can do next (ask for time): under the batteries, or
+	// first when the time is used up.
 	action?: ReactNode;
 }) {
 	const { activities } = useChild();
@@ -388,14 +481,9 @@ export function Batteries({
 			{ordered.map((balance, index) => {
 				const members = bagActivities(balance, balances, activities);
 				const own = activityById(activities, balance.activityId);
-				const liveHere =
+				const session =
 					live !== null && members.some((a) => a.id === live.activityId)
-						? {
-								session: live,
-								activityName:
-									activityById(activities, live.activityId)?.name ??
-									"la actividad",
-							}
+						? live
 						: null;
 				return (
 					<div
@@ -412,8 +500,10 @@ export function Batteries({
 						<BagBatteries
 							balance={balance}
 							title={own ? own.name : null}
-							live={liveHere}
+							session={session}
+							asOf={asOf}
 							main={index === 0}
+							action={index === 0 ? action : undefined}
 						/>
 					</div>
 				);
@@ -428,7 +518,6 @@ export function Batteries({
 					</p>
 				</>
 			)}
-			{action}
 		</Callout>
 	);
 }

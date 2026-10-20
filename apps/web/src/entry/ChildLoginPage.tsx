@@ -21,19 +21,30 @@ import { homeFor, safeNext } from "../lib/guard";
 import { PIN_MAX, PIN_MIN, PinPad, PinStuds } from "./PinPad";
 import { PublicFrame } from "./PublicFrame";
 
-const USERNAME_KEY = "timecraft:child-username";
+// Who signed in last on this browser: the username, and the name to greet
+// them with. Never the PIN.
+const LOGIN_KEY = "timecraft:child-login";
 
-function storedUsername(): string | null {
+interface Remembered {
+	username: string;
+	name: string;
+}
+
+function remembered(): Remembered | null {
 	try {
-		return window.localStorage.getItem(USERNAME_KEY);
+		const stored = JSON.parse(window.localStorage.getItem(LOGIN_KEY) ?? "null");
+		return typeof stored?.username === "string" &&
+			typeof stored?.name === "string"
+			? { username: stored.username, name: stored.name }
+			: null;
 	} catch {
 		return null;
 	}
 }
 
-function rememberUsername(username: string): void {
+function remember(login: Remembered): void {
 	try {
-		window.localStorage.setItem(USERNAME_KEY, username);
+		window.localStorage.setItem(LOGIN_KEY, JSON.stringify(login));
 	} catch {
 		// Private mode: it is typed again next time.
 	}
@@ -63,11 +74,16 @@ interface SignInFailure {
 function WaitPanel({ wait, remainingMs }: { wait: Wait; remainingMs: number }) {
 	const locked = wait.kind === "locked";
 	const Icon = locked ? Lock : Timer;
+	// Said once when the wait starts; the countdown itself stays silent.
+	const [announcement] = useState(
+		() =>
+			`${locked ? "Tu cuenta descansa un rato." : "Muchos intentos seguidos."} Podrás probar otra vez en ${Math.max(1, Math.ceil(remainingMs / 60_000))} min.`,
+	);
 	return (
-		<div
-			role="status"
-			className="flex flex-col items-center gap-2 rounded-control border-[1.5px] border-rule bg-sheet-sunk px-4 py-4 text-center"
-		>
+		<div className="flex flex-col items-center gap-2 rounded-control border-[1.5px] border-rule bg-sheet-sunk px-4 py-4 text-center">
+			<p className="sr-only" role="status">
+				{announcement}
+			</p>
 			<Icon className="size-6 text-ink-soft" aria-hidden="true" />
 			<p className="text-lg leading-snug font-semibold">
 				{locked ? "Tu cuenta descansa un rato" : "Muchos intentos seguidos"}
@@ -78,7 +94,10 @@ function WaitPanel({ wait, remainingMs }: { wait: Wait; remainingMs: number }) {
 					: "Probaste muchas veces en poco tiempo."}
 			</p>
 			<p className="mt-1 font-medium">Podrás probar otra vez en</p>
-			<p className="tabular text-[2.5rem] leading-none font-extrabold tracking-[-0.02em]">
+			<p
+				className="tabular text-[2.5rem] leading-none font-extrabold tracking-[-0.02em]"
+				aria-hidden="true"
+			>
 				{countdown(Math.max(0, remainingMs))}
 			</p>
 			{locked && (
@@ -92,13 +111,16 @@ function WaitPanel({ wait, remainingMs }: { wait: Wait; remainingMs: number }) {
 
 export default function ChildLoginPage() {
 	const [next] = useState(readNext);
-	const [remembered] = useState(storedUsername);
+	const [known] = useState(remembered);
 	const usernameId = useId();
 	const stepId = useId();
-	const [username, setUsername] = useState(remembered ?? "");
+	const [username, setUsername] = useState(known?.username ?? "");
 	const [step, setStep] = useState<"username" | "pin">(
-		remembered ? "pin" : "username",
+		known ? "pin" : "username",
 	);
+	// The name to greet with: theirs, once this browser has seen them sign in.
+	const greeting =
+		known !== null && known.username === username ? known.name : username;
 	const [pin, setPin] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -176,9 +198,7 @@ export default function ChildLoginPage() {
 				failure.code === "INVALID_USERNAME_OR_PASSWORD" ||
 				failure.status === 401
 			) {
-				setError(
-					"Ese usuario y ese PIN no coinciden. Revisa tu PIN y prueba otra vez.",
-				);
+				setError("No coinciden. Revisa tu PIN.");
 				setShake((count) => count + 1);
 			} else {
 				setError(
@@ -193,9 +213,11 @@ export default function ChildLoginPage() {
 			}
 			return;
 		}
-		rememberUsername(username);
 		try {
 			const household = await call(api.me.$get());
+			if (household.me.kind === "child") {
+				remember({ username, name: household.me.name });
+			}
 			window.location.assign(
 				household.me.kind === "child"
 					? safeNext(next, "child")
@@ -284,6 +306,7 @@ export default function ChildLoginPage() {
 	if (step === "username") {
 		return (
 			<PublicFrame
+				bricks={false}
 				title="¡Hola!"
 				lead="Entra para ver tu tiempo y pedir más."
 				footer={footer}
@@ -297,9 +320,9 @@ export default function ChildLoginPage() {
 					<StepTitle
 						number={1}
 						id={stepId}
-						hint="El que te dieron mamá o papá."
+						hint="Escribe el usuario que te dieron mamá o papá."
 					>
-						Tu usuario
+						¿Quién eres?
 					</StepTitle>
 					<Field label="Usuario" htmlFor={usernameId}>
 						<input
@@ -327,10 +350,11 @@ export default function ChildLoginPage() {
 
 	return (
 		<PublicFrame
-			title={`¡Hola, ${username}!`}
+			bricks={false}
+			title={`¡Hola, ${greeting}!`}
 			lead={
 				<>
-					¿No eres {username}?{" "}
+					¿No eres {greeting}?{" "}
 					<button
 						type="button"
 						onClick={changeUser}
@@ -350,9 +374,18 @@ export default function ChildLoginPage() {
 				<WaitPanel wait={wait} remainingMs={remainingMs} />
 			) : (
 				<>
-					<PinStuds length={pin.length} shake={shake} />
-					{error && <Notice tone="error">{error}</Notice>}
-					{info && <Notice tone="success">{info}</Notice>}
+					<div className="flex flex-col gap-1.5">
+						<PinStuds length={pin.length} shake={shake} />
+						{/* One fixed line, so a message never moves the keypad. */}
+						<p
+							role={error ? "alert" : "status"}
+							className={`min-h-6 text-center text-[0.9375rem] font-medium ${
+								error ? "text-stop" : "text-balance-ink"
+							}`}
+						>
+							{error ?? info ?? ""}
+						</p>
+					</div>
 					<PinPad
 						onDigit={typeDigit}
 						onDelete={deleteDigit}

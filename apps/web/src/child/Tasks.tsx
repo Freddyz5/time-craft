@@ -271,11 +271,11 @@ export function Tasks() {
 			{header}
 
 			{bag !== undefined && bag.bonusCapSeconds > 0 && (
-				<Callout className="p-4 sm:p-5" aria-label="Bonos de la semana">
+				<Callout className="p-4 sm:p-5">
 					<BonusMeter
 						earnedSeconds={bag.bonusEarnedSeconds}
 						capSeconds={bag.bonusCapSeconds}
-						link={false}
+						heading="h2"
 					/>
 					{bag.bonusEarnedSeconds >= bag.bonusCapSeconds && (
 						<p className="mt-2 text-[0.9375rem] text-ink-soft">

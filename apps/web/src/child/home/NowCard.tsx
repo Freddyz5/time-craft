@@ -1,9 +1,10 @@
 // "Ahora" on the child's side: the session a parent started, read-only. A
 // big countdown and the session's bricks draining while it runs; frozen while
-// paused; past its end, the overrun in red and a calm word to switch off. A
-// session scheduled for later counts down to "¡Ya puedes empezar!", and the
-// tab rings then, at the warning and at the end. There are no controls here:
-// only a parent starts, pauses or stops.
+// paused; past its end, a fixed "¡Se acabó!" (no growing number to beat),
+// the overrun brick and a calm word to switch off. A session scheduled for
+// later counts down to "¡Ya puedes empezar!", and the tab rings then, at the
+// warning and at the end. When it arrives with a parent's yes, its bricks
+// snap in. There are no controls here: only a parent starts, pauses or stops.
 import { PartyPopper } from "lucide-react";
 import { useEffect, useRef } from "react";
 import {
@@ -89,7 +90,15 @@ function useReadyAlarm(session: Session, onReady: () => void) {
 	}, [sessionId, at]);
 }
 
-function Scheduled({ session, now }: { session: Session; now: number }) {
+function Scheduled({
+	session,
+	now,
+	enter,
+}: {
+	session: Session;
+	now: number;
+	enter: boolean;
+}) {
 	const { activities, timeZone } = useChild();
 	const activity = activityById(activities, session.activityId);
 	const look = activityLook(activity?.code);
@@ -105,7 +114,7 @@ function Scheduled({ session, now }: { session: Session; now: number }) {
 		>
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<h2 id="now-title" className="text-xl leading-tight font-semibold">
-					{ready ? "¡Ya puedes empezar!" : "Más tarde"}
+					{ready ? "¡Ya puedes empezar!" : "Tu próxima sesión"}
 				</h2>
 				<ActivityTag activityId={session.activityId} />
 			</div>
@@ -143,6 +152,7 @@ function Scheduled({ session, now }: { session: Session; now: number }) {
 					minutes={minutes}
 					color={look.color}
 					label={`${minutesText(minutes)} de ${name}`}
+					enter={enter}
 				/>
 				<p className="text-[0.9375rem] text-ink-soft">
 					{minutesText(minutes)} de {name}. Hasta que empiece, no gasta nada.
@@ -156,14 +166,17 @@ function Running({
 	session,
 	now,
 	warningMinutes,
+	enter,
 }: {
 	session: Session;
 	now: number;
 	warningMinutes: number;
+	enter: boolean;
 }) {
 	const { activities, timeZone } = useChild();
 	const activity = activityById(activities, session.activityId);
 	const look = activityLook(activity?.code);
+	const name = activity?.name ?? "pantalla";
 	const t = timing(session, now);
 	const paused = session.status === "paused";
 	const over = t.remainingMs < 0;
@@ -193,32 +206,42 @@ function Running({
 					id="now-title"
 					className={`text-xl leading-tight font-semibold ${paused ? "text-pause-ink" : ""}`}
 				>
-					{paused ? "En pausa" : over ? "Se acabó el tiempo" : "Ahora"}
+					{paused ? "En pausa" : "Ahora"}
 				</h2>
 				<ActivityTag activityId={session.activityId} />
 			</div>
 
 			<div className="flex flex-col gap-1">
-				<p
-					className={`tabular text-[4.5rem] leading-none font-extrabold tracking-[-0.02em] ${
-						over ? "text-stop" : paused ? "text-pause-ink" : "text-ink"
-					}`}
-					aria-hidden="true"
-				>
-					{countdown(t.remainingMs)}
-				</p>
-				<p className="sr-only" aria-live="polite">
-					{over
-						? `Se acabó el tiempo hace ${minutesText(Math.ceil(-t.remainingMs / 60_000))}`
-						: `Te quedan ${minutesText(Math.ceil(t.remainingMs / 60_000))}`}
-				</p>
+				{over ? (
+					<p
+						className="text-[3.5rem] leading-none font-extrabold tracking-[-0.02em] text-stop"
+						role="status"
+						aria-label={`Se acabó tu sesión de ${name}`}
+					>
+						¡Se acabó!
+					</p>
+				) : (
+					<>
+						<p
+							className={`tabular text-[4.5rem] leading-none font-extrabold tracking-[-0.02em] ${
+								paused ? "text-pause-ink" : "text-ink"
+							}`}
+							aria-hidden="true"
+						>
+							{countdown(t.remainingMs)}
+						</p>
+						<p className="sr-only" aria-live="polite">
+							Te quedan {minutesText(Math.ceil(t.remainingMs / 60_000))}
+						</p>
+					</>
+				)}
 				<p className={`text-lg ${paused ? "text-pause-ink" : ""}`}>
 					{paused
 						? pauseStart === null
 							? "Tu tiempo no corre mientras está en pausa."
 							: `Tu tiempo no corre desde las ${timeText(pauseStart, timeZone)}.`
 						: over
-							? "Es hora de guardar y apagar. Lo que sigas usando también cuenta."
+							? "Guarda y apaga. Lo que sigas usando también cuenta."
 							: soon
 								? "Ve terminando: ya casi se acaba."
 								: `Termina a las ${timeText(t.endsAtMs ?? now, timeZone)}.`}
@@ -229,12 +252,19 @@ function Running({
 				<BrickRow
 					bricks={bricks}
 					perRow={perRow}
-					label={`${minutesText(Math.max(0, t.remainingMs) / 60_000)} restantes de ${minutesText(plannedMinutes)}`}
+					enter={enter}
+					label={
+						over
+							? `Tu sesión de ${minutesText(plannedMinutes)} terminó`
+							: `${minutesText(Math.max(0, t.remainingMs) / 60_000)} restantes de ${minutesText(plannedMinutes)}`
+					}
 				/>
 				<p
 					className={`text-[0.9375rem] ${paused ? "text-pause-ink" : "text-ink-soft"}`}
 				>
-					Llevas {minutesText(elapsedMinutes)} de {minutesText(plannedMinutes)}
+					{over
+						? `Tu sesión era de ${minutesText(plannedMinutes)}`
+						: `Llevas ${minutesText(elapsedMinutes)} de ${minutesText(plannedMinutes)}`}
 					{session.overrideId !== null && " · con tiempo extra"}
 					{unit !== BRICK_MINUTES && ` · 1 ladrillo = ${unit} min`}
 				</p>
@@ -246,15 +276,17 @@ function Running({
 export function NowCard({
 	session,
 	policies,
+	enter = false,
 }: {
 	session: Session;
 	policies: readonly Policy[];
+	// A parent just said yes: the session's bricks snap in.
+	enter?: boolean;
 }) {
 	const { activities } = useChild();
 	const toast = useToast();
 	const now = useServerNow();
-	const name =
-		activityById(activities, session.activityId)?.name ?? "tu sesión";
+	const name = activityById(activities, session.activityId)?.name ?? "pantalla";
 	const warningMinutes =
 		bagFor(policies, session.activityId)?.warningMinutes ?? 0;
 	const t = timing(session, now);
@@ -266,10 +298,10 @@ export function NowCard({
 				"alarm",
 				kind === "warning"
 					? `${warningMinutes === 1 ? "Te queda" : "Te quedan"} ${warningMinutes} min de ${name}`
-					: "Se acabó el tiempo",
+					: `Se acabó tu sesión de ${name}`,
 				kind === "warning"
 					? "Ve terminando para apagar a tiempo."
-					: "Es hora de apagar. Avisa a mamá o papá para que detengan la sesión.",
+					: "Guarda y apaga. Avisa a mamá o papá para que la detengan.",
 			);
 		},
 	);
@@ -282,8 +314,13 @@ export function NowCard({
 	});
 
 	return session.status === "scheduled" ? (
-		<Scheduled session={session} now={now} />
+		<Scheduled session={session} now={now} enter={enter} />
 	) : (
-		<Running session={session} now={now} warningMinutes={warningMinutes} />
+		<Running
+			session={session}
+			now={now}
+			warningMinutes={warningMinutes}
+			enter={enter}
+		/>
 	);
 }

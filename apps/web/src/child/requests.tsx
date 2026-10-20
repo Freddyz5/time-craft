@@ -9,11 +9,12 @@ import {
 	MessageCircle,
 	X,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { PartsBox } from "../components/bricks";
+import { AmountBricks, PartsBox } from "../components/bricks";
 import { Button, Callout } from "../components/ui";
 import { activityById, activityLook } from "../lib/activity";
+import { ring } from "../lib/alarm";
 import { serverNow, useServerNow } from "../lib/clock";
 import { calendarDay, countdown, minutesText, timeText } from "../lib/format";
 import { useHistory, usePendingRequests } from "../lib/queries";
@@ -23,26 +24,74 @@ import { useChild } from "./context";
 // How long an answer stays at the top of Inicio and Pedir.
 const FRESH_ANSWER_MS = 60 * 60_000;
 
+// An answer that just came while the child was looking: rung, announced and
+// shown with its bricks snapping in, for a few seconds.
+export interface Arrival {
+	requestId: string;
+	yes: boolean;
+	text: string;
+}
+
+const ARRIVAL_MS = 10_000;
+
 export function useMyRequests() {
-	const { childId, timeZone } = useChild();
+	const { childId, timeZone, activities, parentName } = useChild();
 	const pendingQuery = usePendingRequests();
 	const pending = pendingQuery.data?.requests[0] ?? null;
 	const history = useHistory(childId, undefined, { poll: pending !== null });
 	const { refetch } = history;
+	const [arrival, setArrival] = useState<Arrival | null>(null);
 
 	// The pending request went away (answered, expired, cancelled): fetch the
-	// answer now instead of on the next poll.
+	// answer now instead of on the next poll, and watch for it.
 	const pendingId = pending?.id ?? null;
 	const previous = useRef(pendingId);
+	const awaited = useRef<string | null>(null);
 	useEffect(() => {
 		if (previous.current !== null && previous.current !== pendingId) {
+			awaited.current = previous.current;
 			void refetch();
 		}
 		previous.current = pendingId;
 	}, [pendingId, refetch]);
 
+	const requests = history.data?.requests;
+	useEffect(() => {
+		const id = awaited.current;
+		const answered = requests?.find((request) => request.id === id);
+		if (answered === undefined || answered.status === "pending") {
+			return;
+		}
+		awaited.current = null;
+		// Expired or cancelled by the child: no ceremony.
+		if (answered.status !== "approved" && answered.status !== "rejected") {
+			return;
+		}
+		const who = parentName(answered.resolvedByParentId);
+		const name =
+			activityById(activities, answered.activityId)?.name ?? "pantalla";
+		const yes = answered.status === "approved";
+		if (yes) {
+			ring("answer");
+		}
+		setArrival({
+			requestId: answered.id,
+			yes,
+			text: yes
+				? `¡${who} dijo que sí! ${minutesText(answered.approvedMinutes ?? answered.requestedMinutes)} de ${name}.`
+				: `${who} dijo que no esta vez.`,
+		});
+	}, [requests, activities, parentName]);
+	useEffect(() => {
+		if (arrival === null) {
+			return;
+		}
+		const timer = setTimeout(() => setArrival(null), ARRIVAL_MS);
+		return () => clearTimeout(timer);
+	}, [arrival]);
+
 	const now = serverNow();
-	const today = (history.data?.requests ?? []).filter(
+	const today = (requests ?? []).filter(
 		(request) =>
 			request.status !== "pending" &&
 			calendarDay(request.createdAt, timeZone) === calendarDay(now, timeZone),
@@ -60,9 +109,19 @@ export function useMyRequests() {
 		pending,
 		today,
 		freshAnswer,
+		arrival,
 		ready: pendingQuery.data !== undefined,
 		error: pendingQuery.error ?? history.error,
 	};
+}
+
+// Always mounted, so screen readers hear an answer the moment it arrives.
+export function AnswerAnnouncer({ arrival }: { arrival: Arrival | null }) {
+	return (
+		<p className="sr-only" aria-live="polite">
+			{arrival?.text ?? ""}
+		</p>
+	);
 }
 
 function useActivity(activityId: string) {
@@ -173,9 +232,16 @@ export function PendingCard({
 }
 
 // A parent's answer, fresh: who, what, and their note.
-export function AnswerCard({ request }: { request: ChildRequest }) {
+export function AnswerCard({
+	request,
+	arrived = false,
+}: {
+	request: ChildRequest;
+	// It came just now: a "yes" brings its bricks in, snapping into place.
+	arrived?: boolean;
+}) {
 	const { parentName } = useChild();
-	const { name } = useActivity(request.activityId);
+	const { name, look } = useActivity(request.activityId);
 	const who = parentName(request.resolvedByParentId);
 	const yes = request.status === "approved";
 	const approved = request.approvedMinutes ?? request.requestedMinutes;
@@ -214,6 +280,14 @@ export function AnswerCard({ request }: { request: ChildRequest }) {
 					</p>
 				</div>
 			</div>
+			{yes && (
+				<AmountBricks
+					minutes={approved}
+					color={look.color}
+					label={`${minutesText(approved)} de ${name}`}
+					enter={arrived}
+				/>
+			)}
 			{request.responseNote && (
 				<Quote by={who} onTint={yes}>
 					{request.responseNote}
