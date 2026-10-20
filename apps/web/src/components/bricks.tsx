@@ -3,7 +3,9 @@
 // - a dashed outline is time already used;
 // - the brick in use drains from the top (only in live counts);
 // - a half brick, one stud wide, is half a brick's worth (in static amounts:
-//   a request, a task's reward, a session's length).
+//   a request, a task's reward, a session's length);
+// - an empty socket, a plain outline on a sunk ground, is a place a brick can
+//   still go (bonus minutes not earned yet). It never means "used".
 // One brick is 10 minutes unless a limit is too large to fit a row; then each
 // brick is worth more and the legend says so.
 import { useEffect, useId, useRef } from "react";
@@ -29,6 +31,8 @@ export interface BrickSpec {
 	outline?: string | undefined;
 	// A one-stud brick: half a brick's worth.
 	half?: boolean;
+	// An empty place for a brick (fill and colour are ignored).
+	socket?: boolean;
 }
 
 interface BrickProps extends BrickSpec {
@@ -44,6 +48,7 @@ export function Brick({
 	color,
 	outline,
 	half = false,
+	socket = false,
 	animate,
 }: BrickProps) {
 	const id = useId();
@@ -58,6 +63,33 @@ export function Brick({
 			: animate === "snap"
 				? "motion-safe:animate-brick-snap"
 				: "";
+	if (socket) {
+		return (
+			<svg
+				viewBox="0 0 40 26"
+				className={`block h-auto w-full overflow-visible ${animation}`}
+				aria-hidden="true"
+			>
+				<g
+					fill="var(--color-sheet-sunk)"
+					stroke="var(--color-rule-strong)"
+					strokeWidth="1.25"
+				>
+					{studs.map((x) => (
+						<rect
+							key={x}
+							x={x + 0.75}
+							y="1.75"
+							width="8.5"
+							height="5"
+							rx="1.4"
+						/>
+					))}
+					<rect x="1.75" y="6.75" width={width - 1.5} height="17.5" rx="2.4" />
+				</g>
+			</svg>
+		);
+	}
 	return (
 		<svg
 			viewBox="0 0 40 26"
@@ -171,6 +203,9 @@ function useBrickMotion(bricks: readonly BrickSpec[]) {
 			return undefined;
 		}
 		const before = previous.current[index];
+		if (brick.socket) {
+			return undefined;
+		}
 		if (before === undefined) {
 			return brick.fill > 0 ? ("snap" as const) : undefined;
 		}
@@ -183,7 +218,7 @@ function useBrickMotion(bricks: readonly BrickSpec[]) {
 		return undefined;
 	});
 	useEffect(() => {
-		previous.current = bricks.map((brick) => brick.fill);
+		previous.current = bricks.map((brick) => (brick.socket ? 0 : brick.fill));
 	});
 	return motions;
 }

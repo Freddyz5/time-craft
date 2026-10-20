@@ -32,8 +32,8 @@ import {
 } from "../../lib/format";
 import { pausedSince, timing } from "../../lib/timer";
 import type { Balance, LiveView, Policy, Session } from "../../lib/types";
+import { useCommand } from "../../lib/useCommand";
 import { parentName, useParents } from "../context";
-import { useCommand } from "../useCommand";
 
 // From here on a pause counts as forgotten and the card asks to close it.
 export const LONG_PAUSE_MINUTES = 30;

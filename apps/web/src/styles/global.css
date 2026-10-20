@@ -55,6 +55,7 @@
 	--animate-brick-snap: brick-snap 260ms var(--ease-out-quick);
 	--animate-brick-stack: brick-stack 1500ms var(--ease-out-quick) infinite both;
 	--animate-rise: rise 260ms var(--ease-out-quick);
+	--animate-shake: shake 360ms var(--ease-out-quick);
 }
 
 /* A brick used up lets go: a short hop up, then it rests as an outline. */
@@ -101,6 +102,26 @@
 	100% {
 		transform: translateY(0);
 		opacity: 0;
+	}
+}
+
+/* A wrong PIN: the studs shake once, like a piece that does not fit. */
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20% {
+		transform: translateX(-6px);
+	}
+	40% {
+		transform: translateX(5px);
+	}
+	60% {
+		transform: translateX(-3px);
+	}
+	80% {
+		transform: translateX(2px);
 	}
 }
 

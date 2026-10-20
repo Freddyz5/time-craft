@@ -1,0 +1,11 @@
+---
+import LoadingFrame from "../../components/LoadingFrame.astro";
+import ChildLoginPage from "../../entry/ChildLoginPage";
+import Base from "../../layouts/Base.astro";
+---
+
+<Base title="Entrar · Time Craft">
+	<ChildLoginPage client:only="react">
+		<LoadingFrame slot="fallback" />
+	</ChildLoginPage>
+</Base>

@@ -138,12 +138,20 @@ export default function LoginPage() {
 			title="Entrar"
 			lead="Para los padres: el saldo, la sesión en vivo y las solicitudes del niño."
 			footer={
-				<p>
-					¿Los dos perdieron el acceso?{" "}
-					<a href="/recuperar" className="font-medium text-ink underline">
-						Usar el código de recuperación
-					</a>
-				</p>
+				<div className="flex flex-col gap-2">
+					<p>
+						¿Eres el niño?{" "}
+						<a href="/nino/entrar" className="font-medium text-ink underline">
+							Entra con tu usuario y PIN
+						</a>
+					</p>
+					<p>
+						¿Los dos perdieron el acceso?{" "}
+						<a href="/recuperar" className="font-medium text-ink underline">
+							Usar el código de recuperación
+						</a>
+					</p>
+				</div>
 			}
 		>
 			{error && <Notice tone="error">{error}</Notice>}

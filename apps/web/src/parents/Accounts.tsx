@@ -30,9 +30,9 @@ import { dateTimeText, relativeDayText, timeText } from "../lib/format";
 import { keys, useChildLogins } from "../lib/queries";
 import { signOut } from "../lib/session";
 import type { HouseholdChild } from "../lib/types";
+import { useCommand } from "../lib/useCommand";
 import { useParents } from "./context";
 import { PushToggle } from "./PushSetting";
-import { useCommand } from "./useCommand";
 
 const PIN_PATTERN = /^\d{6,12}$/;
 

@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Link, Route, Router, Switch } from "wouter";
 import { AppProviders } from "../components/providers";
+import { StandaloneFrame } from "../components/StandaloneFrame";
 import { Button, buttonClass, LoadingBricks } from "../components/ui";
 import { errorMessage } from "../lib/errors";
 import { useRoleGuard } from "../lib/guard";
@@ -15,7 +16,7 @@ import { History } from "./History";
 import { Home } from "./Home";
 import { NewSession } from "./NewSession";
 import { Rules } from "./Rules";
-import { Shell, StandaloneFrame } from "./Shell";
+import { Shell } from "./Shell";
 
 function NotFound() {
 	return (
