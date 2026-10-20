@@ -1,7 +1,8 @@
 // Inicio. Phone order: what is happening now (a running, paused or scheduled
-// session), then the batteries of today and the week with the bonuses and
-// when each recharges, and the way to ask for more. On a laptop "Ahora" and
-// the batteries sit side by side.
+// session), the request waiting for an answer or the answer that just came,
+// then the batteries of today and the week with the bonuses and when each
+// recharges, and the way to ask for more. On a laptop "Ahora" and the
+// batteries sit side by side.
 import { Hand } from "lucide-react";
 import { Link } from "wouter";
 import { buttonClass, LoadingBricks, Notice } from "../components/ui";
@@ -10,12 +11,14 @@ import { useChild } from "./context";
 import { childErrorMessage } from "./errors";
 import { Batteries } from "./home/Batteries";
 import { NowCard } from "./home/NowCard";
+import { AnswerCard, PendingStrip, useMyRequests } from "./requests";
 
 export function Home() {
 	const { childId } = useChild();
 	const live = useLiveSession(childId);
 	const balance = useBalance(childId);
 	const policies = usePolicies(childId);
+	const requests = useMyRequests();
 
 	if (live.data === undefined || balance.data === undefined) {
 		const error = live.error ?? balance.error;
@@ -32,12 +35,22 @@ export function Home() {
 	const session = live.data.live?.session ?? null;
 	const exhausted =
 		balances.length > 0 && balances.every((b) => b.availableSeconds === 0);
-	const now = session !== null && (
-		<NowCard
-			key={session.id}
-			session={session}
-			policies={policies.data?.policies ?? []}
-		/>
+	const strip = requests.pending ? (
+		<PendingStrip request={requests.pending} />
+	) : requests.freshAnswer ? (
+		<AnswerCard request={requests.freshAnswer} />
+	) : null;
+	const now = (session !== null || strip !== null) && (
+		<>
+			{session !== null && (
+				<NowCard
+					key={session.id}
+					session={session}
+					policies={policies.data?.policies ?? []}
+				/>
+			)}
+			{strip}
+		</>
 	);
 
 	return (
@@ -56,7 +69,8 @@ export function Home() {
 					live={session}
 					action={
 						balances.length > 0 &&
-						session === null && (
+						session === null &&
+						requests.pending === null && (
 							<Link
 								href="/pedir"
 								className={`${buttonClass(exhausted ? "secondary" : "primary")} min-h-14 text-lg`}
