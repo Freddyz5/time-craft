@@ -65,6 +65,17 @@ const VIBRATION: Record<AlarmKind, number[]> = {
 	ready: [120, 80, 120, 80, 260],
 };
 
+// "Probar el sonido": a tap unlocks the sound, then it rings at once.
+export async function testRing(kind: AlarmKind = "warning"): Promise<void> {
+	try {
+		audio ??= new AudioContext();
+		await audio.resume();
+	} catch {
+		// No Web Audio: the vibration still works.
+	}
+	ring(kind);
+}
+
 export function ring(kind: AlarmKind): void {
 	chime(kind);
 	try {

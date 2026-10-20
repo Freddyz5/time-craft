@@ -265,7 +265,7 @@ export function NowCard({
 			toast.show(
 				"alarm",
 				kind === "warning"
-					? `Te quedan ${warningMinutes} min de ${name}`
+					? `${warningMinutes === 1 ? "Te queda" : "Te quedan"} ${warningMinutes} min de ${name}`
 					: "Se acabó el tiempo",
 				kind === "warning"
 					? "Ve terminando para apagar a tiempo."

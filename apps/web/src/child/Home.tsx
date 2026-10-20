@@ -1,7 +1,8 @@
 // Inicio. Phone order: what is happening now (a running, paused or scheduled
 // session), the request waiting for an answer or the answer that just came,
 // then the batteries of today and the week with the bonuses and when each
-// recharges, and the way to ask for more. On a laptop "Ahora" and the
+// recharges, and the way to ask for more; while this device has no
+// notifications, a quiet offer to turn them on. On a laptop "Ahora" and the
 // batteries sit side by side.
 import { Hand } from "lucide-react";
 import { Link } from "wouter";
@@ -11,6 +12,7 @@ import { useChild } from "./context";
 import { childErrorMessage } from "./errors";
 import { Batteries } from "./home/Batteries";
 import { NowCard } from "./home/NowCard";
+import { PushOffer } from "./Notifications";
 import { AnswerCard, PendingStrip, useMyRequests } from "./requests";
 
 export function Home() {
@@ -81,6 +83,7 @@ export function Home() {
 						)
 					}
 				/>
+				<PushOffer />
 			</div>
 		</div>
 	);
