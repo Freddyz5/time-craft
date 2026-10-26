@@ -1,0 +1,15 @@
+{
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"framework": "astro",
+	"installCommand": "bun install --frozen-lockfile",
+	"buildCommand": "cd ../.. && bun run build --filter=@time-craft/web",
+	"outputDirectory": "dist",
+	"ignoreCommand": "node ../../scripts/vercel-ignore.mjs @time-craft/web --type-only @time-craft/api",
+	"rewrites": [
+		{
+			"source": "/api/:path*",
+			"destination": "$API_ORIGIN/api/:path*",
+			"env": ["API_ORIGIN"]
+		}
+	]
+}

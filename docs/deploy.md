@@ -4,7 +4,7 @@ Cómo se publica Time Craft y qué hay que configurar a mano, una sola vez, en V
 
 | Qué | Dónde |
 |---|---|
-| Build, instalación, salida y reescritura `/api/*` de la web | [`apps/web/vercel.ts`](../apps/web/vercel.ts) |
+| Build, instalación, salida y reescritura `/api/*` de la web | [`apps/web/vercel.json`](../apps/web/vercel.json) |
 | Build, instalación y salida de la api | [`apps/api/vercel.json`](../apps/api/vercel.json) |
 | Saltar el build de la app que un commit no afecta | [`scripts/vercel-ignore.mjs`](../scripts/vercel-ignore.mjs) (el `ignoreCommand` de cada app) |
 | Lint, typecheck, tests y build en cada PR | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) |
@@ -97,10 +97,10 @@ Si ya creaste el proyecto de la api en la fase 1, ábrelo y revisa cada punto en
 - [ ] [vercel.com/new](https://vercel.com/new) → **Import** del mismo repo otra vez.
   - *Project Name*: `time-craft-web`.
   - *Root Directory* → **Edit** → `apps/web`.
-  - **Environment Variables**: agrega `API_ORIGIN` = `<API_PROD>` (al importar se aplica a todos los ambientes; en el paso 7 ajustas Preview).
+  - **Environment Variables**: agrega `API_ORIGIN` = `<API_PROD>`, de tipo **Config** (al importar se aplica a todos los ambientes; en el paso 7 ajustas Preview).
   - **Deploy**. Igual que la api, este primer deployment sale de la fase 2 de `prod`.
 - [ ] **Settings → Environments → Production → Branch Tracking**: `prod`.
-- [ ] **Settings → Build and Deployment**: *Root Directory* `apps/web`, con **Include files outside the root directory in the Build Step** y **Skip deployments when there are no changes…** activados; *Node.js Version* `22.x`; *Ignored Build Step* sin tocar (lo trae `vercel.ts`).
+- [ ] **Settings → Build and Deployment**: *Root Directory* `apps/web`, con **Include files outside the root directory in the Build Step** y **Skip deployments when there are no changes…** activados; *Node.js Version* `22.x`; *Ignored Build Step* sin tocar (lo trae `vercel.json`).
 - [ ] **Settings → Deployment Protection → Vercel Authentication**: déjalo en **Standard Protection** (el valor por defecto). Las previews y el dominio de dev solo los abre quien tiene sesión en tu cuenta de Vercel; producción es pública.
 - [ ] **Settings → Domains**: anota el dominio de producción → es `<WEB_PROD>`.
 - [ ] Busca `<SCOPE>`: es el final de cualquier URL de deployment del proyecto (en **Deployments**, abre uno: `time-craft-web-abc123-<SCOPE>.vercel.app`). También aparece en la URL del panel: `vercel.com/<SCOPE>/time-craft-web`.
@@ -167,11 +167,12 @@ Proyecto **time-craft-web** (edita el `API_ORIGIN` que pusiste al importar):
 
 Por qué así:
 
+- `API_ORIGIN` va de tipo **Config**, no *Secret*: la reescritura de `/api/*` la lee en cada petición, y Vercel no le entrega el valor de un Secret. Con un Secret, `/api/*` entra en un bucle de redirecciones. Un Secret no se convierte a Config: bórralo y créalo de nuevo. No es un secreto, es la URL de la api.
 - `BETTER_AUTH_URL` es el dominio de la **web**, no el de la api: el navegador llega a `/api/auth` a través de la reescritura de la web, y ahí quedan las cookies.
 - Todas las previews (dev y las de PR) usan la api de dev. `BETTER_AUTH_TRUSTED_ORIGINS` deja que las previews de PR de la web, cada una con su URL, inicien sesión contra ella.
 - Google va solo en Production y en la rama `dev`: las previews de PR cambian de URL y Google no las aceptaría. Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
 - No van en Vercel: `DATABASE_URL_UNPOOLED` (está en GitHub, paso 2), `SEED_*` (solo para el seed desde tu máquina) ni `API_DEV_URL` (solo local).
-- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar.
+- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar, con **Use project's Ignore Build Step** desmarcado. El redeploy usa el mismo commit, así que el paso de ignorar no ve cambios y lo cancelaría.
 
 ### 8. GitHub: reglas de las ramas
 
@@ -273,7 +274,7 @@ Vercel Authentication protege las previews: quien no tiene sesión en tu cuenta 
 **Si quisieras proteger también la api**, Vercel ofrece *Protection Bypass for Automation*: en el proyecto de la api, **Settings → Deployment Protection → Protection Bypass for Automation → Add Secret**. Vercel expone ese secreto en los deployments de la api como `VERCEL_AUTOMATION_BYPASS_SECRET`, y quien lo envíe en la cabecera `x-vercel-protection-bypass` (o como `?x-vercel-protection-bypass=…` en la URL) pasa la protección. Harían falta dos cambios de código que hoy **no están hechos**:
 
 1. En `apps/api/src/adapters/qstash.ts`, publicar cada mensaje con la cabecera `x-vercel-protection-bypass: <secreto>` (QStash reenvía las cabeceras que recibe al publicar).
-2. En `apps/web/vercel.ts`, añadir esa cabecera a la reescritura de `/api/*`, con el secreto en una variable del proyecto web.
+2. En `apps/web/vercel.json`, añadir esa cabecera a la reescritura de `/api/*` (un `transforms` con `env`, igual que el destino), con el secreto en una variable del proyecto web.
 
 Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o fallan el login (la reescritura recibe un 401) y las alarmas.
 
@@ -281,7 +282,7 @@ Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o
 
 | Síntoma | Causa y arreglo |
 |---|---|
-| El build de la web falla con `API_ORIGIN must be the api's origin` | Falta `API_ORIGIN` en el proyecto web para ese ambiente (paso 7). Agrégala y haz Redeploy. |
+| La web carga, pero el login y todo `/api/*` fallan sin llegar a la api (a menudo con demasiadas redirecciones) | `API_ORIGIN` falta en el proyecto web para ese ambiente, es de tipo *Secret* en vez de **Config**, o no es un origen (`https://…`, sin `/` final) (paso 7). La reescritura toma el valor que tenía al crear el deployment: corrígela y haz Redeploy sin *Use project's Ignore Build Step*. |
 | Un deployment queda *Canceled* con `Skip: …` en el log | Es el paso de ignorar: el commit no afecta a esa app. Para construir igual, Redeploy sin *Use project's Ignore Build Step*. |
 | La api responde 500 y el log de la función dice `Invalid environment variables` | El mensaje nombra la variable que falta o es inválida en ese ambiente (paso 7). |
 | Iniciar sesión da 403 `Invalid origin` | En dev o producción: `BETTER_AUTH_URL` no es exactamente el dominio de la web (`https://`, sin `/` final). En una preview de PR: revisa `<SCOPE>` en `BETTER_AUTH_TRUSTED_ORIGINS`. |
