@@ -97,7 +97,7 @@ Si ya creaste el proyecto de la api en la fase 1, ábrelo y revisa cada punto en
 - [ ] [vercel.com/new](https://vercel.com/new) → **Import** del mismo repo otra vez.
   - *Project Name*: `time-craft-web`.
   - *Root Directory* → **Edit** → `apps/web`.
-  - **Environment Variables**: agrega `API_ORIGIN` = `<API_PROD>` (al importar se aplica a todos los ambientes; en el paso 7 ajustas Preview).
+  - **Environment Variables**: agrega `API_ORIGIN` = `<API_PROD>`, de tipo **Config** (al importar se aplica a todos los ambientes; en el paso 7 ajustas Preview).
   - **Deploy**. Igual que la api, este primer deployment sale de la fase 2 de `prod`.
 - [ ] **Settings → Environments → Production → Branch Tracking**: `prod`.
 - [ ] **Settings → Build and Deployment**: *Root Directory* `apps/web`, con **Include files outside the root directory in the Build Step** y **Skip deployments when there are no changes…** activados; *Node.js Version* `22.x`; *Ignored Build Step* sin tocar (lo trae `vercel.json`).
@@ -167,6 +167,7 @@ Proyecto **time-craft-web** (edita el `API_ORIGIN` que pusiste al importar):
 
 Por qué así:
 
+- `API_ORIGIN` va de tipo **Config**, no *Secret*: la reescritura de `/api/*` la lee en cada petición, y Vercel no le entrega el valor de un Secret. Con un Secret, `/api/*` entra en un bucle de redirecciones. Un Secret no se convierte a Config: bórralo y créalo de nuevo. No es un secreto, es la URL de la api.
 - `BETTER_AUTH_URL` es el dominio de la **web**, no el de la api: el navegador llega a `/api/auth` a través de la reescritura de la web, y ahí quedan las cookies.
 - Todas las previews (dev y las de PR) usan la api de dev. `BETTER_AUTH_TRUSTED_ORIGINS` deja que las previews de PR de la web, cada una con su URL, inicien sesión contra ella.
 - Google va solo en Production y en la rama `dev`: las previews de PR cambian de URL y Google no las aceptaría. Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
@@ -281,7 +282,7 @@ Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o
 
 | Síntoma | Causa y arreglo |
 |---|---|
-| La web carga, pero el login y todo `/api/*` fallan sin llegar a la api | Falta `API_ORIGIN` en el proyecto web para ese ambiente (paso 7), o no es un origen (`https://…`, sin `/` final). La reescritura toma el valor que tenía al crear el deployment: corrígela y haz Redeploy sin *Use project's Ignore Build Step*. |
+| La web carga, pero el login y todo `/api/*` fallan sin llegar a la api (a menudo con demasiadas redirecciones) | `API_ORIGIN` falta en el proyecto web para ese ambiente, es de tipo *Secret* en vez de **Config**, o no es un origen (`https://…`, sin `/` final) (paso 7). La reescritura toma el valor que tenía al crear el deployment: corrígela y haz Redeploy sin *Use project's Ignore Build Step*. |
 | Un deployment queda *Canceled* con `Skip: …` en el log | Es el paso de ignorar: el commit no afecta a esa app. Para construir igual, Redeploy sin *Use project's Ignore Build Step*. |
 | La api responde 500 y el log de la función dice `Invalid environment variables` | El mensaje nombra la variable que falta o es inválida en ese ambiente (paso 7). |
 | Iniciar sesión da 403 `Invalid origin` | En dev o producción: `BETTER_AUTH_URL` no es exactamente el dominio de la web (`https://`, sin `/` final). En una preview de PR: revisa `<SCOPE>` en `BETTER_AUTH_TRUSTED_ORIGINS`. |
