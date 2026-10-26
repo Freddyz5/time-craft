@@ -1,5 +1,6 @@
 {
 	"$schema": "https://turborepo.dev/schema.json",
+	"globalDependencies": ["package.json", "bunfig.toml"],
 	"tasks": {
 		"transit": {
 			"dependsOn": ["^transit"]

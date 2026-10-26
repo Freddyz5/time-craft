@@ -54,6 +54,25 @@ describe("parseEnv", () => {
 		expect(message).not.toContain("only-the-id");
 	});
 
+	test("trusted origins are an optional comma-separated list", () => {
+		expect(parseEnv(valid).BETTER_AUTH_TRUSTED_ORIGINS).toEqual([]);
+		const env = parseEnv({
+			...valid,
+			BETTER_AUTH_TRUSTED_ORIGINS:
+				" https://time-craft-web-*-familia.vercel.app, https://web.example.com ,",
+		});
+		expect(env.BETTER_AUTH_TRUSTED_ORIGINS).toEqual([
+			"https://time-craft-web-*-familia.vercel.app",
+			"https://web.example.com",
+		]);
+		expect(() =>
+			parseEnv({
+				...valid,
+				BETTER_AUTH_TRUSTED_ORIGINS: "https://web.example.com/login",
+			}),
+		).toThrow("BETTER_AUTH_TRUSTED_ORIGINS");
+	});
+
 	test("Google needs both variables", () => {
 		expect(() =>
 			parseEnv({ ...valid, GOOGLE_CLIENT_SECRET: "only-the-secret" }),

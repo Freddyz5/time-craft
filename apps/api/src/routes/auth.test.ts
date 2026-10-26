@@ -204,3 +204,26 @@ describe("rate limit", () => {
 		expect((await attempt()).status).toBe(429);
 	});
 });
+
+describe("trusted origins", () => {
+	test("the web's preview URLs may call the api through a pattern", async () => {
+		const preview = await createTestApp({
+			trustedOrigins: ["https://time-craft-web-*-familia.vercel.app"],
+		});
+		const context = await preview.auth.$context;
+		for (const origin of [
+			"http://localhost",
+			"https://time-craft-web-git-feat-f6-cicd-familia.vercel.app",
+			"https://time-craft-web-4f9a2c1b-familia.vercel.app",
+		]) {
+			expect(context.isTrustedOrigin(origin)).toBe(true);
+		}
+		for (const origin of [
+			"https://time-craft-web-familia.vercel.app.evil.com",
+			"https://other-app-familia.vercel.app",
+			"http://time-craft-web-git-dev-familia.vercel.app",
+		]) {
+			expect(context.isTrustedOrigin(origin)).toBe(false);
+		}
+	});
+});

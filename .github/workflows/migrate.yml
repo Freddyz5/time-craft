@@ -1,0 +1,58 @@
+name: Migrate
+
+# Applies the pending Drizzle migrations to each environment's Neon branch:
+# a push to dev migrates Neon's dev branch, a push to prod migrates main.
+# The GitHub Environment named like the branch (dev, prod) holds that
+# branch's DATABASE_URL_UNPOOLED secret. Vercel deploys the api at the same
+# time, so every migration must be backward compatible (see CLAUDE.md). In
+# production, Vercel's Deployment Checks hold the new api until this passes.
+
+on:
+  push:
+    branches: [dev, prod]
+  # A manual rerun, e.g. after fixing the secret: run it on dev or prod.
+  workflow_dispatch:
+
+# One run at a time per database. A new run waits for the current one
+# instead of cancelling a migration halfway.
+concurrency:
+  group: migrate-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Migrate database
+    # Only dev and prod have an environment with a database.
+    if: github.ref_name == 'dev' || github.ref_name == 'prod'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Cache Bun packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          ENVIRONMENT: ${{ github.ref_name }}
+        run: |
+          if [ -z "$DATABASE_URL_UNPOOLED" ]; then
+            echo "::error::The $ENVIRONMENT environment has no DATABASE_URL_UNPOOLED secret (see docs/deploy.md)."
+            exit 1
+          fi
+          bun run db:migrate

@@ -1,13 +1,20 @@
 name: CI
 
+# Pull requests into dev (one per phase) and into prod (a release from dev),
+# plus the pushes that merging them makes: those runs also leave the Bun and
+# Turborepo caches on dev and prod, where pull requests can restore them.
 on:
   pull_request:
+    branches: [dev, prod]
   push:
     branches: [dev, prod]
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -33,6 +40,9 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
 
+      # Turborepo's local cache: unchanged packages replay their lint,
+      # typecheck, test and build. Each run saves a new entry and restores
+      # the latest one.
       - name: Cache Turborepo
         uses: actions/cache@v6
         with:
@@ -53,3 +63,23 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  # prod only takes releases from dev. Branch rules can require this check
+  # but cannot restrict the source branch themselves (see docs/deploy.md).
+  source-branch:
+    name: PR to prod comes from dev
+    if: github.event_name == 'pull_request' && github.base_ref == 'prod'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check the source branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REF" != "dev" ] || [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::error::prod only takes pull requests from dev, and this one comes from $HEAD_REPO:$HEAD_REF."
+            exit 1
+          fi
+          echo "The pull request comes from dev."

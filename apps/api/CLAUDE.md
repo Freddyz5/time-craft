@@ -9,11 +9,12 @@ API REST con Hono, desplegada en Vercel. Contiene las rutas, la autenticación (
 - `src/adapters/`: repositorios Drizzle y `UnitOfWork` (`drizzle/`), QStash (`qstash.ts`), Web Push (`web-push.ts`), identidad sobre `auth.$context` (`identity.ts`), código de recuperación con scrypt (`recovery-codes.ts`), reloj e ids (`system.ts`).
 - `src/http/`: formato de error único `{ error: { code, message, details? } }` (validation 400, unauthorized 401, forbidden 403, not_found 404, conflict 409, rule 422), validación con `@hono/zod-validator`, sesión → `Actor` y rate limit propio para el código de recuperación.
 - `src/routes/`: un archivo por módulo. Las respuestas del cronómetro incluyen `serverTime`.
-- `scripts/build.ts` empaqueta `src/index.ts` en `dist/index.js`: incluye los paquetes del workspace y deja externas las dependencias npm de este `package.json`. `vercel.json` le indica a Vercel que use `dist`.
+- `scripts/build.ts` empaqueta `src/index.ts` en `dist/index.js`: incluye los paquetes del workspace y deja externas las dependencias npm de este `package.json`. `vercel.json` configura el proyecto de Vercel: preset Hono, instalación con Bun, build con turbo, salida `dist` y el paso de ignorar el build (`scripts/vercel-ignore.mjs` en la raíz: solo construye si cambió la api o algo de lo que depende). `engines` fija Node 22 para la función.
 - `bun run dev` sirve la api en http://localhost:3000 con el `.env` de la raíz. `bun run db:seed` (`scripts/seed.ts`) siembra el hogar completo e imprime el código de recuperación una sola vez.
 
 ## Better Auth
 
+- El navegador llega a `/api/auth` por el dominio de la web (la web reescribe `/api/*` hacia la api), así que `BETTER_AUTH_URL` es el origen de la web, no el de la api. En el ambiente Preview, `BETTER_AUTH_TRUSTED_ORIGINS` agrega las URLs de las previews de PR de la web (un patrón con `*`), que hablan con la api de dev.
 - No se usa el plugin `admin`: su `setUserPassword` exige una sesión de administrador y el flujo del código de recuperación no tiene sesión. `IdentityService` hace lo mismo que esos endpoints por dentro (`password.hash` + `internalAdapter`).
 - Tras subir de versión Better Auth o cambiar sus plugins, compara su schema con `packages/db/src/schema/auth.ts`: crea un archivo temporal que exporte `auth = createAuth({...})` (con una base PGlite) y corre `bunx auth@<versión> generate --config <archivo> --output <scratch>`. Si falta algo, ajústalo en `packages/db` con una migración. Better Auth además valida tablas y columnas al primer request.
 
@@ -39,7 +40,7 @@ QStash no puede llamar a `localhost`, así que hay dos caminos:
    PUBLIC_API_URL=http://localhost:3000
    ```
    Los mensajes viven en memoria: se pierden al reiniciarlo. Su consola está en https://console.upstash.com/qstash/local-mode-user?port=8080.
-2. **Túnel** (ngrok, cloudflared) hacia `localhost:3000` con las credenciales reales de QStash: `PUBLIC_API_URL` es la URL pública del túnel y `QSTASH_URL` queda vacío.
+2. **Túnel** (ngrok, cloudflared) hacia `localhost:3000` con las credenciales reales de QStash: `PUBLIC_API_URL` es la URL pública del túnel y `QSTASH_URL` es la de la región de tu cuenta (vacío si es EU).
 
 La firma se verifica contra `PUBLIC_API_URL + /internal/jobs` (la URL a la que se publicó el mensaje). No uses `QSTASH_DEV`: el adaptador configura el SDK explícitamente y lo ignora.
 
