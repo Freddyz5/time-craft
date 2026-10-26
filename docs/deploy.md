@@ -171,7 +171,7 @@ Por qué así:
 - Todas las previews (dev y las de PR) usan la api de dev. `BETTER_AUTH_TRUSTED_ORIGINS` deja que las previews de PR de la web, cada una con su URL, inicien sesión contra ella.
 - Google va solo en Production y en la rama `dev`: las previews de PR cambian de URL y Google no las aceptaría. Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
 - No van en Vercel: `DATABASE_URL_UNPOOLED` (está en GitHub, paso 2), `SEED_*` (solo para el seed desde tu máquina) ni `API_DEV_URL` (solo local).
-- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar.
+- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar, con **Use project's Ignore Build Step** desmarcado. El redeploy usa el mismo commit, así que el paso de ignorar no ve cambios y lo cancelaría.
 
 ### 8. GitHub: reglas de las ramas
 
@@ -281,7 +281,7 @@ Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o
 
 | Síntoma | Causa y arreglo |
 |---|---|
-| El build de la web falla con `API_ORIGIN must be the api's origin` | Falta `API_ORIGIN` en el proyecto web para ese ambiente (paso 7). Agrégala y haz Redeploy. |
+| El build de la web falla con `API_ORIGIN must be the api's origin` | Falta `API_ORIGIN` en el proyecto web para ese ambiente (paso 7). Agrégala y haz Redeploy sin *Use project's Ignore Build Step*. |
 | Un deployment queda *Canceled* con `Skip: …` en el log | Es el paso de ignorar: el commit no afecta a esa app. Para construir igual, Redeploy sin *Use project's Ignore Build Step*. |
 | La api responde 500 y el log de la función dice `Invalid environment variables` | El mensaje nombra la variable que falta o es inválida en ese ambiente (paso 7). |
 | Iniciar sesión da 403 `Invalid origin` | En dev o producción: `BETTER_AUTH_URL` no es exactamente el dominio de la web (`https://`, sin `/` final). En una preview de PR: revisa `<SCOPE>` en `BETTER_AUTH_TRUSTED_ORIGINS`. |
