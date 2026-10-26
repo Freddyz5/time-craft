@@ -1,5 +1,6 @@
 {
 	"$schema": "https://turborepo.dev/schema.json",
+	"globalDependencies": ["package.json", "bunfig.toml"],
 	"tasks": {
 		"transit": {
 			"dependsOn": ["^transit"]
@@ -7,6 +8,11 @@
 		"build": {
 			"dependsOn": ["^build", "transit"],
 			"outputs": ["dist/**"]
+		},
+		"@time-craft/web#build": {
+			"dependsOn": ["^build", "transit"],
+			"outputs": ["dist/**"],
+			"env": ["VAPID_PUBLIC_KEY", "GOOGLE_CLIENT_ID"]
 		},
 		"//#lint:root": {},
 		"lint": {
@@ -22,6 +28,11 @@
 			"cache": false,
 			"persistent": true
 		},
+		"@time-craft/web#dev": {
+			"cache": false,
+			"persistent": true,
+			"passThroughEnv": ["API_DEV_URL", "VAPID_PUBLIC_KEY", "GOOGLE_CLIENT_ID"]
+		},
 		"db:generate": {
 			"cache": false
 		},
@@ -36,7 +47,12 @@
 		},
 		"db:seed": {
 			"cache": false,
-			"passThroughEnv": ["DATABASE_URL_UNPOOLED", "SEED_*"]
+			"passThroughEnv": [
+				"DATABASE_URL_UNPOOLED",
+				"BETTER_AUTH_SECRET",
+				"BETTER_AUTH_URL",
+				"SEED_*"
+			]
 		}
 	}
 }

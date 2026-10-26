@@ -1,0 +1,1 @@
+CREATE INDEX "idx_auth_verification_identifier" ON "auth_verification" USING btree ("identifier");

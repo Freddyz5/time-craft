@@ -1,0 +1,17 @@
+---
+// What a static page shows while its island loads: the mark and three
+// bricks, the same as the islands' own loading state.
+---
+
+<div class="grid min-h-dvh place-items-center px-4" role="status">
+	<div class="flex flex-col items-center gap-4 text-ink-soft">
+		<svg viewBox="0 0 48 44" class="size-12" aria-hidden="true">
+			<rect x="9" y="1" width="11" height="9" rx="2.4" fill="#f5cd2f"></rect>
+			<rect x="28" y="1" width="11" height="9" rx="2.4" fill="#f5cd2f"></rect>
+			<rect x="2" y="8" width="44" height="35" rx="4" fill="#f5cd2f"></rect>
+			<rect x="2" y="37" width="44" height="6" rx="3" fill="#000" opacity="0.14"></rect>
+			<path d="M24 17v9.5l6.5 4" fill="none" stroke="#15191e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+		</svg>
+		<span>Cargando…</span>
+	</div>
+</div>

@@ -6,6 +6,7 @@ import {
 	index,
 	integer,
 	pgTable,
+	text,
 	timestamp,
 	unique,
 	uniqueIndex,
@@ -195,8 +196,9 @@ export const sessionAlerts = pgTable(
 			enum: ["start", "warning", "end", "auto_close"],
 		}).notNull(),
 		scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
-		// QStash message id, used to cancel it.
-		providerMessageId: varchar("provider_message_id", { length: 100 }),
+		// QStash message id, used to cancel it. Text: QStash ids are about 100
+		// characters long and their length is not documented.
+		providerMessageId: text("provider_message_id"),
 		sentAt: timestamp("sent_at", { withTimezone: true }),
 		cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
 	},

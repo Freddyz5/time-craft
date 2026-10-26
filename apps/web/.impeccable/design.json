@@ -1,0 +1,703 @@
+{
+	"schemaVersion": 2,
+	"generatedAt": "2026-10-20T03:04:28Z",
+	"title": "Design System: Time Craft",
+	"extensions": {
+		"colorMeta": {
+			"page": {
+				"role": "neutral",
+				"displayName": "Azul Manual",
+				"canonical": "#dce7f0",
+				"oklch": "oklch(92.2% 0.017 242.4)",
+				"tonalRamp": [
+					"oklch(15% 0.017 242.4)",
+					"oklch(25% 0.017 242.4)",
+					"oklch(35% 0.017 242.4)",
+					"oklch(48% 0.017 242.4)",
+					"oklch(60% 0.017 242.4)",
+					"oklch(72% 0.017 242.4)",
+					"oklch(84% 0.017 242.4)",
+					"oklch(95% 0.017 242.4)"
+				]
+			},
+			"sheet": {
+				"role": "neutral",
+				"displayName": "Hoja",
+				"canonical": "#ffffff",
+				"oklch": "oklch(100.0% 0.000 89.9)",
+				"tonalRamp": [
+					"oklch(15% 0.000 89.9)",
+					"oklch(25% 0.000 89.9)",
+					"oklch(35% 0.000 89.9)",
+					"oklch(48% 0.000 89.9)",
+					"oklch(60% 0.000 89.9)",
+					"oklch(72% 0.000 89.9)",
+					"oklch(84% 0.000 89.9)",
+					"oklch(95% 0.000 89.9)"
+				]
+			},
+			"sheet-sunk": {
+				"role": "neutral",
+				"displayName": "Hoja Hundida",
+				"canonical": "#f2f6fa",
+				"oklch": "oklch(97.1% 0.007 247.9)",
+				"tonalRamp": [
+					"oklch(15% 0.007 247.9)",
+					"oklch(25% 0.007 247.9)",
+					"oklch(35% 0.007 247.9)",
+					"oklch(48% 0.007 247.9)",
+					"oklch(60% 0.007 247.9)",
+					"oklch(72% 0.007 247.9)",
+					"oklch(84% 0.007 247.9)",
+					"oklch(95% 0.007 247.9)"
+				]
+			},
+			"rule": {
+				"role": "neutral",
+				"displayName": "Regla",
+				"canonical": "#b9c9d7",
+				"oklch": "oklch(82.8% 0.026 244.5)",
+				"tonalRamp": [
+					"oklch(15% 0.026 244.5)",
+					"oklch(25% 0.026 244.5)",
+					"oklch(35% 0.026 244.5)",
+					"oklch(48% 0.026 244.5)",
+					"oklch(60% 0.026 244.5)",
+					"oklch(72% 0.026 244.5)",
+					"oklch(84% 0.026 244.5)",
+					"oklch(95% 0.026 244.5)"
+				]
+			},
+			"rule-strong": {
+				"role": "neutral",
+				"displayName": "Regla Fuerte",
+				"canonical": "#6d8397",
+				"oklch": "oklch(60.0% 0.040 246.0)",
+				"tonalRamp": [
+					"oklch(15% 0.040 246.0)",
+					"oklch(25% 0.040 246.0)",
+					"oklch(35% 0.040 246.0)",
+					"oklch(48% 0.040 246.0)",
+					"oklch(60% 0.040 246.0)",
+					"oklch(72% 0.040 246.0)",
+					"oklch(84% 0.040 246.0)",
+					"oklch(95% 0.040 246.0)"
+				]
+			},
+			"ink": {
+				"role": "neutral",
+				"displayName": "Tinta",
+				"canonical": "#15191e",
+				"oklch": "oklch(21.1% 0.012 254.1)",
+				"tonalRamp": [
+					"oklch(15% 0.012 254.1)",
+					"oklch(25% 0.012 254.1)",
+					"oklch(35% 0.012 254.1)",
+					"oklch(48% 0.012 254.1)",
+					"oklch(60% 0.012 254.1)",
+					"oklch(72% 0.012 254.1)",
+					"oklch(84% 0.012 254.1)",
+					"oklch(95% 0.012 254.1)"
+				]
+			},
+			"ink-soft": {
+				"role": "neutral",
+				"displayName": "Tinta Suave",
+				"canonical": "#46535f",
+				"oklch": "oklch(43.6% 0.026 246.3)",
+				"tonalRamp": [
+					"oklch(15% 0.026 246.3)",
+					"oklch(25% 0.026 246.3)",
+					"oklch(35% 0.026 246.3)",
+					"oklch(48% 0.026 246.3)",
+					"oklch(60% 0.026 246.3)",
+					"oklch(72% 0.026 246.3)",
+					"oklch(84% 0.026 246.3)",
+					"oklch(95% 0.026 246.3)"
+				]
+			},
+			"ink-faint": {
+				"role": "neutral",
+				"displayName": "Tinta Tenue",
+				"canonical": "#5f6c78",
+				"oklch": "oklch(52.5% 0.025 246.1)",
+				"tonalRamp": [
+					"oklch(15% 0.025 246.1)",
+					"oklch(25% 0.025 246.1)",
+					"oklch(35% 0.025 246.1)",
+					"oklch(48% 0.025 246.1)",
+					"oklch(60% 0.025 246.1)",
+					"oklch(72% 0.025 246.1)",
+					"oklch(84% 0.025 246.1)",
+					"oklch(95% 0.025 246.1)"
+				]
+			},
+			"balance": {
+				"role": "primary",
+				"displayName": "Verde Saldo",
+				"canonical": "#00852b",
+				"oklch": "oklch(53.7% 0.162 146.4)",
+				"tonalRamp": [
+					"oklch(15% 0.077 146.4)",
+					"oklch(25% 0.110 146.4)",
+					"oklch(35% 0.143 146.4)",
+					"oklch(48% 0.162 146.4)",
+					"oklch(60% 0.162 146.4)",
+					"oklch(72% 0.153 146.4)",
+					"oklch(84% 0.113 146.4)",
+					"oklch(95% 0.077 146.4)"
+				]
+			},
+			"balance-tint": {
+				"role": "primary",
+				"displayName": "Tinte Saldo",
+				"canonical": "#dcefe2",
+				"oklch": "oklch(93.4% 0.027 156.0)",
+				"tonalRamp": [
+					"oklch(15% 0.027 156.0)",
+					"oklch(25% 0.027 156.0)",
+					"oklch(35% 0.027 156.0)",
+					"oklch(48% 0.027 156.0)",
+					"oklch(60% 0.027 156.0)",
+					"oklch(72% 0.027 156.0)",
+					"oklch(84% 0.027 156.0)",
+					"oklch(95% 0.027 156.0)"
+				]
+			},
+			"balance-ink": {
+				"role": "primary",
+				"displayName": "Tinta Saldo",
+				"canonical": "#006622",
+				"oklch": "oklch(44.5% 0.132 147.1)",
+				"tonalRamp": [
+					"oklch(15% 0.077 147.1)",
+					"oklch(25% 0.110 147.1)",
+					"oklch(35% 0.132 147.1)",
+					"oklch(48% 0.132 147.1)",
+					"oklch(60% 0.132 147.1)",
+					"oklch(72% 0.132 147.1)",
+					"oklch(84% 0.113 147.1)",
+					"oklch(95% 0.077 147.1)"
+				]
+			},
+			"bonus": {
+				"role": "secondary",
+				"displayName": "Amarillo Bono",
+				"canonical": "#f5cd2f",
+				"oklch": "oklch(85.9% 0.165 93.5)",
+				"tonalRamp": [
+					"oklch(15% 0.077 93.5)",
+					"oklch(25% 0.110 93.5)",
+					"oklch(35% 0.143 93.5)",
+					"oklch(48% 0.165 93.5)",
+					"oklch(60% 0.165 93.5)",
+					"oklch(72% 0.153 93.5)",
+					"oklch(84% 0.113 93.5)",
+					"oklch(95% 0.077 93.5)"
+				]
+			},
+			"bonus-tint": {
+				"role": "secondary",
+				"displayName": "Tinte Bono",
+				"canonical": "#fdf2c4",
+				"oklch": "oklch(95.8% 0.061 96.1)",
+				"tonalRamp": [
+					"oklch(15% 0.061 96.1)",
+					"oklch(25% 0.061 96.1)",
+					"oklch(35% 0.061 96.1)",
+					"oklch(48% 0.061 96.1)",
+					"oklch(60% 0.061 96.1)",
+					"oklch(72% 0.061 96.1)",
+					"oklch(84% 0.061 96.1)",
+					"oklch(95% 0.061 96.1)"
+				]
+			},
+			"bonus-ink": {
+				"role": "secondary",
+				"displayName": "Tinta Bono",
+				"canonical": "#6b5300",
+				"oklch": "oklch(45.4% 0.093 89.3)",
+				"tonalRamp": [
+					"oklch(15% 0.077 89.3)",
+					"oklch(25% 0.093 89.3)",
+					"oklch(35% 0.093 89.3)",
+					"oklch(48% 0.093 89.3)",
+					"oklch(60% 0.093 89.3)",
+					"oklch(72% 0.093 89.3)",
+					"oklch(84% 0.093 89.3)",
+					"oklch(95% 0.077 89.3)"
+				]
+			},
+			"game": {
+				"role": "secondary",
+				"displayName": "Azul Juego",
+				"canonical": "#0055bf",
+				"oklch": "oklch(47.5% 0.181 258.6)",
+				"tonalRamp": [
+					"oklch(15% 0.077 258.6)",
+					"oklch(25% 0.110 258.6)",
+					"oklch(35% 0.143 258.6)",
+					"oklch(48% 0.181 258.6)",
+					"oklch(60% 0.181 258.6)",
+					"oklch(72% 0.153 258.6)",
+					"oklch(84% 0.113 258.6)",
+					"oklch(95% 0.077 258.6)"
+				]
+			},
+			"game-tint": {
+				"role": "secondary",
+				"displayName": "Tinte Juego",
+				"canonical": "#dde8f8",
+				"oklch": "oklch(92.7% 0.025 257.6)",
+				"tonalRamp": [
+					"oklch(15% 0.025 257.6)",
+					"oklch(25% 0.025 257.6)",
+					"oklch(35% 0.025 257.6)",
+					"oklch(48% 0.025 257.6)",
+					"oklch(60% 0.025 257.6)",
+					"oklch(72% 0.025 257.6)",
+					"oklch(84% 0.025 257.6)",
+					"oklch(95% 0.025 257.6)"
+				]
+			},
+			"tv": {
+				"role": "secondary",
+				"displayName": "Magenta TV",
+				"canonical": "#9b2c7e",
+				"oklch": "oklch(49.1% 0.171 340.2)",
+				"tonalRamp": [
+					"oklch(15% 0.077 340.2)",
+					"oklch(25% 0.110 340.2)",
+					"oklch(35% 0.143 340.2)",
+					"oklch(48% 0.171 340.2)",
+					"oklch(60% 0.171 340.2)",
+					"oklch(72% 0.153 340.2)",
+					"oklch(84% 0.113 340.2)",
+					"oklch(95% 0.077 340.2)"
+				]
+			},
+			"tv-tint": {
+				"role": "secondary",
+				"displayName": "Tinte TV",
+				"canonical": "#f5e1ef",
+				"oklch": "oklch(93.0% 0.029 336.4)",
+				"tonalRamp": [
+					"oklch(15% 0.029 336.4)",
+					"oklch(25% 0.029 336.4)",
+					"oklch(35% 0.029 336.4)",
+					"oklch(48% 0.029 336.4)",
+					"oklch(60% 0.029 336.4)",
+					"oklch(72% 0.029 336.4)",
+					"oklch(84% 0.029 336.4)",
+					"oklch(95% 0.029 336.4)"
+				]
+			},
+			"pause": {
+				"role": "tertiary",
+				"displayName": "Naranja Pausa",
+				"canonical": "#fe8a18",
+				"oklch": "oklch(74.7% 0.176 56.3)",
+				"tonalRamp": [
+					"oklch(15% 0.077 56.3)",
+					"oklch(25% 0.110 56.3)",
+					"oklch(35% 0.143 56.3)",
+					"oklch(48% 0.176 56.3)",
+					"oklch(60% 0.176 56.3)",
+					"oklch(72% 0.153 56.3)",
+					"oklch(84% 0.113 56.3)",
+					"oklch(95% 0.077 56.3)"
+				]
+			},
+			"pause-tint": {
+				"role": "tertiary",
+				"displayName": "Tinte Pausa",
+				"canonical": "#ffe9d2",
+				"oklch": "oklch(94.6% 0.039 68.6)",
+				"tonalRamp": [
+					"oklch(15% 0.039 68.6)",
+					"oklch(25% 0.039 68.6)",
+					"oklch(35% 0.039 68.6)",
+					"oklch(48% 0.039 68.6)",
+					"oklch(60% 0.039 68.6)",
+					"oklch(72% 0.039 68.6)",
+					"oklch(84% 0.039 68.6)",
+					"oklch(95% 0.039 68.6)"
+				]
+			},
+			"pause-ink": {
+				"role": "tertiary",
+				"displayName": "Tinta Pausa",
+				"canonical": "#8a4300",
+				"oklch": "oklch(46.5% 0.117 53.6)",
+				"tonalRamp": [
+					"oklch(15% 0.077 53.6)",
+					"oklch(25% 0.110 53.6)",
+					"oklch(35% 0.117 53.6)",
+					"oklch(48% 0.117 53.6)",
+					"oklch(60% 0.117 53.6)",
+					"oklch(72% 0.117 53.6)",
+					"oklch(84% 0.113 53.6)",
+					"oklch(95% 0.077 53.6)"
+				]
+			},
+			"stop": {
+				"role": "tertiary",
+				"displayName": "Rojo Fin",
+				"canonical": "#c91a09",
+				"oklch": "oklch(53.4% 0.207 30.2)",
+				"tonalRamp": [
+					"oklch(15% 0.077 30.2)",
+					"oklch(25% 0.110 30.2)",
+					"oklch(35% 0.143 30.2)",
+					"oklch(48% 0.187 30.2)",
+					"oklch(60% 0.193 30.2)",
+					"oklch(72% 0.153 30.2)",
+					"oklch(84% 0.113 30.2)",
+					"oklch(95% 0.077 30.2)"
+				]
+			},
+			"stop-tint": {
+				"role": "tertiary",
+				"displayName": "Tinte Fin",
+				"canonical": "#fbe2de",
+				"oklch": "oklch(93.2% 0.028 28.5)",
+				"tonalRamp": [
+					"oklch(15% 0.028 28.5)",
+					"oklch(25% 0.028 28.5)",
+					"oklch(35% 0.028 28.5)",
+					"oklch(48% 0.028 28.5)",
+					"oklch(60% 0.028 28.5)",
+					"oklch(72% 0.028 28.5)",
+					"oklch(84% 0.028 28.5)",
+					"oklch(95% 0.028 28.5)"
+				]
+			},
+			"ghost": {
+				"role": "neutral",
+				"displayName": "Fantasma",
+				"canonical": "#7a8fa3",
+				"oklch": "oklch(64.1% 0.039 247.1)",
+				"tonalRamp": [
+					"oklch(15% 0.039 247.1)",
+					"oklch(25% 0.039 247.1)",
+					"oklch(35% 0.039 247.1)",
+					"oklch(48% 0.039 247.1)",
+					"oklch(60% 0.039 247.1)",
+					"oklch(72% 0.039 247.1)",
+					"oklch(84% 0.039 247.1)",
+					"oklch(95% 0.039 247.1)"
+				]
+			},
+			"focus": {
+				"role": "neutral",
+				"displayName": "Foco",
+				"canonical": "#0055bf",
+				"oklch": "oklch(47.5% 0.181 258.6)",
+				"tonalRamp": [
+					"oklch(15% 0.077 258.6)",
+					"oklch(25% 0.110 258.6)",
+					"oklch(35% 0.143 258.6)",
+					"oklch(48% 0.181 258.6)",
+					"oklch(60% 0.181 258.6)",
+					"oklch(72% 0.153 258.6)",
+					"oklch(84% 0.113 258.6)",
+					"oklch(95% 0.077 258.6)"
+				]
+			}
+		},
+		"typographyMeta": {
+			"display-lg": {
+				"displayName": "Display large",
+				"purpose": "Cuentas regresivas del niño (sesión y «Faltan»); solo ahí."
+			},
+			"display": {
+				"displayName": "Display",
+				"purpose": "Cuenta regresiva de «Ahora» de los padres y «¡Se acabó!» del niño; solo ahí."
+			},
+			"step-number": {
+				"displayName": "Número de paso",
+				"purpose": "Orden de un flujo de varios pasos y la cifra elegida en Pedir."
+			},
+			"headline": {
+				"displayName": "Headline",
+				"purpose": "h1 de cada pantalla."
+			},
+			"headline-sm": {
+				"displayName": "Headline sm",
+				"purpose": "Titular del saldo y h1 de páginas públicas."
+			},
+			"title": {
+				"displayName": "Title",
+				"purpose": "Títulos de recuadro, sección, paso y diálogo."
+			},
+			"body": {
+				"displayName": "Body",
+				"purpose": "Texto corrido; etiquetas y botones en 500."
+			},
+			"body-sm": {
+				"displayName": "Body sm",
+				"purpose": "Pistas, errores de campo, estados bajo los ladrillos."
+			},
+			"label": {
+				"displayName": "Label",
+				"purpose": "Pestañas del niño y cifras del selector de Pedir."
+			},
+			"caption": {
+				"displayName": "Caption",
+				"purpose": "Pestañas de los padres y leyenda «1 ladrillo = N min»."
+			}
+		},
+		"shadows": [
+			{
+				"name": "callout",
+				"value": "0 1px 0 rgb(21 25 30 / 0.04), 0 6px 18px -10px rgb(21 25 30 / 0.22)",
+				"purpose": "Todo recuadro en reposo."
+			},
+			{
+				"name": "lift",
+				"value": "0 2px 4px rgb(21 25 30 / 0.08), 0 14px 28px -14px rgb(21 25 30 / 0.35)",
+				"purpose": "Diálogos de confirmación y toasts."
+			}
+		],
+		"motion": [
+			{
+				"name": "ease-out-quick",
+				"value": "cubic-bezier(0.16, 1, 0.3, 1)",
+				"purpose": "Curva de todo movimiento del sistema."
+			},
+			{
+				"name": "brick-release",
+				"value": "180ms ease-out-quick; translateY 0 → -4px → 0",
+				"purpose": "Soltar el ladrillo: un ladrillo en uso que se gasta."
+			},
+			{
+				"name": "brick-snap",
+				"value": "260ms ease-out-quick both; desde -8px y opacidad 0",
+				"purpose": "Un ladrillo nuevo (un bono) encaja en la fila; con fill both no se ve antes de su turno."
+			},
+			{
+				"name": "brick-enter",
+				"value": "brick-snap por ladrillo, 70ms de desfase",
+				"purpose": "Los ladrillos de un pedido recién aprobado encajan uno tras otro en el primer pintado."
+			},
+			{
+				"name": "brick-lift",
+				"value": "200ms ease-out-quick; translateY -6px",
+				"purpose": "Ladrillos elegidos en «arma tu pedido»."
+			},
+			{
+				"name": "shake",
+				"value": "360ms ease-out-quick; translateX -6, 5, -3, 2px",
+				"purpose": "Los pernos del PIN cuando no coincide."
+			},
+			{
+				"name": "brick-stack",
+				"value": "1500ms ease-out-quick infinite, 220ms de desfase por ladrillo",
+				"purpose": "Carga: tres ladrillos caen uno sobre otro."
+			},
+			{
+				"name": "rise",
+				"value": "260ms ease-out-quick; desde 6px y opacidad 0.4",
+				"purpose": "Entrada de diálogos y toasts."
+			},
+			{
+				"name": "color-transition",
+				"value": "150ms",
+				"purpose": "Hover y activo de botones."
+			}
+		],
+		"breakpoints": [
+			{
+				"name": "min",
+				"value": "360px"
+			},
+			{
+				"name": "sm",
+				"value": "640px"
+			},
+			{
+				"name": "lg",
+				"value": "1024px"
+			}
+		]
+	},
+	"components": [
+		{
+			"name": "Botón primario",
+			"kind": "button",
+			"refersTo": "button-primary",
+			"description": "La única acción principal de un recuadro (Aprobar, Empezar ya, Nueva sesión).",
+			"html": "<button class=\"ds-btn-primary\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>Aprobar +15 min</button>",
+			"css": ".ds-btn-primary { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:0 16px; font-size:1rem; font-weight:500; border-radius:var(--radius-control, 10px); border:0; cursor:pointer; transition:background-color 150ms, border-color 150ms; background:var(--color-ink, #15191e); color:#fff; } .ds-btn-primary:hover { background:#2a3038; } .ds-btn-primary:active { background:#000; } .ds-btn-primary:focus-visible { outline:3px solid var(--color-focus, #0055bf); outline-offset:2px; }"
+		},
+		{
+			"name": "Botón secundario",
+			"kind": "button",
+			"refersTo": "button-secondary",
+			"description": "Acciones de apoyo; Detener mientras la sesión corre a tiempo.",
+			"html": "<button class=\"ds-btn-secondary\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\"/></svg>Detener</button>",
+			"css": ".ds-btn-secondary { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:0 16px; font-size:1rem; font-weight:500; border-radius:var(--radius-control, 10px); border:0; cursor:pointer; transition:background-color 150ms, border-color 150ms; background:var(--color-sheet, #fff); color:var(--color-ink, #15191e); border:1.5px solid var(--color-rule-strong, #6d8397); } .ds-btn-secondary:hover { background:var(--color-sheet-sunk, #f2f6fa); } .ds-btn-secondary:active { background:var(--color-page, #dce7f0); } .ds-btn-secondary:focus-visible { outline:3px solid var(--color-focus, #0055bf); outline-offset:2px; }"
+		},
+		{
+			"name": "Botón de pausa",
+			"kind": "button",
+			"refersTo": "button-pause",
+			"description": "Solo para Pausar una sesión en curso.",
+			"html": "<button class=\"ds-btn-pause\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"14\" y=\"4\" width=\"4\" height=\"16\" rx=\"1\"/><rect x=\"6\" y=\"4\" width=\"4\" height=\"16\" rx=\"1\"/></svg>Pausar</button>",
+			"css": ".ds-btn-pause { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:0 16px; font-size:1rem; font-weight:500; border-radius:var(--radius-control, 10px); border:0; cursor:pointer; transition:background-color 150ms, border-color 150ms; background:var(--color-pause, #fe8a18); color:var(--color-ink, #15191e); } .ds-btn-pause:hover { background:#f07d0c; } .ds-btn-pause:active { background:#e07000; } .ds-btn-pause:focus-visible { outline:3px solid var(--color-focus, #0055bf); outline-offset:2px; }"
+		},
+		{
+			"name": "Botón que corta",
+			"kind": "button",
+			"refersTo": "button-danger",
+			"description": "Acciones que cortan cuando ya hace falta cortar (exceso, pausa larga, confirmaciones).",
+			"html": "<button class=\"ds-btn-danger\">Detener</button>",
+			"css": ".ds-btn-danger { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:0 16px; font-size:1rem; font-weight:500; border-radius:var(--radius-control, 10px); border:0; cursor:pointer; transition:background-color 150ms, border-color 150ms; background:var(--color-stop, #c91a09); color:#fff; } .ds-btn-danger:hover { background:#b01607; } .ds-btn-danger:active { background:#951305; } .ds-btn-danger:focus-visible { outline:3px solid var(--color-focus, #0055bf); outline-offset:2px; }"
+		},
+		{
+			"name": "Campo",
+			"kind": "input",
+			"refersTo": "input",
+			"description": "Campo de texto con etiqueta arriba y pista debajo.",
+			"html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Correo</span><input class=\"ds-input\" placeholder=\"tu@correo.com\"><span class=\"ds-field-hint\">El de tu cuenta de padre.</span></label>",
+			"css": ".ds-field { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:flex; flex-direction:column; gap:6px; color:var(--color-ink, #15191e); } .ds-field-label { font-weight:500; } .ds-field-hint { font-size:0.9375rem; color:var(--color-ink-soft, #46535f); } .ds-input { font:inherit; min-height:48px; padding:0 14px; border-radius:var(--radius-control, 10px); border:1.5px solid var(--color-rule-strong, #6d8397); background:var(--color-sheet, #fff); color:inherit; transition:border-color 150ms; } .ds-input::placeholder { color:var(--color-ink-faint, #5f6c78); } .ds-input:hover { border-color:var(--color-ink-soft, #46535f); } .ds-input:focus-visible { outline:none; border-color:var(--color-focus, #0055bf); box-shadow:0 0 0 3px rgb(0 85 191 / 0.25); }"
+		},
+		{
+			"name": "Recuadro",
+			"kind": "card",
+			"refersTo": "callout",
+			"description": "El recuadro blanco del manual; el tinte informa un único estado.",
+			"html": "<section class=\"ds-callout\"><h2 class=\"ds-callout-title\">Avisos en este dispositivo</h2><p class=\"ds-callout-body\">Te avisamos cuando pida tiempo y cuando se acabe una sesión.</p></section><section class=\"ds-callout ds-callout-pause\"><h2 class=\"ds-callout-title\" style=\"color:var(--color-pause-ink, #8a4300)\">Lleva 42 min en pausa</h2><p class=\"ds-callout-body\">Una pausa no gasta tiempo, pero no deja empezar otra sesión.</p></section>",
+			"css": ".ds-callout { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); background:var(--color-sheet, #fff); border:1.5px solid var(--color-rule, #b9c9d7); border-radius:var(--radius-callout, 12px); box-shadow:var(--shadow-callout, 0 1px 0 rgb(21 25 30 / 0.04), 0 6px 18px -10px rgb(21 25 30 / 0.22)); padding:20px; display:flex; flex-direction:column; gap:8px; margin-bottom:20px; color:var(--color-ink, #15191e); } .ds-callout-pause { background:var(--color-pause-tint, #ffe9d2); border-color:var(--color-pause, #fe8a18); } .ds-callout-title { margin:0; font-size:1.25rem; font-weight:600; line-height:1.25; } .ds-callout-body { margin:0; color:var(--color-ink-soft, #46535f); line-height:1.5; }"
+		},
+		{
+			"name": "Etiqueta de actividad",
+			"kind": "chip",
+			"refersTo": "activity-tag",
+			"description": "Pastilla del color de la actividad con su icono, en «Ahora».",
+			"html": "<span class=\"ds-tag ds-tag-game\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"6\" x2=\"10\" y1=\"11\" y2=\"11\"/><line x1=\"8\" x2=\"8\" y1=\"9\" y2=\"13\"/><line x1=\"15\" x2=\"15.01\" y1=\"12\" y2=\"12\"/><line x1=\"18\" x2=\"18.01\" y1=\"10\" y2=\"10\"/><path d=\"M17.32 5H6.68a4 4 0 0 0-3.978 3.59l-.9 7.2A3 3 0 0 0 4.78 19c.98 0 1.83-.66 2.1-1.6L8 15h8l1.12 2.4c.27.94 1.12 1.6 2.1 1.6a3 3 0 0 0 2.98-3.21l-.9-7.2A4 4 0 0 0 17.32 5z\"/></svg>Juego</span> <span class=\"ds-tag ds-tag-tv\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"15\" rx=\"2\"/><polyline points=\"17 2 12 7 7 2\"/></svg>TV</span>",
+			"css": ".ds-tag { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:9999px; color:#fff; font-weight:600; } .ds-tag-game { background:var(--color-game, #0055bf); } .ds-tag-tv { background:var(--color-tv, #9b2c7e); }"
+		},
+		{
+			"name": "Fila de ladrillos",
+			"kind": "custom",
+			"refersTo": "brick-row",
+			"description": "Firma del sistema: 1 ladrillo = 10 min; sólido disponible, vaciándose en uso, punteado usado, rojo exceso.",
+			"html": "<div class=\"ds-bricks-wrap\"><div class=\"ds-bricks-head\"><b>Hoy</b><span>38 min de 1 h</span></div><div class=\"ds-bricks\"><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c2821\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c2821)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c2821\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c2821)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c2821\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c2821)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"var(--color-ghost, #7a8fa3)\" stroke-width=\"1.5\" stroke-dasharray=\"3.2 2.4\"><rect x=\"7.75\" y=\"1.75\" width=\"8.5\" height=\"5\" rx=\"1.4\"/><rect x=\"23.75\" y=\"1.75\" width=\"8.5\" height=\"5\" rx=\"1.4\"/><rect x=\"1.75\" y=\"6.75\" width=\"36.5\" height=\"17.5\" rx=\"2.4\"/></g><clipPath id=\"c8591\"><rect x=\"0\" y=\"5.8\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c8591)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-balance, #00852b)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"var(--color-ghost, #7a8fa3)\" stroke-width=\"1.5\" stroke-dasharray=\"3.2 2.4\"><rect x=\"7.75\" y=\"1.75\" width=\"8.5\" height=\"5\" rx=\"1.4\"/><rect x=\"23.75\" y=\"1.75\" width=\"8.5\" height=\"5\" rx=\"1.4\"/><rect x=\"1.75\" y=\"6.75\" width=\"36.5\" height=\"17.5\" rx=\"2.4\"/></g></svg><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"var(--color-ghost, #7a8fa3)\" stroke-width=\"1.5\" stroke-dasharray=\"3.2 2.4\"><rect x=\"7.75\" y=\"1.75\" width=\"8.5\" height=\"5\" rx=\"1.4\"/><rect x=\"23.75\" y=\"1.75\" width=\"8.5\" height=\"5\" rx=\"1.4\"/><rect x=\"1.75\" y=\"6.75\" width=\"36.5\" height=\"17.5\" rx=\"2.4\"/></g></svg></div><div class=\"ds-bricks\"><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c9042\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c9042)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-game, #0055bf)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-game, #0055bf)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-game, #0055bf)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c9042\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c9042)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-game, #0055bf)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-game, #0055bf)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-game, #0055bf)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c3917\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c3917)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-stop, #c91a09)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-stop, #c91a09)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-stop, #c91a09)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg></div><p class=\"ds-bricks-cap\">1 ladrillo = 10 min</p></div>",
+			"css": ".ds-bricks-wrap { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:flex; flex-direction:column; gap:8px; max-width:360px; color:var(--color-ink, #15191e); } .ds-bricks-head { display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; } .ds-bricks-head span { color:var(--color-ink-soft, #46535f); } .ds-bricks { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:6px 4px; } .ds-bricks svg { display:block; width:100%; height:auto; overflow:visible; } .ds-bricks svg:hover { animation:ds-release 180ms cubic-bezier(0.16,1,0.3,1); } @keyframes ds-release { 50% { transform:translateY(-4px); } } .ds-bricks-cap { margin:0; font-size:0.8125rem; color:var(--color-ink-soft, #46535f); } @media (prefers-reduced-motion: reduce) { .ds-bricks svg:hover { animation:none; } }"
+		},
+		{
+			"name": "Batería de ladrillos",
+			"kind": "custom",
+			"refersTo": "battery",
+			"description": "El saldo del niño: contorno de tinta con borne y celdas-ladrillo; con sesión abierta, libre en verde y luego lo reservado en el color de la actividad.",
+			"html": "<div class=\"ds-battery-wrap\"><div class=\"ds-battery-head\"><b>Hoy</b><span>33 min de 1 h</span></div><div class=\"ds-battery\"><div class=\"ds-battery-body\"><i style=\"background:var(--color-balance,#00852b)\"></i><i style=\"background:var(--color-game,#0055bf)\"></i><i style=\"background:var(--color-game,#0055bf)\"></i><i class=\"ds-half\" style=\"--c:var(--color-game,#0055bf)\"></i><i class=\"ds-used\"></i><i class=\"ds-used\"></i></div><span class=\"ds-battery-terminal\"></span></div><p class=\"ds-battery-cap\">Se recarga mañana</p></div>",
+			"css": ".ds-battery-wrap { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:flex; flex-direction:column; gap:8px; max-width:320px; color:var(--color-ink, #15191e); } .ds-battery-head { display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; } .ds-battery-head b { font-size:1.125rem; font-weight:600; } .ds-battery-head span { color:var(--color-ink-soft, #46535f); } .ds-battery { display:flex; align-items:stretch; } .ds-battery-body { flex:1; display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; padding:6px 8px 8px; border:3px solid var(--color-ink, #15191e); border-radius:14px; background:var(--color-sheet, #fff); } .ds-battery-body i { display:block; aspect-ratio:40/19; border-radius:3px; box-shadow:inset 0 -3px 0 rgb(0 0 0 / 0.16), inset 0 0 0 0.75px rgb(21 25 30 / 0.3); } .ds-battery-body i.ds-half { background:linear-gradient(to bottom, transparent 45%, var(--c) 45%); outline:1.5px dashed var(--color-ghost, #7a8fa3); outline-offset:-1.5px; } .ds-battery-body i.ds-used { outline:1.5px dashed var(--color-ghost, #7a8fa3); outline-offset:-1.5px; box-shadow:none; } .ds-battery-terminal { align-self:center; width:8px; height:38%; min-height:12px; border-radius:0 4px 4px 0; background:var(--color-ink, #15191e); } .ds-battery-cap { margin:0; font-size:0.9375rem; color:var(--color-ink-soft, #46535f); }"
+		},
+		{
+			"name": "Caja de piezas",
+			"kind": "custom",
+			"refersTo": "parts-box",
+			"description": "Lista de piezas de un monto fijo: ladrillos y medio ladrillo contados, con los minutos.",
+			"html": "<div class=\"ds-parts\"><span class=\"ds-part\"><span class=\"ds-part-brick\"><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c6093\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c6093)\"><rect x=\"7\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-bonus, #f5cd2f)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"23\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-bonus, #f5cd2f)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"38\" height=\"19\" rx=\"2.6\" fill=\"var(--color-bonus, #f5cd2f)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"8\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"24\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"35\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"38\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg></span><b>1×</b></span><span class=\"ds-part\"><span class=\"ds-part-brick ds-half\"><svg viewBox=\"0 0 40 26\" width=\"40\" height=\"26\" aria-hidden=\"true\"><clipPath id=\"c8383\"><rect x=\"0\" y=\"1.0\" width=\"40\" height=\"26\"/></clipPath><g clip-path=\"url(#c8383)\"><rect x=\"5\" y=\"1\" width=\"10\" height=\"6.5\" rx=\"1.6\" fill=\"var(--color-bonus, #f5cd2f)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"1\" y=\"6\" width=\"18\" height=\"19\" rx=\"2.6\" fill=\"var(--color-bonus, #f5cd2f)\" stroke=\"rgb(21 25 30 / 0.3)\" stroke-width=\"0.75\"/><rect x=\"6\" y=\"1.6\" width=\"8\" height=\"1.6\" rx=\"0.8\" fill=\"#fff\" opacity=\"0.45\"/><rect x=\"2.5\" y=\"7.2\" width=\"15\" height=\"2\" rx=\"1\" fill=\"#fff\" opacity=\"0.3\"/><rect x=\"1\" y=\"21\" width=\"18\" height=\"4\" rx=\"2\" fill=\"#000\" opacity=\"0.16\"/></g></svg></span><b>1×</b></span><span class=\"ds-parts-sum\">= 15 min</span></div>",
+			"css": ".ds-parts { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:inline-flex; align-items:center; gap:16px; padding:10px 14px; border-radius:var(--radius-control, 10px); border:1.5px solid var(--color-rule, #b9c9d7); background:var(--color-sheet-sunk, #f2f6fa); color:var(--color-ink, #15191e); } .ds-part { display:flex; align-items:center; gap:8px; font-size:1.125rem; font-variant-numeric:tabular-nums; } .ds-part-brick { width:40px; display:block; } .ds-part-brick svg { display:block; width:100%; height:auto; } .ds-half { margin-right:-16px; } .ds-parts-sum { color:var(--color-ink-soft, #46535f); }"
+		},
+		{
+			"name": "Barra de pestañas",
+			"kind": "nav",
+			"refersTo": "tab-bar-item",
+			"description": "Navegación del teléfono; la pestaña activa lleva dos pernos amarillos.",
+			"html": "<nav class=\"ds-tabs\"><a class=\"ds-tab ds-tab-active\" href=\"#\"><span class=\"ds-studs\"><i></i><i></i></span><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg>Inicio</a><a class=\"ds-tab\" href=\"#\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/><path d=\"M12 7v5l4 2\"/></svg>Historial</a></nav>",
+			"css": ".ds-tabs { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:grid; grid-template-columns:repeat(2, 96px); background:var(--color-sheet, #fff); border-top:1.5px solid var(--color-rule, #b9c9d7); } .ds-tab { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:64px; font-size:0.8125rem; font-weight:500; text-decoration:none; color:var(--color-ink-faint, #5f6c78); } .ds-tab:hover { color:var(--color-ink, #15191e); } .ds-tab:focus-visible { outline:3px solid var(--color-focus, #0055bf); outline-offset:2px; } .ds-tab-active { color:var(--color-ink, #15191e); } .ds-studs { position:absolute; top:0; left:50%; transform:translateX(-50%); display:flex; gap:6px; } .ds-studs i { display:block; width:12px; height:6px; border-radius:3px 3px 0 0; background:var(--color-bonus, #f5cd2f); }"
+		},
+		{
+			"name": "PIN del niño",
+			"kind": "input",
+			"refersTo": "pin-key",
+			"description": "Pernos sobre un ladrillo que se llenan con cada número, y teclado 3×4 de teclas de 64 px.",
+			"html": "<div class=\"ds-pin\"><div class=\"ds-pin-studs\"><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i><i></i><i></i></div><span class=\"ds-pin-plate\"></span><div class=\"ds-pin-pad\"><button>1</button><button>2</button><button>3</button><button class=\"ds-pin-del\" aria-label=\"Borrar\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z\"/><path d=\"m12 9 6 6\"/><path d=\"m18 9-6 6\"/></svg></button><button>0</button><button class=\"ds-pin-go\">Entrar</button></div></div>",
+			"css": ".ds-pin { font-family: var(--font-sans, \"Rubik Variable\", ui-sans-serif, system-ui, sans-serif); display:flex; flex-direction:column; align-items:center; width:300px; color:var(--color-ink, #15191e); } .ds-pin-studs { display:grid; grid-template-columns:repeat(6, 1.25rem); gap:8px; padding:0 12px; } .ds-pin-studs i { display:block; aspect-ratio:2/1; border-radius:5px 5px 0 0; border:1.5px solid var(--color-rule-strong, #6d8397); border-bottom:0; background:var(--color-sheet-sunk, #f2f6fa); } .ds-pin-studs i.on { background:var(--color-ink, #15191e); border-color:var(--color-ink, #15191e); } .ds-pin-plate { display:block; width:190px; height:10px; border-radius:4px; border:1.5px solid var(--color-rule-strong, #6d8397); background:var(--color-sheet-sunk, #f2f6fa); margin-bottom:16px; } .ds-pin-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; width:100%; } .ds-pin-pad button { min-height:64px; border-radius:var(--radius-control, 10px); border:1.5px solid var(--color-rule-strong, #6d8397); background:var(--color-sheet, #fff); color:inherit; font:inherit; font-size:1.75rem; font-weight:600; font-variant-numeric:tabular-nums; cursor:pointer; transition:background-color 150ms, transform 150ms; } .ds-pin-pad button:hover { background:var(--color-sheet-sunk, #f2f6fa); } .ds-pin-pad button:active { background:var(--color-page, #dce7f0); transform:translateY(1px); } .ds-pin-pad button:focus-visible { outline:3px solid var(--color-focus, #0055bf); outline-offset:2px; } .ds-pin-pad .ds-pin-del { border-color:transparent; background:transparent; display:grid; place-items:center; } .ds-pin-pad .ds-pin-go { border:0; background:var(--color-ink, #15191e); color:#fff; font-size:1.0625rem; font-weight:500; } .ds-pin-pad .ds-pin-go:hover { background:#2a3038; }"
+		}
+	],
+	"narrative": {
+		"northStar": "El manual de armado",
+		"overview": "**Creative North Star: \"El manual de armado\"**\n\nTime Craft dibuja el tiempo como piezas de un manual de armado de ladrillos: un fondo azul pálido de manual, recuadros blancos de borde fino gris acero y tinta casi negra, y encima ladrillos de frente con sus pernos que llevan todo el color. Cada ladrillo vale 10 minutos. El saldo, la sesión en vivo, una solicitud o el premio de una tarea se leen contando ladrillos, sin leer párrafos. Los flujos de varios pasos se numeran como las páginas de un manual.\n\nEl sistema es denso pero tranquilo: el color vive en los ladrillos y en un puñado de estados, y los recuadros quedan blancos. Rechaza la estética del panel de control parental de la categoría: anillos de progreso, escudos y tarjetas grises con un único acento azul. Solo tema claro en la v1 (se usa en habitaciones iluminadas); los tokens separan tinta y fondo para poder sumar un tema oscuro sin rehacerlos.\n\nLa gramática es solo la de un manual de ladrillos genérico: no hay marcas, logos ni nombres de ninguna juguetera, y la paleta evoca colores de ladrillo sin citar a nadie.\n\nEl área del niño es el mismo manual a mayor escala: las mismas piezas y colores, con cifras, botones y teclas un paso más grandes y menos texto. Su saldo se dibuja como baterías hechas de ladrillos, y pide armando ladrillos, no tecleando números.",
+		"keyCharacteristics": [
+			"Ladrillos de frente (dos pernos, 40×26) como única unidad visual de tiempo: 1 ladrillo = 10 min.",
+			"Sólido = disponible; contorno punteado = usado; el ladrillo en uso se vacía desde arriba.",
+			"Un trabajo por color: verde saldo, amarillo bonos, azul Juego, magenta TV, naranja pausa, rojo fin, exceso y acciones que cortan.",
+			"Recuadros blancos de 12 px con borde de 1,5 px sobre azul pálido; sombra suave, nunca dura.",
+			"Rubik en todo, cifras tabulares, números de paso en 800.",
+			"Iconos Lucide de trazo 2.",
+			"Del lado del niño, el saldo es una batería: contorno de tinta con borne y celdas-ladrillo; el hueco liso es lo que todavía puede ganar."
+		],
+		"rules": [
+			{
+				"name": "The One Job Rule",
+				"body": "Cada color de ladrillo tiene un solo trabajo: verde saldo, amarillo bonos, azul Juego, magenta TV, naranja pausa, rojo fin, exceso y acciones que cortan. Un color nunca se usa como decoración ni para otro significado.",
+				"section": "colors"
+			},
+			{
+				"name": "The Red Is Earned Rule",
+				"body": "El rojo aparece solo cuando algo se acaba o se corta. «Detener» es un botón secundario mientras la sesión corre y pasa a rojo solo cuando se pasó del tiempo o la pausa ya es larga; en el diálogo de confirmación, la acción que corta va en rojo.",
+				"section": "colors"
+			},
+			{
+				"name": "The White Callout Rule",
+				"body": "Los recuadros son blancos; el tinte de un recuadro informa el único estado que reporta (pausa, fin, bono y, para el niño, un «sí») y nada más.",
+				"section": "colors"
+			},
+			{
+				"name": "The Calm No Rule",
+				"body": "Del lado del niño, el rojo queda para dos cosas: el fin de su sesión («¡Se acabó!») y el PIN que no coincide. Un «no» a su pedido o a su tarea es un recuadro blanco con el icono sobre hoja hundida; el bloqueo del PIN es una caja hundida con su cuenta regresiva en tinta; un motivo que falta se dice en tinta con un icono de ayuda.",
+				"section": "colors"
+			},
+			{
+				"name": "The Tabular Figures Rule",
+				"body": "Toda cifra que cambia o se compara (minutos, relojes, conteos, PIN, código) lleva cifras tabulares para no bailar.",
+				"section": "typography"
+			},
+			{
+				"name": "The Same World, Larger Rule",
+				"body": "El niño usa las mismas familias, colores y piezas, un paso más grandes: cuentas en 4.5rem, botón principal de 56 px con texto de 1.125rem, pestañas de 0.875rem con iconos de 28 px, teclas del PIN de 64 px. Nunca una familia, un color o una pieza propios.",
+				"section": "typography"
+			},
+			{
+				"name": "The Sentence Case Rule",
+				"body": "Sin mayúsculas sostenidas ni espaciado ancho en etiquetas: el único tracking positivo es para el PIN y el código de recuperación, que se dictan carácter por carácter.",
+				"section": "typography"
+			},
+			{
+				"name": "The Soft Paper Rule",
+				"body": "Las sombras son difusas y teñidas de tinta. Nada de sombras duras desplazadas: el relieve es del ladrillo, no del papel.",
+				"section": "elevation"
+			}
+		],
+		"dos": [
+			"**Do** mostrar el tiempo en ladrillos de 10 min; si un límite no cabe en la fila, sube el valor del ladrillo (20, 30 o 60 min) y escribe «1 ladrillo = N min» en la leyenda.",
+			"**Do** usar sólido para disponible, contorno punteado para usado y medio ladrillo de un perno para medio ladrillo en montos fijos (una solicitud, una tarea, el largo de una sesión).",
+			"**Do** vaciar desde arriba solo el ladrillo en uso de una cuenta en vivo; los montos fijos no se vacían.",
+			"**Do** redondear hacia abajo los minutos consumidos y hacia arriba los que le quedan a una sesión en curso, para que las cifras sumen.",
+			"**Do** pintar el exceso con ladrillos rojos detrás de la fila, redondeados hacia arriba para que cualquier exceso se vea.",
+			"**Do** dar a cada recuadro una sola acción primaria en tinta.",
+			"**Do** acompañar cada fila de ladrillos con su texto (aria-label y cifra «38 min de 1 h»): el dibujo nunca es la única fuente del número.",
+			"**Do** respetar reduced motion: los cambios de ladrillo son instantáneos.",
+			"**Do** dibujar el saldo del niño como baterías de ladrillos que comparten el tamaño del ladrillo: Hoy más corta, la Semana en un muro de 8 a 12 columnas.",
+			"**Do** separar, con una sesión abierta, lo libre en verde de lo que la sesión todavía va a usar en el color de la actividad.",
+			"**Do** usar el hueco solo para lo que todavía se puede ganar (el medidor de bonos).",
+			"**Do** tintar en verde saldo solo el recuadro de un «sí»; un «no» va en un recuadro blanco."
+		],
+		"donts": [
+			"**Don't** usar anillos de progreso, escudos ni tarjetas grises con un acento azul: es el panel de control parental que este sistema rechaza.",
+			"**Don't** usar el rojo para algo que no termine, se pase o corte.",
+			"**Don't** usar un color de ladrillo fuera de su trabajo, ni como decoración.",
+			"**Don't** nombrar ni imitar una marca de juguetes: solo la gramática del manual.",
+			"**Don't** poner rótulos en mayúsculas espaciadas sobre los títulos ni sombras duras desplazadas.",
+			"**Don't** usar emojis ni caracteres como iconos: los iconos son Lucide de trazo 2.",
+			"**Don't** agregar un tema oscuro en la v1; si llega, se resuelve en los tokens, sin mezclar tinta y fondo.",
+			"**Don't** usar el rojo del lado del niño fuera del fin de su sesión y del PIN que no coincide: ni para un «no», ni para el bloqueo, ni para un campo que falta.",
+			"**Don't** usar el hueco para tiempo usado: usado es el contorno punteado.",
+			"**Don't** llevar al área del niño mascotas, estrellas ni confeti de app de recompensas: el premio son ladrillos que encajan."
+		]
+	}
+}

@@ -1,7 +1,7 @@
-// Seeds the household: the family, both parents (auth_user + parents) and the
-// game and TV activities. Parents get no password: they sign in with Google,
-// and Phase 4 adds passwords, the child, its policy and the recovery code,
-// which need Better Auth.
+// Seeds the database part of the household: the family, both parents
+// (auth_user + parents) and the game and TV activities. The full seed
+// (apps/api/src/seed.ts) runs this first, then adds what needs Better Auth:
+// parent passwords, the child's login, its policy and the recovery code.
 // Idempotent: it only creates what is missing and never changes existing rows.
 import { randomUUID } from "node:crypto";
 import { inArray } from "drizzle-orm";

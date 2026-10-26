@@ -1,1 +1,200 @@
 @import "tailwindcss";
+@import "@fontsource-variable/rubik";
+
+/*
+ * Time Craft: a brick building manual. Pale manual-blue ground, white
+ * callouts with a thin steel border, near-black ink. Bricks carry the
+ * colour, and every colour has one job:
+ *   green  = time still available (the balance)
+ *   yellow = bonus minutes
+ *   blue   = Juego, magenta = TV (activities)
+ *   orange = paused
+ *   red    = the end, overrun and actions that cut
+ */
+@theme {
+	--font-sans: "Rubik Variable", ui-sans-serif, system-ui, sans-serif;
+
+	--color-page: #dce7f0;
+	--color-sheet: #ffffff;
+	--color-sheet-sunk: #f2f6fa;
+	--color-rule: #b9c9d7;
+	--color-rule-strong: #6d8397;
+	--color-ink: #15191e;
+	--color-ink-soft: #46535f;
+	--color-ink-faint: #5f6c78;
+
+	--color-balance: #00852b;
+	--color-balance-tint: #dcefe2;
+	--color-balance-ink: #006622;
+	--color-bonus: #f5cd2f;
+	--color-bonus-tint: #fdf2c4;
+	--color-bonus-ink: #6b5300;
+	--color-game: #0055bf;
+	--color-game-tint: #dde8f8;
+	--color-tv: #9b2c7e;
+	--color-tv-tint: #f5e1ef;
+	--color-pause: #fe8a18;
+	--color-pause-tint: #ffe9d2;
+	--color-pause-ink: #8a4300;
+	--color-stop: #c91a09;
+	--color-stop-tint: #fbe2de;
+	--color-ghost: #7a8fa3;
+	--color-focus: #0055bf;
+
+	--radius-callout: 12px;
+	--radius-control: 10px;
+
+	--shadow-callout:
+		0 1px 0 rgb(21 25 30 / 0.04), 0 6px 18px -10px rgb(21 25 30 / 0.22);
+	--shadow-lift:
+		0 2px 4px rgb(21 25 30 / 0.08), 0 14px 28px -14px rgb(21 25 30 / 0.35);
+
+	--ease-out-quick: cubic-bezier(0.16, 1, 0.3, 1);
+
+	--animate-brick-release: brick-release 180ms var(--ease-out-quick);
+	--animate-brick-snap: brick-snap 260ms var(--ease-out-quick) both;
+	--animate-brick-stack: brick-stack 1500ms var(--ease-out-quick) infinite both;
+	--animate-rise: rise 260ms var(--ease-out-quick);
+	--animate-shake: shake 360ms var(--ease-out-quick);
+}
+
+/* A brick used up lets go: a short hop up, then it rests as an outline. */
+@keyframes brick-release {
+	0% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-4px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes brick-snap {
+	0% {
+		transform: translateY(-8px);
+		opacity: 0;
+	}
+	70% {
+		transform: translateY(1px);
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+
+/* Loading: bricks drop onto each other in turn, then the stack clears. */
+@keyframes brick-stack {
+	0% {
+		transform: translateY(-14px);
+		opacity: 0;
+	}
+	18% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	80% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(0);
+		opacity: 0;
+	}
+}
+
+/* A wrong PIN: the studs shake once, like a piece that does not fit. */
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20% {
+		transform: translateX(-6px);
+	}
+	40% {
+		transform: translateX(5px);
+	}
+	60% {
+		transform: translateX(-3px);
+	}
+	80% {
+		transform: translateX(2px);
+	}
+}
+
+@keyframes rise {
+	from {
+		transform: translateY(6px);
+		opacity: 0.4;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@layer base {
+	html {
+		background: var(--color-page);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		-webkit-tap-highlight-color: transparent;
+		text-size-adjust: 100%;
+		scrollbar-color: var(--color-rule-strong) var(--color-page);
+	}
+
+	body {
+		min-height: 100dvh;
+		font-size: 1rem;
+		line-height: 1.5;
+		-webkit-font-smoothing: antialiased;
+		caret-color: var(--color-focus);
+	}
+
+	::selection {
+		background: var(--color-bonus);
+		color: var(--color-ink);
+	}
+
+	:focus-visible {
+		outline: 3px solid var(--color-focus);
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+
+	a {
+		text-underline-offset: 0.2em;
+		text-decoration-thickness: 1.5px;
+	}
+
+	h1,
+	h2,
+	h3 {
+		text-wrap: balance;
+	}
+
+	/* Every figure lines up: minutes, clocks, counts. */
+	.tabular {
+		font-variant-numeric: tabular-nums;
+	}
+
+	input,
+	textarea,
+	select,
+	button {
+		font: inherit;
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--color-ink-faint);
+		opacity: 1;
+	}
+
+	dialog::backdrop {
+		background: rgb(21 25 30 / 0.45);
+	}
+}
