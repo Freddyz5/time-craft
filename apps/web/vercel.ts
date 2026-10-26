@@ -2,6 +2,8 @@
 // runs this file at build time, with the project's environment variables.
 // The build settings live here, not in the dashboard. See docs/deploy.md.
 
+import { routes } from "@vercel/config/v1";
+
 // The browser calls /api/* on the web's own domain and Vercel proxies it to
 // the api: cookies stay first-party and there is no CORS. The api differs per
 // environment, so its origin comes from API_ORIGIN: the api's production
@@ -22,5 +24,8 @@ export const config = {
 	// Builds only when the web changed: the api counts only through its types.
 	ignoreCommand:
 		"node ../../scripts/vercel-ignore.mjs @time-craft/web --type-only @time-craft/api",
-	rewrites: [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }],
+	// Through the helper: Vercel's deployment rejected the same rule written as
+	// a plain object with a computed destination (`rewrites[0]` missing
+	// `destination`), before the build even started.
+	rewrites: [routes.rewrite("/api/:path*", `${apiOrigin}/api/:path*`)],
 };
