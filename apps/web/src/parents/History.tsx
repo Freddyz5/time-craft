@@ -95,7 +95,7 @@ function Section({
 }) {
 	return (
 		<Callout className="flex flex-col gap-4 p-4 sm:p-5" aria-labelledby={id}>
-			<h2 id={id} className="text-xl leading-tight font-semibold">
+			<h2 id={id} className="text-[1.375rem] leading-tight font-bold">
 				{title}
 			</h2>
 			{children}
@@ -130,7 +130,7 @@ function Usage({ view }: { view: HistoryView }) {
 		>
 			<h2
 				id="usage-title"
-				className="text-2xl leading-tight font-bold tracking-[-0.01em]"
+				className="text-[1.75rem] leading-tight font-extrabold"
 			>
 				<span className="sr-only">Uso por actividad: </span>
 				{minutesText(total)} en total
@@ -442,9 +442,7 @@ export function History() {
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-5">
 			<div className="flex flex-col gap-3">
-				<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-					Historial
-				</h1>
+				<h1 className="text-[2rem] leading-tight font-extrabold">Historial</h1>
 				<div className="plate flex items-center justify-between gap-2 p-1.5">
 					<button
 						type="button"

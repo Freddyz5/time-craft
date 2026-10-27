@@ -1,9 +1,10 @@
 // "Ahora": the child's open session (running, paused or scheduled) with its
-// countdown and controls, or what can be started when there is none. The
-// countdown runs on the server's clock; the tab rings at the warning and at
-// the end.
+// countdown and controls, or what can be started when there is none. While
+// it runs, the plate takes the activity's colour and the countdown sits on a
+// printed tile. The countdown runs on the server's clock; the tab rings at
+// the warning and at the end.
 import { CalendarClock, Pause, Play, Plus, Square, X } from "lucide-react";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { Link } from "wouter";
 import {
 	BRICK_MINUTES,
@@ -38,14 +39,25 @@ import { parentName, useParents } from "../context";
 // From here on a pause counts as forgotten and the card asks to close it.
 export const LONG_PAUSE_MINUTES = 30;
 
-function ActivityTag({ activityId }: { activityId: string }) {
+function ActivityTag({
+	activityId,
+	onPlate = false,
+}: {
+	activityId: string;
+	// On the activity's own plate the tag turns white.
+	onPlate?: boolean;
+}) {
 	const { activities } = useParents();
 	const activity = activityById(activities, activityId);
 	const look = activityLook(activity?.code);
 	return (
 		<span
-			className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold text-white"
-			style={{ background: look.color }}
+			className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-bold text-white"
+			style={
+				onPlate
+					? { background: "#ffffff", color: look.plate.face }
+					: { background: look.color }
+			}
 		>
 			<look.Icon className="size-4" aria-hidden="true" />
 			{activity?.name ?? "Actividad"}
@@ -53,12 +65,23 @@ function ActivityTag({ activityId }: { activityId: string }) {
 	);
 }
 
-function sessionBricks(session: Session, remainingMs: number, color: string) {
+function sessionBricks(
+	session: Session,
+	remainingMs: number,
+	color: string,
+	outline?: string,
+) {
 	const plannedMinutes = session.plannedDurationSeconds / 60;
 	const unit = brickUnit(plannedMinutes, 12);
 	const remainingMinutes = remainingMs / 60_000;
 	const bricks = [
-		...bricksFor(Math.max(0, remainingMinutes), plannedMinutes, unit, color),
+		...bricksFor(
+			Math.max(0, remainingMinutes),
+			plannedMinutes,
+			unit,
+			color,
+			outline,
+		),
 		...overrunBricks(-Math.min(0, remainingMinutes), unit),
 	];
 	return { bricks, unit, perRow: Math.min(12, Math.max(6, bricks.length)) };
@@ -141,10 +164,14 @@ function LiveSession({
 	const pausedMinutes =
 		pauseStart === null ? 0 : Math.floor((now - pauseStart) / 60_000);
 	const longPause = paused && pausedMinutes >= LONG_PAUSE_MINUTES;
+	// Running on time: the plate is the activity's, its bricks white plastic.
+	const running = !scheduled && !paused && !over;
+	const soft = running ? "text-white/85" : "text-ink-soft";
 	const { bricks, unit, perRow } = sessionBricks(
 		session,
 		scheduled ? session.plannedDurationSeconds * 1000 : t.remainingMs,
-		look.color,
+		running ? "#ffffff" : look.color,
+		running ? "rgb(255 255 255 / 0.6)" : undefined,
 	);
 	const busy = Object.values(commands).some((command) => command.isPending);
 	const startedBy = parentName(household, session.startedByParentId);
@@ -170,13 +197,21 @@ function LiveSession({
 	return (
 		<Callout
 			tone={paused ? "pause" : "plain"}
-			className="flex flex-col gap-4 p-4 sm:p-5"
+			className={`flex flex-col gap-4 p-4 sm:p-5 ${running ? "text-white [--color-focus:#ffffff]" : ""}`}
+			style={
+				running
+					? ({
+							"--plate-face": look.plate.face,
+							"--plate-side": look.plate.side,
+						} as CSSProperties)
+					: undefined
+			}
 			aria-labelledby="now-title"
 		>
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<h2
 					id="now-title"
-					className={`text-xl leading-tight font-semibold ${longPause ? "text-pause-ink" : ""}`}
+					className={`text-[1.375rem] leading-tight font-bold ${longPause ? "text-pause-ink" : ""}`}
 				>
 					{longPause
 						? `Lleva ${minutesText(pausedMinutes)} en pausa`
@@ -184,17 +219,18 @@ function LiveSession({
 							? "Más tarde"
 							: "Ahora"}
 				</h2>
-				<ActivityTag activityId={session.activityId} />
+				<ActivityTag activityId={session.activityId} onPlate={running} />
 			</div>
 
-			<div className="flex flex-col gap-1">
+			<div className="flex flex-col gap-2">
+				{/* The countdown, printed on a dark tile while it runs. */}
 				<p
-					className={`tabular text-[3.5rem] leading-none font-extrabold tracking-[-0.02em] ${
-						over
-							? "text-stop"
-							: paused || scheduled
-								? "text-ink-soft"
-								: "text-ink"
+					className={`tabular w-fit font-display text-[4rem] leading-none font-extrabold tracking-[-0.02em] ${
+						running
+							? "rounded-control bg-black/25 px-4 pt-3 pb-1 text-white shadow-[inset_0_3px_0_rgb(0_0_0/0.2)]"
+							: over
+								? "text-stop"
+								: "text-ink-soft"
 					}`}
 					aria-hidden="true"
 				>
@@ -209,9 +245,7 @@ function LiveSession({
 							? `Se pasó ${minutesText(Math.ceil(-t.remainingMs / 60_000))}`
 							: `Quedan ${minutesText(Math.ceil(t.remainingMs / 60_000))}`}
 				</p>
-				<p className={over ? "font-medium text-stop" : "text-ink-soft"}>
-					{status}
-				</p>
+				<p className={over ? "font-semibold text-stop" : soft}>{status}</p>
 			</div>
 
 			<div className="flex flex-col gap-2">
@@ -220,7 +254,7 @@ function LiveSession({
 					perRow={perRow}
 					label={`${minutesText(Math.max(0, t.remainingMs) / 60_000)} restantes de ${minutesText(session.plannedDurationSeconds / 60)}`}
 				/>
-				<p className="text-[0.9375rem] text-ink-soft">
+				<p className={`text-[0.9375rem] ${soft}`}>
 					{scheduled
 						? `La programó ${startedBy}`
 						: `Lleva ${minutesText(elapsedMinutes)} de ${minutesText(session.plannedDurationSeconds / 60)} · la inició ${startedBy}`}
@@ -359,7 +393,7 @@ function NothingRunning({
 			className="flex flex-col gap-4 p-4 sm:p-5"
 			aria-labelledby="now-title"
 		>
-			<h2 id="now-title" className="text-xl leading-tight font-semibold">
+			<h2 id="now-title" className="text-[1.375rem] leading-tight font-bold">
 				Ahora
 			</h2>
 			<p className="text-ink-soft">

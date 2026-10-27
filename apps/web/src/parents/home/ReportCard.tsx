@@ -81,7 +81,7 @@ export function ReportCard({
 			aria-labelledby={titleId}
 		>
 			<div className="flex flex-col gap-1">
-				<h3 id={titleId} className="text-lg leading-snug font-semibold">
+				<h3 id={titleId} className="text-[1.1875rem] leading-snug font-bold">
 					{childName} hizo «{task?.name ?? "una tarea"}»
 				</h3>
 				<p className="text-[0.9375rem] text-bonus-ink">

@@ -332,7 +332,7 @@ export function BonusTasks() {
 		<div className="mx-auto flex max-w-3xl flex-col gap-5">
 			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div className="flex flex-col gap-1">
-					<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
+					<h1 className="text-[2rem] leading-tight font-extrabold">
 						Tareas de bono
 					</h1>
 					<p className="text-ink-soft">
@@ -357,7 +357,7 @@ export function BonusTasks() {
 					className="flex flex-col gap-4 p-4 sm:p-5"
 					aria-labelledby="new-task"
 				>
-					<h2 id="new-task" className="text-xl leading-tight font-semibold">
+					<h2 id="new-task" className="text-[1.375rem] leading-tight font-bold">
 						Nueva tarea
 					</h2>
 					<TaskForm
@@ -384,7 +384,7 @@ export function BonusTasks() {
 					>
 						<h2
 							id="active-tasks"
-							className="text-xl leading-tight font-semibold"
+							className="text-[1.375rem] leading-tight font-bold"
 						>
 							Activas
 							{active.length > 0 && (

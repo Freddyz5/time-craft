@@ -84,7 +84,10 @@ export function PushOffer() {
 			<div className="flex items-start gap-3">
 				<Bell className="mt-0.5 size-6 shrink-0" aria-hidden="true" />
 				<div className="flex flex-col gap-1">
-					<h2 id="push-offer" className="text-xl leading-tight font-semibold">
+					<h2
+						id="push-offer"
+						className="text-[1.375rem] leading-tight font-bold"
+					>
 						Activa los avisos
 					</h2>
 					<p className="text-ink-soft">
@@ -145,9 +148,7 @@ export function Notifications() {
 	return (
 		<div className="mx-auto flex max-w-xl flex-col gap-5">
 			<div className="flex flex-col gap-1">
-				<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-					Avisos
-				</h1>
+				<h1 className="text-[2rem] leading-tight font-extrabold">Avisos</h1>
 				<p className="text-ink-soft">
 					Te avisamos en este dispositivo, aunque la app esté cerrada.
 				</p>
@@ -157,7 +158,7 @@ export function Notifications() {
 				className="flex flex-col gap-5 p-4 sm:p-5"
 				aria-labelledby="what-title"
 			>
-				<h2 id="what-title" className="text-xl leading-tight font-semibold">
+				<h2 id="what-title" className="text-[1.375rem] leading-tight font-bold">
 					Te avisamos cuando…
 				</h2>
 				<ul className="flex flex-col gap-3">
@@ -217,7 +218,10 @@ export function Notifications() {
 				className="flex flex-col items-start gap-3 p-4 sm:p-5"
 				aria-labelledby="sound-title"
 			>
-				<h2 id="sound-title" className="text-xl leading-tight font-semibold">
+				<h2
+					id="sound-title"
+					className="text-[1.375rem] leading-tight font-bold"
+				>
 					Con la app abierta
 				</h2>
 				<p className="text-ink-soft">
@@ -235,7 +239,10 @@ export function Notifications() {
 				className="flex flex-col gap-3 p-4 sm:p-5"
 				aria-labelledby="theme-title"
 			>
-				<h2 id="theme-title" className="text-xl leading-tight font-semibold">
+				<h2
+					id="theme-title"
+					className="text-[1.375rem] leading-tight font-bold"
+				>
 					Claro u oscuro
 				</h2>
 				<p className="text-ink-soft">
@@ -248,7 +255,10 @@ export function Notifications() {
 				className="flex flex-col items-start gap-3 p-4 sm:p-5"
 				aria-labelledby="device-title"
 			>
-				<h2 id="device-title" className="text-xl leading-tight font-semibold">
+				<h2
+					id="device-title"
+					className="text-[1.375rem] leading-tight font-bold"
+				>
 					Este dispositivo
 				</h2>
 				<p className="text-ink-soft">

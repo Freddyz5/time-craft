@@ -70,7 +70,7 @@ export function Battery({
 					: undefined
 			}
 		>
-			<div className="min-w-0 flex-1 rounded-[14px] border-[3px] border-ink bg-sheet px-2 pt-1.5 pb-2">
+			<div className="min-w-0 flex-1 rounded-[14px] border-[3px] border-ink bg-sheet-sunk px-2 pt-2.5 pb-2 shadow-[inset_0_3px_0_rgb(0_0_0/0.08)]">
 				<BrickRow bricks={bricks} perRow={columns} label={label} gap={gap} />
 			</div>
 			<div className="flex items-center" aria-hidden="true">
@@ -87,17 +87,15 @@ function Swatch({
 	kind: "solid" | "used" | "socket";
 	color?: string;
 }) {
-	const look = {
-		solid: "border border-[rgb(21_25_30/0.3)]",
-		used: "border-[1.5px] border-dashed border-ghost",
-		socket: "border-[1.25px] border-rule-strong bg-sheet-sunk",
-	}[kind];
+	// The legend shows the pieces themselves, small.
 	return (
-		<span
-			className={`inline-block h-3 w-5 rounded-[3px] align-[-1px] ${look}`}
-			style={kind === "solid" ? { background: color } : undefined}
-			aria-hidden="true"
-		/>
+		<span className="inline-block w-6 align-[-2px]" aria-hidden="true">
+			<Brick
+				fill={kind === "solid" ? 1 : 0}
+				color={color ?? "var(--color-balance)"}
+				socket={kind === "socket"}
+			/>
+		</span>
 	);
 }
 
@@ -151,7 +149,7 @@ function RowHead({
 }) {
 	return (
 		<div className="flex items-baseline justify-between gap-3">
-			<Heading className="text-lg leading-tight font-semibold">{title}</Heading>
+			<Heading className="text-xl leading-tight font-bold">{title}</Heading>
 			<p className="tabular text-right text-ink-soft">{figure}</p>
 		</div>
 	);
@@ -381,7 +379,7 @@ function BagBatteries({
 			<div className="flex flex-col gap-1">
 				<Heading
 					id={main ? "balance-title" : undefined}
-					className={`${main ? "text-2xl sm:text-[1.75rem]" : "text-xl sm:text-2xl"} leading-tight font-bold tracking-[-0.01em]`}
+					className={`${main ? "text-[1.75rem] sm:text-[2rem]" : "text-[1.5rem] sm:text-[1.75rem]"} leading-tight font-extrabold`}
 				>
 					{headline(
 						title,
@@ -553,7 +551,10 @@ export function Batteries({
 			})}
 			{balances.length === 0 && (
 				<>
-					<h2 id="balance-title" className="text-2xl leading-tight font-bold">
+					<h2
+						id="balance-title"
+						className="text-[1.75rem] leading-tight font-extrabold"
+					>
 						Todavía no hay reglas de tiempo
 					</h2>
 					<p className="text-ink-soft">

@@ -126,9 +126,7 @@ export function NewSession() {
 				<ArrowLeft className="size-4.5" aria-hidden="true" />
 				Inicio
 			</Link>
-			<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-				Nueva sesión
-			</h1>
+			<h1 className="text-[2rem] leading-tight font-extrabold">Nueva sesión</h1>
 			<p className="text-ink-soft">
 				Para {child.name}, sin esperar a que la pida.
 			</p>
@@ -155,7 +153,7 @@ export function NewSession() {
 			<div className="mx-auto flex max-w-2xl flex-col gap-5">
 				{header}
 				<Callout className="flex flex-col items-start gap-3 p-5">
-					<h2 className="text-xl leading-tight font-semibold">
+					<h2 className="text-[1.375rem] leading-tight font-bold">
 						{status === "scheduled"
 							? "Ya hay una sesión programada"
 							: status === "paused"

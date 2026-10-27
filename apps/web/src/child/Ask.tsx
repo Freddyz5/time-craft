@@ -92,9 +92,7 @@ function closest(options: readonly number[], target: number): number {
 function Header() {
 	return (
 		<div className="flex flex-col gap-1">
-			<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-				Pedir tiempo
-			</h1>
+			<h1 className="text-[2rem] leading-tight font-extrabold">Pedir tiempo</h1>
 			<p className="text-ink-soft">Mamá o papá reciben tu pedido y deciden.</p>
 		</div>
 	);
@@ -270,7 +268,7 @@ function AskForm() {
 					/>
 				</div>
 				<p className="flex flex-wrap items-baseline gap-x-2">
-					<span className="tabular text-[2rem] leading-none font-extrabold tracking-[-0.02em]">
+					<span className="tabular font-display text-[2.25rem] leading-none font-extrabold tracking-[-0.02em]">
 						{minutesText(value)}
 					</span>
 					<span className="text-lg text-ink-soft">
@@ -352,7 +350,7 @@ function AskForm() {
 function SessionOpen({ status }: { status: string }) {
 	return (
 		<Callout className="flex flex-col items-start gap-3 p-4 sm:p-5">
-			<h2 className="text-xl leading-tight font-semibold">
+			<h2 className="text-[1.375rem] leading-tight font-bold">
 				{status === "scheduled"
 					? "Ya tienes una sesión para más tarde"
 					: status === "paused"

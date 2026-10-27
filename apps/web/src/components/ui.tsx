@@ -92,6 +92,8 @@ export function Callout({
 	as?: "section" | "div" | "article" | "li" | "form";
 	"aria-labelledby"?: string;
 	"aria-label"?: string;
+	// Only to recolour the plate: --plate-face and --plate-side.
+	style?: React.CSSProperties;
 	onSubmit?: (event: React.SubmitEvent<HTMLFormElement>) => void;
 }) {
 	const tones = {
@@ -143,8 +145,10 @@ export function Field({
 
 // A field is a slot sunk into the plate: a darker floor and a shadow under
 // its top edge.
-export const inputClass =
-	"min-h-12 w-full rounded-control border-[1.5px] border-rule-strong bg-sheet-sunk px-3.5 text-base text-ink shadow-[inset_0_2px_0_rgb(0_0_0/0.07)] transition-colors hover:border-ink-soft focus-visible:border-focus focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus/25 aria-invalid:border-stop disabled:text-ink-faint disabled:opacity-70";
+const slotClass =
+	"min-h-12 w-full rounded-control border-[1.5px] border-rule-strong bg-sheet-sunk px-3.5 text-ink shadow-[inset_0_2px_0_rgb(0_0_0/0.07)] transition-colors hover:border-ink-soft focus-visible:border-focus focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus/25 aria-invalid:border-stop disabled:text-ink-faint disabled:opacity-70";
+
+export const inputClass = `${slotClass} text-base`;
 
 // The − and + of a stepper: small square bricks.
 const stepClass =
@@ -205,7 +209,7 @@ export function MinutesStepper({
 						onChange(Number.isNaN(next) ? min : Math.min(max, next));
 					}}
 					onBlur={() => onChange(clamp(value))}
-					className={`${inputClass} tabular appearance-none pr-14 text-center font-display text-2xl font-extrabold [&::-webkit-inner-spin-button]:appearance-none`}
+					className={`${slotClass} tabular appearance-none pt-1 pr-14 text-center font-display text-2xl font-extrabold [&::-webkit-inner-spin-button]:appearance-none`}
 				/>
 				<span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-ink-soft">
 					min

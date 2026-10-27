@@ -27,7 +27,9 @@ import { PushOffer } from "./PushSetting";
 function NoChild() {
 	return (
 		<Callout className="mx-auto flex max-w-xl flex-col items-start gap-3 p-5">
-			<h1 className="text-2xl font-bold">Empecemos por la cuenta del niño</h1>
+			<h1 className="text-[1.75rem] leading-tight font-extrabold">
+				Empecemos por la cuenta del niño
+			</h1>
 			<p className="text-ink-soft">
 				Con su usuario y su PIN podrá ver su saldo y pedir tiempo desde
 				cualquier navegador.
@@ -80,7 +82,10 @@ export function Home() {
 
 	const reportsSection = toReview.length > 0 && (
 		<section aria-labelledby="reports-title" className="flex flex-col gap-3">
-			<h2 id="reports-title" className="text-xl leading-tight font-semibold">
+			<h2
+				id="reports-title"
+				className="text-[1.375rem] leading-tight font-bold"
+			>
 				Tareas por revisar
 			</h2>
 			{toReview.map((report) => (
@@ -134,7 +139,7 @@ export function Home() {
 						>
 							<h2
 								id="requests-title"
-								className="text-xl leading-tight font-semibold"
+								className="text-[1.375rem] leading-tight font-bold"
 							>
 								{pending.length === 1
 									? "Una solicitud"

@@ -198,7 +198,7 @@ export function PendingCard({
 				<div className="min-w-0">
 					<h2
 						id="pending-title"
-						className="text-xl leading-tight font-semibold"
+						className="text-[1.375rem] leading-tight font-bold"
 					>
 						Esperando a mamá o papá
 					</h2>
@@ -267,7 +267,7 @@ export function AnswerCard({
 				<div className="min-w-0">
 					<h2
 						id={`answer-${request.id}`}
-						className={`text-xl leading-tight font-semibold ${yes ? "text-balance-ink" : ""}`}
+						className={`text-[1.375rem] leading-tight font-bold ${yes ? "text-balance-ink" : ""}`}
 					>
 						{yes ? `¡${who} dijo que sí!` : `${who} dijo que no esta vez`}
 					</h2>
@@ -393,7 +393,7 @@ export function TodayList({ requests }: { requests: readonly ChildRequest[] }) {
 	}
 	return (
 		<section aria-labelledby="today-title" className="flex flex-col gap-3">
-			<h2 id="today-title" className="text-xl leading-tight font-semibold">
+			<h2 id="today-title" className="text-[1.375rem] leading-tight font-bold">
 				Tus pedidos de hoy
 			</h2>
 			<ul className="flex flex-col gap-2">

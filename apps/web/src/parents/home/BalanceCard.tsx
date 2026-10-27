@@ -4,6 +4,7 @@
 // draw and how to say it. Minutes are rounded down everywhere, as in the
 // countdown, so numbers on screen always add up.
 import {
+	Brick,
 	BrickRow,
 	bricksFor,
 	brickUnit,
@@ -22,25 +23,28 @@ const DAY_BRICKS = 12;
 const WEEK_PER_ROW = 10;
 const WEEK_BRICKS = 40;
 
+// The legend shows the pieces themselves, small.
+function Swatch({ color, used = false }: { color: string; used?: boolean }) {
+	return (
+		<span className="inline-block w-6 align-[-2px]" aria-hidden="true">
+			<Brick fill={used ? 0 : 1} color={color} />
+		</span>
+	);
+}
+
 function Legend({ bonus }: { bonus: boolean }) {
-	const swatch =
-		"inline-block h-3 w-5 rounded-[3px] align-[-1px] border border-[rgb(21_25_30/0.3)]";
 	return (
 		<p className="flex flex-wrap gap-x-3.5 gap-y-1 text-[0.9375rem] text-ink-soft">
 			<span>
-				<span className={`${swatch} bg-balance`} aria-hidden="true" /> por usar
+				<Swatch color="var(--color-balance)" /> por usar
 			</span>
 			{bonus && (
 				<span>
-					<span className={`${swatch} bg-bonus`} aria-hidden="true" /> bono
+					<Swatch color="var(--color-bonus)" /> bono
 				</span>
 			)}
 			<span>
-				<span
-					className={`${swatch} border-[1.5px] border-dashed border-ghost`}
-					aria-hidden="true"
-				/>{" "}
-				usado
+				<Swatch color="var(--color-balance)" used /> usado
 			</span>
 		</p>
 	);
@@ -145,7 +149,7 @@ function BagBlock({
 			<div className="flex flex-col gap-1">
 				<Heading
 					id={headingId}
-					className="text-2xl leading-tight font-bold tracking-[-0.01em]"
+					className="text-[1.75rem] leading-tight font-extrabold"
 				>
 					{label === null && <span className="sr-only">Saldo: </span>}
 					{label === null
@@ -173,7 +177,7 @@ function BagBlock({
 
 			<div className="flex flex-col gap-2">
 				<div className="flex items-baseline justify-between gap-3 whitespace-nowrap">
-					<p className="font-semibold">Hoy</p>
+					<p className="font-display text-lg leading-tight font-bold">Hoy</p>
 					<p className="tabular text-ink-soft">
 						{secondsText(balance.dailyRemainingSeconds)} de{" "}
 						{secondsText(balance.dailyLimitSeconds)}
@@ -202,7 +206,7 @@ function BagBlock({
 
 			<div className="flex flex-col gap-2">
 				<div className="flex items-baseline justify-between gap-3">
-					<p className="font-semibold">Semana</p>
+					<p className="font-display text-lg leading-tight font-bold">Semana</p>
 					<p className="tabular text-right text-ink-soft">
 						{secondsText(balance.weeklyRemainingSeconds)} de{" "}
 						{secondsText(balance.weeklyLimitSeconds + balance.bonusSeconds)}
@@ -270,7 +274,10 @@ export function BalanceCard({
 			aria-labelledby="balance-title"
 		>
 			{several && (
-				<h2 id="balance-title" className="text-xl leading-tight font-semibold">
+				<h2
+					id="balance-title"
+					className="text-[1.375rem] leading-tight font-bold"
+				>
 					Saldo
 				</h2>
 			)}

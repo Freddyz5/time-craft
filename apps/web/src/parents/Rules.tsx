@@ -502,9 +502,7 @@ export function Rules() {
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-5">
 			<div className="flex flex-col gap-1">
-				<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-					Reglas
-				</h1>
+				<h1 className="text-[2rem] leading-tight font-extrabold">Reglas</h1>
 				<p className="text-ink-soft">
 					Cuánto tiempo tiene {child.name}. Un cambio vale para toda esta
 					semana, también para lo que ya usó.
@@ -526,7 +524,7 @@ export function Rules() {
 						<div className="flex flex-col gap-1">
 							<h2
 								id="general-title"
-								className="text-xl leading-tight font-semibold"
+								className="text-[1.375rem] leading-tight font-bold"
 							>
 								Cuota general
 							</h2>
@@ -552,7 +550,7 @@ export function Rules() {
 						<div className="flex flex-col gap-1">
 							<h2
 								id="activities-title"
-								className="text-xl leading-tight font-semibold"
+								className="text-[1.375rem] leading-tight font-bold"
 							>
 								Límites por actividad
 							</h2>
@@ -585,7 +583,7 @@ export function Rules() {
 				<div className="flex flex-col gap-1">
 					<h2
 						id="history-title"
-						className="text-xl leading-tight font-semibold"
+						className="text-[1.375rem] leading-tight font-bold"
 					>
 						Historial de reglas
 					</h2>
