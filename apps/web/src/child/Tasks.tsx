@@ -190,7 +190,7 @@ function ReportItem({
 		<li
 			className={`flex flex-col gap-1 rounded-control border-[1.5px] p-3 ${
 				report.status === "approved"
-					? "border-[#d9b21f] bg-bonus-tint"
+					? "border-bonus-side bg-bonus-tint"
 					: "border-rule bg-sheet"
 			}`}
 		>

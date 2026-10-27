@@ -16,15 +16,14 @@ type Variant = "primary" | "secondary" | "quiet" | "danger" | "pause";
 
 const variants: Record<Variant, string> = {
 	primary:
-		"bg-ink text-white hover:bg-[#2a3038] active:bg-black disabled:bg-[#c5ced7] disabled:text-ink-soft",
+		"bg-ink text-on-ink hover:bg-ink/85 disabled:bg-sheet-sunk disabled:text-ink-faint",
 	secondary:
 		"bg-sheet text-ink border-[1.5px] border-rule-strong hover:bg-sheet-sunk active:bg-page disabled:text-ink-faint disabled:border-rule",
 	quiet:
 		"bg-transparent text-ink hover:bg-sheet-sunk active:bg-page disabled:text-ink-faint underline-offset-4",
 	danger:
-		"bg-stop text-white hover:bg-[#b01607] active:bg-[#951305] disabled:bg-stop-tint disabled:text-[#7d1206]",
-	pause:
-		"bg-pause text-ink hover:bg-[#f07d0c] active:bg-[#e07000] disabled:bg-pause-tint",
+		"bg-stop text-white hover:bg-stop/90 disabled:bg-stop-tint disabled:text-stop-ink",
+	pause: "bg-pause text-[#1d1000] hover:bg-pause/90 disabled:bg-pause-tint",
 };
 
 const sizes = {
@@ -99,7 +98,7 @@ export function Callout({
 		plain: "bg-sheet border-rule",
 		pause: "bg-pause-tint border-pause",
 		stop: "bg-stop-tint border-stop",
-		bonus: "bg-bonus-tint border-[#d9b21f]",
+		bonus: "bg-bonus-tint border-bonus-side",
 		balance: "bg-balance-tint border-balance",
 	};
 	return (
@@ -238,7 +237,7 @@ export function Segmented<T extends string>({
 			{options.map((option) => (
 				<label
 					key={option.value}
-					className="flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-[7px] px-3 text-center font-medium text-ink-soft transition-colors has-checked:bg-ink has-checked:text-white has-focus-visible:outline-3 has-focus-visible:outline-focus"
+					className="flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-[7px] px-3 text-center font-medium text-ink-soft transition-colors has-checked:bg-ink has-checked:text-on-ink has-focus-visible:outline-3 has-focus-visible:outline-focus"
 				>
 					<input
 						type="radio"
@@ -285,7 +284,7 @@ export function Switch({
 				className={`relative mt-0.5 h-8 w-13 shrink-0 rounded-full border-[1.5px] transition-colors ${checked ? "border-balance bg-balance" : "border-rule-strong bg-sheet-sunk"}`}
 			>
 				<span
-					className={`absolute top-1/2 size-6 -translate-y-1/2 rounded-full bg-white shadow-[0_1px_3px_rgb(0_0_0/0.3)] transition-[left] duration-200 ease-out ${checked ? "left-[calc(100%-1.625rem)]" : "left-0.5"}`}
+					className={`absolute top-1/2 size-6 -translate-y-1/2 rounded-full bg-sheet shadow-[0_1px_3px_rgb(0_0_0/0.3)] transition-[left] duration-200 ease-out ${checked ? "left-[calc(100%-1.625rem)]" : "left-0.5"}`}
 				/>
 			</button>
 		</div>
@@ -303,7 +302,7 @@ export function Notice({
 }) {
 	const tones = {
 		info: "bg-sheet-sunk border-rule text-ink",
-		error: "bg-stop-tint border-stop text-[#7d1206]",
+		error: "bg-stop-tint border-stop text-stop-ink",
 		success: "bg-balance-tint border-balance text-balance-ink",
 	};
 	return (

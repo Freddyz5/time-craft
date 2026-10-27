@@ -97,7 +97,7 @@ export function Shell({ children }: { children: ReactNode }) {
 		<div className="min-h-dvh lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
 			<a
 				href="#contenido"
-				className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-control focus:bg-ink focus:px-4 focus:py-2 focus:text-white"
+				className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-control focus:bg-ink focus:px-4 focus:py-2 focus:text-on-ink"
 			>
 				Ir al contenido
 			</a>
@@ -119,7 +119,7 @@ export function Shell({ children }: { children: ReactNode }) {
 						className={`grid size-10 shrink-0 place-items-center rounded-full no-underline ${
 							sessionOpen
 								? "border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk"
-								: "bg-ink text-white hover:bg-[#2a3038]"
+								: "bg-ink text-on-ink hover:bg-ink/85"
 						}`}
 					>
 						<Plus className="size-5" aria-hidden="true" />

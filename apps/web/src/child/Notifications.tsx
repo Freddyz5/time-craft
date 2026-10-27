@@ -13,6 +13,7 @@ import {
 	Volume2,
 } from "lucide-react";
 import { useState } from "react";
+import { ThemeSetting } from "../components/ThemeSetting";
 import { useToast } from "../components/toast";
 import { Button, Callout, Notice } from "../components/ui";
 import { testRing } from "../lib/alarm";
@@ -228,6 +229,19 @@ export function Notifications() {
 				>
 					Probar el sonido
 				</Button>
+			</Callout>
+
+			<Callout
+				className="flex flex-col gap-3 p-4 sm:p-5"
+				aria-labelledby="theme-title"
+			>
+				<h2 id="theme-title" className="text-xl leading-tight font-semibold">
+					Claro u oscuro
+				</h2>
+				<p className="text-ink-soft">
+					Automático cambia solo, como tu teléfono o tu computadora.
+				</p>
+				<ThemeSetting />
 			</Callout>
 
 			<Callout

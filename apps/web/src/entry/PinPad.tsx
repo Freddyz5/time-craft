@@ -111,7 +111,7 @@ export function PinPad({
 				onClick={onSubmit}
 				disabled={!canSubmit || busy}
 				aria-busy={busy || undefined}
-				className={`${keyClass} gap-1 bg-ink text-[1.0625rem] font-medium text-white hover:bg-[#2a3038] active:bg-black disabled:bg-[#c5ced7] disabled:text-ink-soft`}
+				className={`${keyClass} gap-1 bg-ink text-[1.0625rem] font-medium text-on-ink hover:bg-ink/85 disabled:bg-sheet-sunk disabled:text-ink-faint`}
 			>
 				{busy ? (
 					<LoaderCircle className="size-6 animate-spin" aria-hidden="true" />

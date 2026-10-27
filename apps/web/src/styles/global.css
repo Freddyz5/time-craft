@@ -1,53 +1,73 @@
 @import "tailwindcss";
-@import "@fontsource-variable/rubik";
+@import "@fontsource-variable/baloo-2";
+@import "@fontsource-variable/nunito";
 
 /*
- * Time Craft: a brick building manual. Pale manual-blue ground, white
- * callouts with a thin steel border, near-black ink. Bricks carry the
- * colour, and every colour has one job:
+ * Time Craft: a building plate. The ground is a baseplate with studs, every
+ * box is a plastic plate with studs on its top edge and every button is a
+ * brick that sinks when pressed. Bricks carry the colour, and every colour
+ * has one job:
  *   green  = time still available (the balance)
- *   yellow = bonus minutes
+ *   yellow = bonus minutes, and the brand
  *   blue   = Juego, magenta = TV (activities)
  *   orange = paused
  *   red    = the end, overrun and actions that cut
+ * Light is the default below; [data-theme="dark"] redefines the same tokens.
+ * Base.astro sets data-theme before the first paint (lib/theme.ts).
  */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
-	--font-sans: "Rubik Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-sans: "Nunito Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-display:
+		"Baloo 2 Variable", ui-rounded, ui-sans-serif, system-ui, sans-serif;
 
-	--color-page: #dce7f0;
+	--color-page: #dde2e9;
+	--color-page-stud: #e7eaef;
+	--color-page-rim: #cdd3dc;
 	--color-sheet: #ffffff;
-	--color-sheet-sunk: #f2f6fa;
-	--color-rule: #b9c9d7;
-	--color-rule-strong: #6d8397;
-	--color-ink: #15191e;
-	--color-ink-soft: #46535f;
-	--color-ink-faint: #5f6c78;
+	--color-sheet-side: #c2c9d4;
+	--color-sheet-sunk: #eef1f5;
+	--color-raised: #ffffff;
+	--color-raised-side: #aeb6c2;
+	--color-rule: #d3d9e2;
+	--color-rule-strong: #7d8796;
+	--color-ink: #171a20;
+	--color-ink-side: #000000;
+	--color-ink-soft: #454d5a;
+	--color-ink-faint: #5a6372;
+	--color-on-ink: #ffffff;
+	--color-shadow: rgb(16 20 28 / 0.32);
 
-	--color-balance: #00852b;
-	--color-balance-tint: #dcefe2;
-	--color-balance-ink: #006622;
-	--color-bonus: #f5cd2f;
-	--color-bonus-tint: #fdf2c4;
+	--color-balance: #1f9a45;
+	--color-balance-tint: #dcf1e2;
+	--color-balance-ink: #146c30;
+	--color-bonus: #ffc800;
+	--color-bonus-side: #b38c00;
+	--color-bonus-tint: #fff3c4;
 	--color-bonus-ink: #6b5300;
-	--color-game: #0055bf;
-	--color-game-tint: #dde8f8;
-	--color-tv: #9b2c7e;
-	--color-tv-tint: #f5e1ef;
-	--color-pause: #fe8a18;
+	--color-game: #2468d6;
+	--color-game-side: #164a9e;
+	--color-game-tint: #dfe9fa;
+	--color-tv: #c2338f;
+	--color-tv-side: #8a1f63;
+	--color-tv-tint: #f8e1f0;
+	--color-pause: #ff8c1a;
+	--color-pause-side: #b35c00;
 	--color-pause-tint: #ffe9d2;
 	--color-pause-ink: #8a4300;
-	--color-stop: #c91a09;
+	--color-stop: #d82626;
+	--color-stop-side: #8f1414;
 	--color-stop-tint: #fbe2de;
-	--color-ghost: #7a8fa3;
-	--color-focus: #0055bf;
+	--color-stop-ink: #8f1414;
+	--color-ghost: #9aa3b2;
+	--color-focus: #1f66d1;
 
-	--radius-callout: 12px;
-	--radius-control: 10px;
+	--radius-callout: 10px;
+	--radius-control: 8px;
 
-	--shadow-callout:
-		0 1px 0 rgb(21 25 30 / 0.04), 0 6px 18px -10px rgb(21 25 30 / 0.22);
 	--shadow-lift:
-		0 2px 4px rgb(21 25 30 / 0.08), 0 14px 28px -14px rgb(21 25 30 / 0.35);
+		0 4px 0 var(--color-sheet-side), 0 22px 40px -16px var(--color-shadow);
 
 	--ease-out-quick: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -56,6 +76,182 @@
 	--animate-brick-stack: brick-stack 1500ms var(--ease-out-quick) infinite both;
 	--animate-rise: rise 260ms var(--ease-out-quick);
 	--animate-shake: shake 360ms var(--ease-out-quick);
+}
+
+@layer base {
+	:root[data-theme="dark"] {
+		--color-page: #1b1e24;
+		--color-page-stud: #242830;
+		--color-page-rim: #16181d;
+		--color-sheet: #2a2e36;
+		--color-sheet-side: #121418;
+		--color-sheet-sunk: #1f2228;
+		--color-raised: #3a3f49;
+		--color-raised-side: #15171b;
+		--color-rule: #3c414c;
+		--color-rule-strong: #79808e;
+		--color-ink: #f3f4f7;
+		--color-ink-side: #a3a9b4;
+		--color-ink-soft: #b8bfcb;
+		--color-ink-faint: #98a0ae;
+		--color-on-ink: #16191f;
+		--color-shadow: rgb(0 0 0 / 0.6);
+
+		--color-balance: #2fb355;
+		--color-balance-tint: #183323;
+		--color-balance-ink: #74d891;
+		--color-bonus: #ffcd1a;
+		--color-bonus-side: #a37f00;
+		--color-bonus-tint: #3a3214;
+		--color-bonus-ink: #ffd95a;
+		--color-game: #2f72dc;
+		--color-game-side: #1a4aa0;
+		--color-game-tint: #1d2a44;
+		--color-tv: #c93a96;
+		--color-tv-side: #7d1f5d;
+		--color-tv-tint: #3a1f33;
+		--color-pause: #ff9a2e;
+		--color-pause-side: #a85500;
+		--color-pause-tint: #3d2a14;
+		--color-pause-ink: #ffb866;
+		--color-stop: #dc2f2f;
+		--color-stop-side: #861a1a;
+		--color-stop-tint: #3d1a1a;
+		--color-stop-ink: #ff8a8a;
+		--color-ghost: #6a7180;
+		--color-focus: #7aaeff;
+	}
+}
+
+/*
+ * A plastic plate: its face, a 6 px edge below and a row of studs along the
+ * top. --plate-face and --plate-side tint it for the one state it reports.
+ */
+@utility plate {
+	position: relative;
+	background-color: var(--plate-face, var(--color-sheet));
+	border-radius: var(--radius-callout);
+	box-shadow:
+		inset 0 2px 0 rgb(255 255 255 / 0.06),
+		0 6px 0 var(--plate-side, var(--color-sheet-side)),
+		0 18px 28px -16px var(--color-shadow);
+
+	&::before {
+		content: "";
+		position: absolute;
+		top: -7px;
+		left: 14px;
+		right: 14px;
+		height: 8px;
+		background-color: var(--plate-face, var(--color-sheet));
+		-webkit-mask:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='8'%3E%3Crect x='7' width='24' height='12' rx='5'/%3E%3C/svg%3E")
+			left top / 38px 8px repeat-x;
+		mask:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='8'%3E%3Crect x='7' width='24' height='12' rx='5'/%3E%3C/svg%3E")
+			left top / 38px 8px repeat-x;
+		pointer-events: none;
+	}
+}
+
+/*
+ * A brick button: two studs on top and an edge below that shrinks when it is
+ * pressed, so the brick sinks into place. Colours come from --brick-face,
+ * --brick-side and --brick-ink (the brick-* variants below).
+ */
+@utility brick {
+	position: relative;
+	background-color: var(--brick-face);
+	color: var(--brick-ink);
+	box-shadow:
+		inset 0 2px 0 rgb(255 255 255 / 0.3),
+		0 4px 0 var(--brick-side);
+	transition:
+		transform 120ms var(--ease-out-quick),
+		box-shadow 120ms var(--ease-out-quick),
+		background-color 150ms,
+		filter 150ms;
+
+	&::before,
+	&::after {
+		content: "";
+		position: absolute;
+		top: -6px;
+		width: min(1.625rem, 22%);
+		height: 7px;
+		border-radius: 5px 5px 0 0;
+		background-color: var(--brick-face);
+		box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.3);
+		pointer-events: none;
+	}
+
+	&::before {
+		left: 18%;
+	}
+
+	&::after {
+		right: 18%;
+	}
+
+	&:hover:not(:disabled, [aria-disabled="true"]) {
+		filter: brightness(1.06);
+	}
+
+	&:active:not(:disabled, [aria-disabled="true"]) {
+		transform: translateY(3px);
+		box-shadow:
+			inset 0 2px 0 rgb(255 255 255 / 0.3),
+			0 1px 0 var(--brick-side);
+	}
+
+	&:disabled {
+		--brick-face: var(--color-sheet-sunk);
+		--brick-side: var(--color-rule);
+		--brick-ink: var(--color-ink-faint);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+@utility brick-primary {
+	--brick-face: var(--color-ink);
+	--brick-side: var(--color-ink-side);
+	--brick-ink: var(--color-on-ink);
+}
+
+@utility brick-secondary {
+	--brick-face: var(--color-raised);
+	--brick-side: var(--color-raised-side);
+	--brick-ink: var(--color-ink);
+	outline: 1.5px solid var(--color-rule);
+	outline-offset: -1.5px;
+}
+
+@utility brick-danger {
+	--brick-face: var(--color-stop);
+	--brick-side: var(--color-stop-side);
+	--brick-ink: #ffffff;
+}
+
+@utility brick-pause {
+	--brick-face: var(--color-pause);
+	--brick-side: var(--color-pause-side);
+	--brick-ink: #1d1000;
+}
+
+/* The baseplate: studs on a 24 px grid under everything. */
+@utility baseplate {
+	background:
+		radial-gradient(
+			circle at 12px 12px,
+			var(--color-page-stud) 0 5.5px,
+			var(--color-page-rim) 6px 7px,
+			transparent 7.5px
+		)
+		0 0 / 24px 24px,
+		var(--color-page);
 }
 
 /* A brick used up lets go: a short hop up, then it rests as an outline. */
@@ -138,12 +334,17 @@
 
 @layer base {
 	html {
-		background: var(--color-page);
+		background-color: var(--color-page);
 		color: var(--color-ink);
 		font-family: var(--font-sans);
 		-webkit-tap-highlight-color: transparent;
 		text-size-adjust: 100%;
 		scrollbar-color: var(--color-rule-strong) var(--color-page);
+		color-scheme: light;
+	}
+
+	html[data-theme="dark"] {
+		color-scheme: dark;
 	}
 
 	body {
@@ -156,7 +357,7 @@
 
 	::selection {
 		background: var(--color-bonus);
-		color: var(--color-ink);
+		color: #171a20;
 	}
 
 	:focus-visible {
@@ -170,9 +371,11 @@
 		text-decoration-thickness: 1.5px;
 	}
 
+	/* Titles in Baloo 2: rounded and heavy, like moulded lettering. */
 	h1,
 	h2,
 	h3 {
+		font-family: var(--font-display);
 		text-wrap: balance;
 	}
 
@@ -195,6 +398,6 @@
 	}
 
 	dialog::backdrop {
-		background: rgb(21 25 30 / 0.45);
+		background: rgb(10 12 16 / 0.55);
 	}
 }

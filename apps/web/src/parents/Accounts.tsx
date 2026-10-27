@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useId, useState } from "react";
 import { CopyCode } from "../components/CopyCode";
+import { ThemeSetting } from "../components/ThemeSetting";
 import { useToast } from "../components/toast";
 import {
 	Button,
@@ -706,6 +707,21 @@ export function Accounts() {
 					</p>
 				</div>
 				<PushToggle />
+			</Callout>
+
+			<Callout
+				className="flex flex-col gap-3 p-4 sm:p-5"
+				aria-labelledby="theme-title"
+			>
+				<div className="flex flex-col gap-1">
+					<h2 id="theme-title" className="text-xl leading-tight font-semibold">
+						Tema de este dispositivo
+					</h2>
+					<p className="text-ink-soft">
+						Automático sigue al del teléfono o la computadora.
+					</p>
+				</div>
+				<ThemeSetting />
 			</Callout>
 
 			<RecoveryCode />

@@ -145,7 +145,7 @@ export function ReportCard({
 
 			{mode !== "idle" && (
 				<form
-					className="flex flex-col gap-4 border-t-[1.5px] border-[#d9b21f] pt-4"
+					className="flex flex-col gap-4 border-t-[1.5px] border-bonus-side pt-4"
 					onSubmit={(event) => {
 						event.preventDefault();
 						review.mutate(

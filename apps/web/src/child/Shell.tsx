@@ -33,7 +33,7 @@ export function Shell({ children }: { children: ReactNode }) {
 		<div className="min-h-dvh">
 			<a
 				href="#contenido"
-				className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-control focus:bg-ink focus:px-4 focus:py-2 focus:text-white"
+				className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-control focus:bg-ink focus:px-4 focus:py-2 focus:text-on-ink"
 			>
 				Ir al contenido
 			</a>
@@ -86,7 +86,7 @@ export function Shell({ children }: { children: ReactNode }) {
 						aria-current={onAvisos ? "page" : undefined}
 						className={`grid size-11 shrink-0 place-items-center rounded-full no-underline transition-colors ${
 							onAvisos
-								? "bg-ink text-white"
+								? "bg-ink text-on-ink"
 								: "border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk"
 						}`}
 					>

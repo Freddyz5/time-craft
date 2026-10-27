@@ -36,7 +36,7 @@ function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
 		neutral: "bg-sheet-sunk text-ink-soft",
 		good: "bg-balance-tint text-balance-ink",
 		warn: "bg-pause-tint text-pause-ink",
-		bad: "bg-stop-tint text-[#7d1206]",
+		bad: "bg-stop-tint text-stop-ink",
 	};
 	return (
 		<span

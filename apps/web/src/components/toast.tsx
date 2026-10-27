@@ -73,7 +73,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 						role={toast.tone === "success" ? "status" : "alert"}
 						className={`pointer-events-auto flex w-full max-w-sm motion-safe:animate-rise items-start gap-3 rounded-callout border-[1.5px] px-4 py-3 shadow-lift ${
 							toast.tone === "alarm"
-								? "border-stop bg-ink text-white"
+								? "border-stop bg-ink text-on-ink"
 								: toast.tone === "error"
 									? "border-stop bg-sheet text-ink"
 									: "border-rule bg-sheet text-ink"
@@ -100,7 +100,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 							{toast.body && (
 								<p
 									className={
-										toast.tone === "alarm" ? "text-[#d5dbe1]" : "text-ink-soft"
+										toast.tone === "alarm" ? "text-on-ink/80" : "text-ink-soft"
 									}
 								>
 									{toast.body}

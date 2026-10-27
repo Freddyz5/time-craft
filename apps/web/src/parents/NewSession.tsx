@@ -280,7 +280,7 @@ export function NewSession() {
 								type="button"
 								aria-pressed={value === preset}
 								onClick={() => setMinutes(preset)}
-								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white"
+								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-on-ink"
 							>
 								{preset} min
 							</button>
@@ -290,7 +290,7 @@ export function NewSession() {
 								type="button"
 								aria-pressed={value === max}
 								onClick={() => setMinutes(max)}
-								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white"
+								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-on-ink"
 							>
 								Todo: {max} min
 							</button>
