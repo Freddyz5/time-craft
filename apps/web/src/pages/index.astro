@@ -1,13 +1,258 @@
 ---
-import LoadingFrame from "../components/LoadingFrame.astro";
-import RoleRedirect from "../entry/RoleRedirect";
-// Sends each person to their side: parents to /padres, the child to /nino,
-// anyone else to /login.
+// "/": what Time Craft is, what it is for and how it works, built from the
+// app's own pieces (plates, bricks, the countdown tile). Static, with two
+// small islands: the example session that counts down, and the way in
+// ("Entrar", or "Ir a mi inicio" for someone already signed in).
+
+import { BrandMark, Wordmark } from "../components/brand";
+import { Brick, BrickRow, bricksFor } from "../components/bricks";
+import { buttonClass } from "../components/ui";
+import DemoNow from "../landing/DemoNow";
+import HomeShortcut from "../landing/HomeShortcut";
 import Base from "../layouts/Base.astro";
+
+const pieces = [
+	{
+		spec: { fill: 1, color: "var(--color-balance)" },
+		text: "Tiempo que todavía queda.",
+	},
+	{
+		spec: { fill: 0.5, color: "var(--color-balance)" },
+		text: "El que se está usando: se vacía desde arriba.",
+	},
+	{
+		spec: { fill: 0, color: "var(--color-balance)" },
+		text: "Tiempo que ya se usó.",
+	},
+	{
+		spec: { fill: 1, color: "var(--color-bonus)" },
+		text: "Minutos ganados con tareas.",
+	},
+	{
+		spec: { fill: 0, color: "", socket: true },
+		text: "Lo que todavía se puede ganar.",
+	},
+];
+
+const steps = [
+	{
+		title: "Los padres ponen las reglas",
+		text: "Cuánto tiempo hay por día y por semana, cuánto se puede ganar con tareas y con cuántos minutos de aviso termina una sesión.",
+	},
+	{
+		title: "El niño pide",
+		text: "Arma su pedido con ladrillos: cuánto y para qué, juego o TV. A los padres les llega un aviso y responden con un toque.",
+	},
+	{
+		title: "Corre el cronómetro",
+		text: "Un padre inicia la sesión, ahora o más tarde en el día. El servidor lleva el tiempo, así que todos ven la misma cuenta regresiva.",
+	},
+	{
+		title: "Avisa antes del final",
+		text: "Unos minutos antes y al terminar llega un aviso a los teléfonos. Si nadie la detiene, la sesión se cierra sola y cuenta lo que se usó.",
+	},
+];
 ---
 
-<Base title="Time Craft">
-	<RoleRedirect client:only="react">
-		<LoadingFrame slot="fallback" />
-	</RoleRedirect>
+<Base
+	title="Time Craft · El tiempo de pantalla, en ladrillos"
+	description="Time Craft lleva la cuenta del tiempo de pantalla de un niño con un límite por día y por semana que los padres y el niño ven igual."
+>
+	<header class="sticky top-0 z-30 bg-sheet shadow-[0_4px_0_var(--color-sheet-side),0_12px_20px_-14px_var(--color-shadow)]">
+		<div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:px-10">
+			<a href="/" class="text-ink no-underline" aria-label="Time Craft">
+				<Wordmark />
+			</a>
+			<HomeShortcut client:idle />
+		</div>
+	</header>
+
+	<main>
+		<!-- Thesis: the countdown and its bricks, working. -->
+		<section class="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-12 pb-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-10 lg:pt-20 lg:pb-24">
+			<div class="flex flex-col gap-6">
+				<h1 class="text-[2.75rem] leading-[1.02] font-extrabold tracking-[-0.02em] sm:text-[3.5rem] lg:text-[4.25rem]">
+					El tiempo de pantalla, en ladrillos.
+				</h1>
+				<p class="max-w-[34rem] text-lg text-ink-soft sm:text-xl">
+					Time Craft lleva la cuenta del tiempo de pantalla de un niño con un
+					límite por día y por semana. Los padres y el niño lo ven desde su
+					teléfono: los mismos números y las mismas reglas.
+				</p>
+				<div class="flex flex-wrap gap-3 pt-2">
+					<a href="/login" class={`${buttonClass("primary")} min-h-14 px-6 text-lg`}>
+						Entrar como padre o madre
+					</a>
+					<a href="/nino/entrar" class={`${buttonClass("secondary")} min-h-14 px-6 text-lg`}>
+						Soy el niño
+					</a>
+				</div>
+			</div>
+			<div class="flex flex-col gap-3">
+				<DemoNow client:visible />
+				<p class="px-1 text-[0.9375rem] text-ink-soft">
+					Así se ve una sesión de 20 minutos de juego en curso (ejemplo).
+				</p>
+			</div>
+		</section>
+
+		<!-- What it is for. -->
+		<section class="mx-auto max-w-6xl px-4 pb-16 lg:px-10 lg:pb-24" aria-labelledby="para-que">
+			<div class="plate grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_2fr] lg:gap-12 lg:p-10">
+				<div class="flex flex-col gap-3">
+					<h2 id="para-que" class="text-[2rem] leading-tight font-extrabold">
+						Para qué sirve
+					</h2>
+					<p class="text-ink-soft">
+						Para que el tiempo de pantalla deje de ser una discusión y pase a
+						ser un acuerdo que toda la familia puede ver.
+					</p>
+				</div>
+				<dl class="grid gap-6 sm:grid-cols-3 sm:gap-8">
+					<div class="flex flex-col gap-2">
+						<dt class="font-display text-xl leading-tight font-bold">Un vistazo basta</dt>
+						<dd class="text-ink-soft">
+							Cuánto le queda hoy y en la semana, en ladrillos que se entienden
+							sin leer.
+						</dd>
+					</div>
+					<div class="flex flex-col gap-2">
+						<dt class="font-display text-xl leading-tight font-bold">Sin discusiones</dt>
+						<dd class="text-ink-soft">
+							Las reglas están a la vista. El niño sabe cuánto tiene, cuándo se
+							recarga y cómo ganar más con tareas.
+						</dd>
+					</div>
+					<div class="flex flex-col gap-2">
+						<dt class="font-display text-xl leading-tight font-bold">Acuerdos, no vigilancia</dt>
+						<dd class="text-ink-soft">
+							No espía ni bloquea nada: el niño pide, los padres deciden y todos
+							ven lo mismo.
+						</dd>
+					</div>
+				</dl>
+			</div>
+		</section>
+
+		<!-- The grammar: one brick, ten minutes. -->
+		<section class="mx-auto max-w-6xl px-4 pb-16 lg:px-10 lg:pb-24" aria-labelledby="ladrillo">
+			<div class="flex flex-col gap-8">
+				<div class="flex max-w-2xl flex-col gap-3">
+					<h2 id="ladrillo" class="text-[2rem] leading-tight font-extrabold sm:text-[2.5rem]">
+						Un ladrillo son 10 minutos
+					</h2>
+					<p class="text-lg text-ink-soft">
+						Todo el tiempo se dibuja con las mismas piezas, en la app de los
+						padres y en la del niño.
+					</p>
+				</div>
+				<ul class="plate grid grid-cols-2 gap-x-6 gap-y-8 p-6 sm:grid-cols-3 sm:p-8 lg:grid-cols-5">
+					{
+						pieces.map(({ spec, text }) => (
+							<li class="flex flex-col gap-3">
+								<div class="w-24">
+									<Brick {...spec} />
+								</div>
+								<p class="text-ink-soft">{text}</p>
+							</li>
+						))
+					}
+				</ul>
+				<div class="plate flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
+					<div class="w-full max-w-[22rem]">
+						<BrickRow
+							bricks={bricksFor(38, 60, 10, "var(--color-balance)")}
+							perRow={6}
+							label="Ejemplo: 38 de 60 minutos por usar hoy"
+						/>
+					</div>
+					<p class="text-ink-soft">
+						<span class="font-display text-lg font-bold text-ink">Le quedan 38 min hoy</span>
+						<br />Seis ladrillos para una hora: tres llenos, uno a medio usar y
+						dos ya gastados.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- How it works. -->
+		<section class="bg-sheet py-16 shadow-[0_-4px_0_var(--color-sheet-side)] lg:py-24" aria-labelledby="como">
+			<div class="mx-auto flex max-w-6xl flex-col gap-10 px-4 lg:px-10">
+				<h2 id="como" class="text-[2rem] leading-tight font-extrabold sm:text-[2.5rem]">
+					Cómo funciona
+				</h2>
+				<ol class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+					{
+						steps.map((step, index) => (
+							<li class="flex flex-col gap-3">
+								<span
+									aria-hidden="true"
+									class="tabular grid size-12 place-items-center rounded-control bg-ink pt-1 font-display text-[1.625rem] leading-none font-extrabold text-on-ink shadow-[inset_0_2px_0_rgb(255_255_255/0.14),0_3px_0_var(--color-ink-side)]"
+								>
+									{index + 1}
+								</span>
+								<h3 class="text-[1.375rem] leading-tight font-bold">{step.title}</h3>
+								<p class="text-ink-soft">{step.text}</p>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+		</section>
+
+		<!-- Who does what. -->
+		<section class="mx-auto grid max-w-6xl gap-10 px-4 py-16 lg:grid-cols-2 lg:px-10 lg:py-24" aria-label="Quién hace qué">
+			<div class="plate flex flex-col gap-4 p-6 sm:p-8">
+				<h2 class="text-[1.75rem] leading-tight font-extrabold">Los padres</h2>
+				<ul class="flex list-disc flex-col gap-2 pl-5 text-ink-soft marker:text-balance">
+					<li>Ven qué está corriendo y cuánto le queda, desde cualquier lugar.</li>
+					<li>Inician, pausan o detienen una sesión con un toque.</li>
+					<li>Responden los pedidos y aprueban las tareas.</li>
+					<li>Definen las reglas y revisan el historial de cada semana.</li>
+				</ul>
+				<a href="/login" class={`${buttonClass("primary")} self-start`}>Entrar como padre o madre</a>
+			</div>
+			<div class="plate flex flex-col gap-4 p-6 sm:p-8">
+				<h2 class="text-[1.75rem] leading-tight font-extrabold">El niño</h2>
+				<ul class="flex list-disc flex-col gap-2 pl-5 text-ink-soft marker:text-bonus">
+					<li>Ve su tiempo como baterías de ladrillos.</li>
+					<li>Pide tiempo armando ladrillos, sin teclear números.</li>
+					<li>Gana minutos para la semana haciendo tareas.</li>
+					<li>Entra con su usuario y un PIN, desde cualquier navegador.</li>
+				</ul>
+				<a href="/nino/entrar" class={`${buttonClass("secondary")} self-start`}>Soy el niño</a>
+			</div>
+		</section>
+
+		<!-- What it does not do: said plainly. -->
+		<section class="mx-auto max-w-6xl px-4 pb-16 lg:px-10 lg:pb-24" aria-labelledby="no-hace">
+			<div class="flex flex-col gap-4 rounded-callout border-[1.5px] border-dashed border-rule-strong p-6 sm:p-8">
+				<h2 id="no-hace" class="text-[1.75rem] leading-tight font-extrabold">Lo que no hace</h2>
+				<ul class="grid gap-4 text-ink-soft sm:grid-cols-3">
+					<li>
+						No detecta el juego ni la TV: en esta versión, las sesiones se
+						registran a mano.
+					</li>
+					<li>No bloquea dispositivos ni mira lo que el niño hace en pantalla.</li>
+					<li>No tiene registro público: solo entran los padres y el niño de la familia.</li>
+				</ul>
+			</div>
+		</section>
+	</main>
+
+	<footer class="bg-sheet shadow-[0_-4px_0_var(--color-sheet-side)]">
+		<div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between lg:px-10">
+			<div class="flex items-center gap-3">
+				<BrandMark className="size-12 shrink-0" />
+				<p class="text-ink-soft">
+					<span class="font-display text-xl font-extrabold text-ink">Time Craft</span>
+					<br />El tiempo de pantalla de la familia, en ladrillos.
+				</p>
+			</div>
+			<div class="flex flex-wrap gap-3">
+				<a href="/login" class={buttonClass("primary")}>Entrar como padre o madre</a>
+				<a href="/nino/entrar" class={buttonClass("secondary")}>Soy el niño</a>
+			</div>
+		</div>
+	</footer>
 </Base>
