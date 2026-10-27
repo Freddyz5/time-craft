@@ -292,7 +292,7 @@ export function BrickTower({
 			{columns.map((column) => (
 				<div
 					key={column[0]?.index}
-					className="flex w-11 flex-col-reverse [&>*+*]:-mb-1.5"
+					className="flex w-14 flex-col-reverse [&>*+*]:-mb-2"
 				>
 					{column.map(({ brick, index }) => (
 						// Position is identity, as in BrickRow.

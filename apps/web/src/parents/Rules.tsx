@@ -162,7 +162,7 @@ function LimitsForm({
 			}}
 		>
 			<fieldset className="flex flex-col gap-4">
-				<legend className="mb-3 font-display text-xl leading-tight font-bold">
+				<legend className="mb-3 font-display text-lg leading-tight font-bold text-ink-soft">
 					Tiempo
 				</legend>
 				<div className="grid gap-5 sm:grid-cols-2">
@@ -224,7 +224,7 @@ function LimitsForm({
 				<legend className="sr-only">Bonos y avisos</legend>
 				<p
 					aria-hidden="true"
-					className="-mt-1 font-display text-xl leading-tight font-bold"
+					className="-mt-1 font-display text-lg leading-tight font-bold text-ink-soft"
 				>
 					Bonos y avisos
 				</p>
