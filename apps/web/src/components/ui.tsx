@@ -1,5 +1,6 @@
-// The shared controls, in the manual's vocabulary: white callouts with a thin
-// steel border, solid ink for the main action, red only for actions that cut.
+// The shared controls, as building pieces: boxes are plates with studs on
+// top, buttons are bricks that sink when pressed, fields are slots sunk into
+// the plate. Ink for the main action, red only for actions that cut.
 // Standard elements underneath (button, input, dialog), so they behave the
 // way every phone expects.
 import { LoaderCircle, Minus, Plus } from "lucide-react";
@@ -14,16 +15,14 @@ import { Brick } from "./bricks";
 
 type Variant = "primary" | "secondary" | "quiet" | "danger" | "pause";
 
+// The brick variants live in global.css (@utility brick-*).
 const variants: Record<Variant, string> = {
-	primary:
-		"bg-ink text-on-ink hover:bg-ink/85 disabled:bg-sheet-sunk disabled:text-ink-faint",
-	secondary:
-		"bg-sheet text-ink border-[1.5px] border-rule-strong hover:bg-sheet-sunk active:bg-page disabled:text-ink-faint disabled:border-rule",
+	primary: "brick brick-primary",
+	secondary: "brick brick-secondary",
 	quiet:
-		"bg-transparent text-ink hover:bg-sheet-sunk active:bg-page disabled:text-ink-faint underline-offset-4",
-	danger:
-		"bg-stop text-white hover:bg-stop/90 disabled:bg-stop-tint disabled:text-stop-ink",
-	pause: "bg-pause text-[#1d1000] hover:bg-pause/90 disabled:bg-pause-tint",
+		"bg-transparent text-ink hover:bg-sheet-sunk active:bg-sheet-sunk disabled:text-ink-faint underline-offset-4",
+	danger: "brick brick-danger",
+	pause: "brick brick-pause",
 };
 
 const sizes = {
@@ -56,7 +55,7 @@ export function Button({
 			type={type}
 			disabled={disabled || busy}
 			aria-busy={busy || undefined}
-			className={`inline-flex select-none items-center justify-center rounded-control font-medium text-balance transition-colors duration-150 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${block ? "w-full" : ""} ${className}`}
+			className={`inline-flex select-none items-center justify-center rounded-control font-bold [text-wrap:balance] transition-colors duration-150 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${block ? "w-full" : ""} ${className}`}
 			{...rest}
 		>
 			{busy ? (
@@ -74,10 +73,11 @@ export function buttonClass(
 	variant: Variant = "secondary",
 	size: keyof typeof sizes = "md",
 ): string {
-	return `inline-flex select-none items-center justify-center rounded-control font-medium no-underline transition-colors duration-150 ${variants[variant]} ${sizes[size]}`;
+	return `inline-flex select-none items-center justify-center rounded-control font-bold no-underline transition-colors duration-150 ${variants[variant]} ${sizes[size]}`;
 }
 
-// The manual's white box. `tone` tints it for the one state it reports
+// A plate: the box every screen is built from, with its studs on top and its
+// edge below. `tone` tints its face and edge for the one state it reports
 // (balance: a yes, on the child's side).
 export function Callout({
 	children,
@@ -95,17 +95,17 @@ export function Callout({
 	onSubmit?: (event: React.SubmitEvent<HTMLFormElement>) => void;
 }) {
 	const tones = {
-		plain: "bg-sheet border-rule",
-		pause: "bg-pause-tint border-pause",
-		stop: "bg-stop-tint border-stop",
-		bonus: "bg-bonus-tint border-bonus-side",
-		balance: "bg-balance-tint border-balance",
+		plain: "",
+		pause:
+			"[--plate-face:var(--color-pause-tint)] [--plate-side:var(--color-pause)]",
+		stop: "[--plate-face:var(--color-stop-tint)] [--plate-side:var(--color-stop)]",
+		bonus:
+			"[--plate-face:var(--color-bonus-tint)] [--plate-side:var(--color-bonus)]",
+		balance:
+			"[--plate-face:var(--color-balance-tint)] [--plate-side:var(--color-balance)]",
 	};
 	return (
-		<Tag
-			className={`rounded-callout border-[1.5px] shadow-callout ${tones[tone]} ${className}`}
-			{...(rest as object)}
-		>
+		<Tag className={`plate ${tones[tone]} ${className}`} {...(rest as object)}>
 			{children}
 		</Tag>
 	);
@@ -126,7 +126,7 @@ export function Field({
 }) {
 	return (
 		<div className="flex flex-col gap-1.5">
-			<label htmlFor={htmlFor} className="font-medium text-ink">
+			<label htmlFor={htmlFor} className="font-semibold text-ink">
 				{label}
 			</label>
 			{children}
@@ -141,8 +141,14 @@ export function Field({
 	);
 }
 
+// A field is a slot sunk into the plate: a darker floor and a shadow under
+// its top edge.
 export const inputClass =
-	"min-h-12 w-full rounded-control border-[1.5px] border-rule-strong bg-sheet px-3.5 text-base text-ink transition-colors hover:border-ink-soft focus-visible:border-focus focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus/25 aria-invalid:border-stop disabled:bg-sheet-sunk disabled:text-ink-faint";
+	"min-h-12 w-full rounded-control border-[1.5px] border-rule-strong bg-sheet-sunk px-3.5 text-base text-ink shadow-[inset_0_2px_0_rgb(0_0_0/0.07)] transition-colors hover:border-ink-soft focus-visible:border-focus focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus/25 aria-invalid:border-stop disabled:text-ink-faint disabled:opacity-70";
+
+// The − and + of a stepper: small square bricks.
+const stepClass =
+	"brick brick-secondary grid size-12 shrink-0 place-items-center rounded-control";
 
 // Whole minutes with − / + (big targets for a thumb) and the value typed in
 // the middle when needed.
@@ -180,7 +186,7 @@ export function MinutesStepper({
 				onClick={down}
 				disabled={value <= min}
 				aria-label={`Quitar ${step} minutos`}
-				className="grid size-12 shrink-0 place-items-center rounded-control border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk disabled:border-rule disabled:text-ink-faint"
+				className={stepClass}
 			>
 				<Minus className="size-5" aria-hidden="true" />
 			</button>
@@ -199,7 +205,7 @@ export function MinutesStepper({
 						onChange(Number.isNaN(next) ? min : Math.min(max, next));
 					}}
 					onBlur={() => onChange(clamp(value))}
-					className={`${inputClass} tabular appearance-none pr-14 text-center text-xl font-semibold [&::-webkit-inner-spin-button]:appearance-none`}
+					className={`${inputClass} tabular appearance-none pr-14 text-center font-display text-2xl font-extrabold [&::-webkit-inner-spin-button]:appearance-none`}
 				/>
 				<span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-ink-soft">
 					min
@@ -210,7 +216,7 @@ export function MinutesStepper({
 				onClick={up}
 				disabled={value >= max}
 				aria-label={`Sumar ${step} minutos`}
-				className="grid size-12 shrink-0 place-items-center rounded-control border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk disabled:border-rule disabled:text-ink-faint"
+				className={stepClass}
 			>
 				<Plus className="size-5" aria-hidden="true" />
 			</button>
@@ -218,7 +224,8 @@ export function MinutesStepper({
 	);
 }
 
-// Two or three mutually exclusive options (radio semantics).
+// Two or three mutually exclusive options (radio semantics): a tray sunk into
+// the plate, the chosen option raised in it as an ink tile.
 export function Segmented<T extends string>({
 	value,
 	onChange,
@@ -232,12 +239,12 @@ export function Segmented<T extends string>({
 }) {
 	const name = useId();
 	return (
-		<fieldset className="flex gap-1 rounded-control border-[1.5px] border-rule-strong bg-sheet-sunk p-1">
+		<fieldset className="flex gap-1 rounded-control border-[1.5px] border-rule-strong bg-sheet-sunk p-1 pb-1.5 shadow-[inset_0_2px_0_rgb(0_0_0/0.07)]">
 			<legend className="sr-only">{label}</legend>
 			{options.map((option) => (
 				<label
 					key={option.value}
-					className="flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-[7px] px-3 text-center font-medium text-ink-soft transition-colors has-checked:bg-ink has-checked:text-on-ink has-focus-visible:outline-3 has-focus-visible:outline-focus"
+					className="flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-center font-bold text-ink-soft transition-colors hover:text-ink has-checked:bg-ink has-checked:text-on-ink has-checked:shadow-[0_3px_0_var(--color-ink-side)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
 				>
 					<input
 						type="radio"
@@ -270,7 +277,7 @@ export function Switch({
 	return (
 		<div className="flex items-start justify-between gap-4">
 			<label htmlFor={id} className="flex flex-col gap-0.5">
-				<span className="font-medium">{label}</span>
+				<span className="font-semibold">{label}</span>
 				{description && (
 					<span className="text-[0.9375rem] text-ink-soft">{description}</span>
 				)}
@@ -281,10 +288,11 @@ export function Switch({
 				role="switch"
 				aria-checked={checked}
 				onClick={() => onChange(!checked)}
-				className={`relative mt-0.5 h-8 w-13 shrink-0 rounded-full border-[1.5px] transition-colors ${checked ? "border-balance bg-balance" : "border-rule-strong bg-sheet-sunk"}`}
+				className={`relative mt-0.5 h-8 w-13 shrink-0 rounded-full border-[1.5px] shadow-[inset_0_2px_0_rgb(0_0_0/0.12)] transition-colors ${checked ? "border-balance bg-balance" : "border-rule-strong bg-sheet-sunk"}`}
 			>
+				{/* The knob is a stud seen from above. */}
 				<span
-					className={`absolute top-1/2 size-6 -translate-y-1/2 rounded-full bg-sheet shadow-[0_1px_3px_rgb(0_0_0/0.3)] transition-[left] duration-200 ease-out ${checked ? "left-[calc(100%-1.625rem)]" : "left-0.5"}`}
+					className={`absolute top-1/2 size-6 -translate-y-1/2 rounded-full bg-white shadow-[inset_0_0_0_3px_rgb(0_0_0/0.06),0_2px_0_rgb(0_0_0/0.25)] transition-[left] duration-200 ease-out ${checked ? "left-[calc(100%-1.625rem)]" : "left-0.5"}`}
 				/>
 			</button>
 		</div>
@@ -301,7 +309,7 @@ export function Notice({
 	action?: ReactNode;
 }) {
 	const tones = {
-		info: "bg-sheet-sunk border-rule text-ink",
+		info: "bg-sheet-sunk border-rule-strong/40 text-ink",
 		error: "bg-stop-tint border-stop text-stop-ink",
 		success: "bg-balance-tint border-balance text-balance-ink",
 	};
@@ -361,10 +369,10 @@ export function ConfirmDialog({
 				}
 			}}
 			onKeyDown={() => undefined}
-			className="m-auto w-[min(26rem,calc(100vw-2rem))] rounded-callout border-[1.5px] border-rule bg-sheet p-0 text-ink shadow-lift open:motion-safe:animate-rise"
+			className="plate m-auto w-[min(26rem,calc(100vw-2rem))] overflow-visible p-0 text-ink open:motion-safe:animate-rise"
 		>
 			<div className="flex flex-col gap-3 p-5">
-				<h2 id={titleId} className="text-xl font-semibold">
+				<h2 id={titleId} className="text-[1.375rem] leading-tight font-bold">
 					{title}
 				</h2>
 				<div className="text-ink-soft">{children}</div>
@@ -426,7 +434,7 @@ export function SectionTitle({
 }) {
 	return (
 		<div className="flex items-end justify-between gap-3">
-			<h2 id={id} className="text-xl leading-tight font-semibold leading-tight">
+			<h2 id={id} className="text-[1.375rem] leading-tight font-bold">
 				{children}
 			</h2>
 			{action}

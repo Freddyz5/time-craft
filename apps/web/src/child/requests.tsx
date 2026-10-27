@@ -304,7 +304,7 @@ export function PendingStrip({ request }: { request: ChildRequest }) {
 	return (
 		<Link
 			href="/pedir"
-			className="flex items-center gap-3 rounded-callout border-[1.5px] border-rule bg-sheet p-4 text-ink no-underline shadow-callout transition-colors hover:bg-sheet-sunk"
+			className="plate flex items-center gap-3 p-4 text-ink no-underline transition-colors hover:[--plate-face:var(--color-sheet-sunk)]"
 		>
 			<Hourglass className="size-6 shrink-0" aria-hidden="true" />
 			<span className="min-w-0 flex-1">

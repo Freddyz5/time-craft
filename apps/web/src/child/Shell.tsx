@@ -1,11 +1,11 @@
-// The child's frame: a white bar with the mark, their name and the bell
-// (Avisos), and three big tabs within thumb's reach: Inicio, Pedir, Tareas.
-// From a laptop width up the tabs move into the top bar. The active tab
-// wears a brick's two studs, as on the parents' side.
+// The child's frame: a plate across the top with the mark, their name and the
+// bell (Avisos), and three big tabs within thumb's reach: Inicio, Pedir,
+// Tareas. From a laptop width up the tabs move into the top bar. The active
+// tab is a yellow tile, as on the parents' side.
 import { Bell, Hand, House, ListChecks, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { BrandMark, Studs } from "../components/brand";
+import { BrandMark } from "../components/brand";
 import { useChild } from "./context";
 
 interface NavItem {
@@ -38,15 +38,15 @@ export function Shell({ children }: { children: ReactNode }) {
 				Ir al contenido
 			</a>
 
-			<header className="sticky top-0 z-30 border-b-[1.5px] border-rule bg-sheet/95 backdrop-blur-sm">
-				<div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 lg:h-16 lg:px-10">
+			<header className="sticky top-0 z-30 bg-sheet shadow-[0_4px_0_var(--color-sheet-side),0_12px_20px_-14px_var(--color-shadow)]">
+				<div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4 lg:h-[4.5rem] lg:px-10">
 					<Link
 						href="/"
 						className="flex min-w-0 items-center gap-2.5 text-ink no-underline"
 						aria-label={`Time Craft, inicio de ${name}`}
 					>
-						<BrandMark className="size-8 shrink-0" />
-						<span className="truncate text-lg font-bold tracking-[-0.01em]">
+						<BrandMark className="size-10 shrink-0" />
+						<span className="truncate pt-1 font-display text-[1.375rem] leading-none font-extrabold tracking-[-0.01em]">
 							Hola, {name}
 						</span>
 					</Link>
@@ -60,19 +60,14 @@ export function Shell({ children }: { children: ReactNode }) {
 										<Link
 											href={href}
 											aria-current={active ? "page" : undefined}
-											className={`relative flex min-h-11 items-center gap-2 rounded-control px-3.5 font-medium no-underline transition-colors ${
+											className={`flex min-h-11 items-center gap-2 rounded-control px-3.5 font-bold no-underline transition-colors ${
 												active
-													? "bg-page text-ink"
+													? "tile-on"
 													: "text-ink-soft hover:bg-sheet-sunk hover:text-ink"
 											}`}
 										>
 											<Icon className="size-5" aria-hidden="true" />
 											{label}
-											{active && (
-												<span className="absolute -top-1.5 left-3.5">
-													<Studs />
-												</span>
-											)}
 										</Link>
 									</li>
 								);
@@ -80,14 +75,15 @@ export function Shell({ children }: { children: ReactNode }) {
 						</ul>
 					</nav>
 
+					{/* The bell is a round stud: ink while Avisos is open. */}
 					<Link
 						href="/avisos"
 						aria-label="Avisos"
 						aria-current={onAvisos ? "page" : undefined}
-						className={`grid size-11 shrink-0 place-items-center rounded-full no-underline transition-colors ${
+						className={`grid size-11 shrink-0 place-items-center rounded-full no-underline transition-transform active:translate-y-0.5 ${
 							onAvisos
-								? "bg-ink text-on-ink"
-								: "border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk"
+								? "bg-ink text-on-ink shadow-[inset_0_0_0_4px_rgb(255_255_255/0.14),0_3px_0_var(--color-ink-side)]"
+								: "bg-raised text-ink shadow-[inset_0_0_0_1.5px_var(--color-rule),0_3px_0_var(--color-raised-side)]"
 						}`}
 					>
 						<Bell className="size-5" aria-hidden="true" />
@@ -97,14 +93,14 @@ export function Shell({ children }: { children: ReactNode }) {
 
 			<main
 				id="contenido"
-				className="px-4 pt-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:px-10 lg:pt-8 lg:pb-12"
+				className="px-4 pt-7 pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:px-10 lg:pt-10 lg:pb-12"
 			>
 				{children}
 			</main>
 
 			<nav
 				aria-label="Secciones"
-				className="fixed inset-x-0 bottom-0 z-30 border-t-[1.5px] border-rule bg-sheet pb-[env(safe-area-inset-bottom)] lg:hidden"
+				className="studs-top fixed inset-x-0 bottom-0 z-30 bg-sheet pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_20px_-14px_var(--color-shadow)] lg:hidden"
 			>
 				<ul className="mx-auto grid max-w-lg grid-cols-3">
 					{NAV.map(({ href, label, Icon }) => {
@@ -114,18 +110,19 @@ export function Shell({ children }: { children: ReactNode }) {
 								<Link
 									href={href}
 									aria-current={active ? "page" : undefined}
-									className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-[0.875rem] font-medium no-underline ${
+									className={`flex min-h-20 flex-col items-center justify-center gap-1 text-[0.875rem] font-bold no-underline ${
 										active ? "text-ink" : "text-ink-faint"
 									}`}
 								>
-									<span className="absolute top-0 left-1/2 -translate-x-1/2">
-										{active && <Studs />}
+									<span
+										className={`grid h-9 w-14 place-items-center rounded-control ${active ? "tile-on" : ""}`}
+									>
+										<Icon
+											className="size-7"
+											strokeWidth={active ? 2.25 : 2}
+											aria-hidden="true"
+										/>
 									</span>
-									<Icon
-										className="size-7"
-										strokeWidth={active ? 2.25 : 2}
-										aria-hidden="true"
-									/>
 									{label}
 								</Link>
 							</li>

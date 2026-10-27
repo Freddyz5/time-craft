@@ -65,18 +65,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 			{children}
 			<div
 				aria-live="polite"
-				className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:left-auto lg:right-6 lg:items-end"
+				className="pointer-events-none fixed inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:left-auto lg:right-6 lg:items-end"
 			>
 				{toasts.map((toast) => (
 					<div
 						key={toast.id}
 						role={toast.tone === "success" ? "status" : "alert"}
-						className={`pointer-events-auto flex w-full max-w-sm motion-safe:animate-rise items-start gap-3 rounded-callout border-[1.5px] px-4 py-3 shadow-lift ${
+						className={`pointer-events-auto flex w-full max-w-sm motion-safe:animate-rise items-start gap-3 rounded-callout border-[1.5px] px-4 py-3 ${
 							toast.tone === "alarm"
-								? "border-stop bg-ink text-on-ink"
+								? "border-stop bg-ink text-on-ink shadow-[0_4px_0_var(--color-stop),0_22px_40px_-16px_var(--color-shadow)]"
 								: toast.tone === "error"
-									? "border-stop bg-sheet text-ink"
-									: "border-rule bg-sheet text-ink"
+									? "border-stop bg-sheet text-ink shadow-lift"
+									: "border-rule bg-sheet text-ink shadow-lift"
 						}`}
 					>
 						{toast.tone === "success" ? (
@@ -96,7 +96,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 							/>
 						)}
 						<div className="min-w-0 flex-1">
-							<p className="font-semibold">{toast.title}</p>
+							<p className="font-bold">{toast.title}</p>
 							{toast.body && (
 								<p
 									className={

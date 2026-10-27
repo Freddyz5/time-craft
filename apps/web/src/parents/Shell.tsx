@@ -1,6 +1,6 @@
-// The parents' frame: on the phone a header and a tab bar within thumb's
-// reach; from a laptop width up, a side rail. The active tab wears a brick's
-// two studs.
+// The parents' frame: on the phone a plate across the top and a tab bar
+// within thumb's reach; from a laptop width up, a side rail. The active tab
+// is a yellow tile raised on the bar.
 
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Studs, Wordmark } from "../components/brand";
+import { Wordmark } from "../components/brand";
 import { buttonClass } from "../components/ui";
 import { api, call } from "../lib/api";
 import { keys } from "../lib/queries";
@@ -49,7 +49,7 @@ function ChildSwitch() {
 	}
 	if (household.children.length < 2) {
 		return (
-			<span className="truncate font-medium text-ink-soft">{child.name}</span>
+			<span className="truncate font-semibold text-ink-soft">{child.name}</span>
 		);
 	}
 	return (
@@ -58,7 +58,7 @@ function ChildSwitch() {
 			<select
 				value={child.id}
 				onChange={(event) => setChildId(event.target.value)}
-				className="min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-3 font-medium"
+				className="min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet-sunk px-3 font-semibold"
 			>
 				{household.children.map((c) => (
 					<option key={c.id} value={c.id}>
@@ -94,7 +94,7 @@ export function Shell({ children }: { children: ReactNode }) {
 	const sessionOpen = useSessionOpen(child?.id);
 
 	return (
-		<div className="min-h-dvh lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
+		<div className="min-h-dvh lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
 			<a
 				href="#contenido"
 				className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-control focus:bg-ink focus:px-4 focus:py-2 focus:text-on-ink"
@@ -102,8 +102,8 @@ export function Shell({ children }: { children: ReactNode }) {
 				Ir al contenido
 			</a>
 
-			{/* Phone header */}
-			<header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b-[1.5px] border-rule bg-sheet/95 px-4 backdrop-blur-sm lg:hidden">
+			{/* Phone header: a plate across the top. */}
+			<header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 bg-sheet px-4 shadow-[0_4px_0_var(--color-sheet-side),0_12px_20px_-14px_var(--color-shadow)] lg:hidden">
 				<Link
 					href="/"
 					className="text-ink no-underline"
@@ -111,24 +111,24 @@ export function Shell({ children }: { children: ReactNode }) {
 				>
 					<Wordmark />
 				</Link>
-				<div className="flex min-w-0 items-center gap-2">
+				<div className="flex min-w-0 items-center gap-2.5">
 					<ChildSwitch />
 					<Link
 						href="/sesion"
 						aria-label="Nueva sesión"
-						className={`grid size-10 shrink-0 place-items-center rounded-full no-underline ${
+						className={`grid size-11 shrink-0 place-items-center rounded-full no-underline transition-transform active:translate-y-0.5 ${
 							sessionOpen
-								? "border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk"
-								: "bg-ink text-on-ink hover:bg-ink/85"
+								? "bg-raised text-ink shadow-[inset_0_0_0_1.5px_var(--color-rule),0_3px_0_var(--color-raised-side)]"
+								: "bg-ink text-on-ink shadow-[inset_0_0_0_4px_rgb(255_255_255/0.14),0_3px_0_var(--color-ink-side)]"
 						}`}
 					>
-						<Plus className="size-5" aria-hidden="true" />
+						<Plus className="size-5" strokeWidth={2.5} aria-hidden="true" />
 					</Link>
 				</div>
 			</header>
 
-			{/* Desktop rail */}
-			<aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r-[1.5px] border-rule bg-sheet px-4 py-5 lg:flex">
+			{/* Desktop rail: a plate down the side. */}
+			<aside className="sticky top-0 z-20 hidden h-dvh flex-col gap-6 bg-sheet px-4 py-5 shadow-[4px_0_0_var(--color-sheet-side),12px_0_24px_-16px_var(--color-shadow)] lg:flex">
 				<Link
 					href="/"
 					className="px-2 text-ink no-underline"
@@ -146,7 +146,7 @@ export function Shell({ children }: { children: ReactNode }) {
 					<Plus className="size-5" aria-hidden="true" />
 					Nueva sesión
 				</Link>
-				<nav aria-label="Secciones" className="flex flex-col gap-2.5">
+				<nav aria-label="Secciones" className="flex flex-col gap-2">
 					{NAV.map(({ href, label, Icon }) => {
 						const active = isActive(location, href);
 						return (
@@ -154,20 +154,14 @@ export function Shell({ children }: { children: ReactNode }) {
 								key={href}
 								href={href}
 								aria-current={active ? "page" : undefined}
-								className={`relative flex min-h-11 items-center gap-3 rounded-control px-3 font-medium no-underline transition-colors ${
+								className={`flex min-h-11 items-center gap-3 rounded-control px-3 font-bold no-underline transition-colors ${
 									active
-										? "bg-page text-ink"
+										? "tile-on"
 										: "text-ink-soft hover:bg-sheet-sunk hover:text-ink"
 								}`}
 							>
 								<Icon className="size-5" aria-hidden="true" />
 								<span className="flex-1">{label}</span>
-								{active && (
-									// The active row is a brick: its studs on the top edge.
-									<span className="absolute -top-1.5 left-3">
-										<Studs />
-									</span>
-								)}
 							</Link>
 						);
 					})}
@@ -177,7 +171,7 @@ export function Shell({ children }: { children: ReactNode }) {
 					<button
 						type="button"
 						onClick={() => void signOut()}
-						className="inline-flex min-h-10 items-center gap-1.5 rounded-control px-2 text-ink-soft hover:bg-sheet-sunk hover:text-ink"
+						className="inline-flex min-h-10 items-center gap-1.5 rounded-control px-2 font-semibold text-ink-soft hover:bg-sheet-sunk hover:text-ink"
 					>
 						<LogOut className="size-4" aria-hidden="true" />
 						Salir
@@ -187,15 +181,16 @@ export function Shell({ children }: { children: ReactNode }) {
 
 			<main
 				id="contenido"
-				className="px-4 pt-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:px-10 lg:pt-8 lg:pb-12"
+				className="px-4 pt-7 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:px-10 lg:pt-10 lg:pb-12"
 			>
 				{children}
 			</main>
 
-			{/* Phone tab bar */}
+			{/* Phone tab bar: a plate with its studs; the active tab is a yellow
+			    tile. */}
 			<nav
 				aria-label="Secciones"
-				className="fixed inset-x-0 bottom-0 z-30 border-t-[1.5px] border-rule bg-sheet pb-[env(safe-area-inset-bottom)] lg:hidden"
+				className="studs-top fixed inset-x-0 bottom-0 z-30 bg-sheet pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_20px_-14px_var(--color-shadow)] lg:hidden"
 			>
 				<ul className="mx-auto grid max-w-lg grid-cols-5">
 					{NAV.map(({ href, label, Icon }) => {
@@ -205,18 +200,19 @@ export function Shell({ children }: { children: ReactNode }) {
 								<Link
 									href={href}
 									aria-current={active ? "page" : undefined}
-									className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-[0.8125rem] font-medium no-underline ${
+									className={`flex min-h-[4.5rem] flex-col items-center justify-center gap-1 text-[0.8125rem] font-bold no-underline ${
 										active ? "text-ink" : "text-ink-faint"
 									}`}
 								>
-									<span className="absolute top-0 left-1/2 -translate-x-1/2">
-										{active && <Studs />}
+									<span
+										className={`grid h-8 w-12 place-items-center rounded-control ${active ? "tile-on" : ""}`}
+									>
+										<Icon
+											className="size-[1.375rem]"
+											strokeWidth={active ? 2.25 : 2}
+											aria-hidden="true"
+										/>
 									</span>
-									<Icon
-										className="size-6"
-										strokeWidth={active ? 2.25 : 2}
-										aria-hidden="true"
-									/>
 									{label}
 								</Link>
 							</li>

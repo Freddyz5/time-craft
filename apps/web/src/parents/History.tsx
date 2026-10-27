@@ -445,7 +445,7 @@ export function History() {
 				<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
 					Historial
 				</h1>
-				<div className="flex items-center justify-between gap-2 rounded-callout border-[1.5px] border-rule bg-sheet p-1.5">
+				<div className="plate flex items-center justify-between gap-2 p-1.5">
 					<button
 						type="button"
 						onClick={() => setWeeksBack((weeks) => weeks + 1)}

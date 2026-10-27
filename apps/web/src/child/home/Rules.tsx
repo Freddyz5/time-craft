@@ -36,7 +36,7 @@ export function Rules({ policies }: { policies: readonly Policy[] }) {
 		(a, b) => Number(a.activityId !== null) - Number(b.activityId !== null),
 	);
 	return (
-		<details className="group rounded-callout border-[1.5px] border-rule bg-sheet shadow-callout">
+		<details className="plate group">
 			<summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 rounded-callout px-4 font-semibold sm:px-5 [&::-webkit-details-marker]:hidden">
 				<ScrollText className="size-5 shrink-0" aria-hidden="true" />
 				<span className="flex-1 text-lg">Tus reglas</span>

@@ -7,7 +7,7 @@ export function CopyCode({ code }: { code: string }) {
 	const [copied, setCopied] = useState(false);
 	return (
 		<div className="flex flex-col gap-3 rounded-control border-[1.5px] border-dashed border-rule-strong bg-sheet-sunk p-4">
-			<code className="tabular break-all text-center text-xl font-semibold tracking-[0.06em] select-all">
+			<code className="tabular break-all text-center font-display text-2xl font-extrabold tracking-[0.06em] select-all">
 				{code}
 			</code>
 			<Button
