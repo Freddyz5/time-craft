@@ -1464,11 +1464,7 @@
 		},
 		"themes": {
 			"default": "system",
-			"choices": [
-				"Automático",
-				"Claro",
-				"Oscuro"
-			],
+			"choices": ["Automático", "Claro", "Oscuro"],
 			"selector": ":root[data-theme=\"dark\"]",
 			"appliedBeforeFirstPaint": true,
 			"storageKey": "timecraft:theme",
