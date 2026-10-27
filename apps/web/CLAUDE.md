@@ -16,6 +16,7 @@ Frontend en Astro con salida estática, islas React (una grande por rol: `/padre
 - `src/components/`: piezas compartidas por las dos islas: controles (`ui.tsx`), toasts, la marca y los pernos de la pestaña activa (`brand.tsx`), los ladrillos (`bricks.tsx`, con el muro de la semana y el hueco «por ganar»), el título de paso numerado, el marco de pantalla completa y los providers.
 - `src/lib/`: cliente tipado `hc<AppType>` y `call()` (`api.ts`, con los errores de la api como `ApiError`), Better Auth (`auth.ts`), TanStack Query (`queries.ts`, consulta cada 5 s en las vistas en vivo), comandos con toast (`useCommand.ts`), guard de rol (`guard.ts`, cada rol con su login), reloj del servidor (`clock.ts`), cuenta regresiva (`timer.ts`), alarma de la pestaña (`alarm.ts`), Web Push (`push.ts`), textos de error (`errors.ts`) y formatos en la zona de la familia (`format.ts`).
 - `public/sw.js`: service worker de Web Push (muestra el aviso, abre la página al tocarlo y avisa a la pestaña abierta). `public/manifest.webmanifest` e `icons/`.
+- `brand/`: el logo. `mark.svg` (el ladrillo amarillo con el reloj) es la fuente; `bun run brand` (`scripts/brand.mjs`) genera a partir de él el logo con el nombre en trazos (`logo.svg` para fondo claro y `logo-dark.svg` para fondo oscuro), `public/favicon.svg`, `public/favicon.ico` y los iconos de `public/icons/` (app, adaptable, Apple y la silueta del aviso push). Los archivos generados se commitean; si cambias la marca, cambia también `BrandMark` en `src/components/brand.tsx`.
 
 ## Tiempo real
 
