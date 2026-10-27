@@ -42,7 +42,8 @@ No es un control parental que espía ni bloquea: en la versión 1 no detecta el 
 
 ## Brand Commitments
 
-- Nombre: **Time Craft**. No existen logo, paleta ni tipografía.
+- Nombre: **Time Craft**. Logo: un ladrillo amarillo 2×2 con la aguja de un reloj (`brand/mark.svg`; con el nombre en `brand/logo.svg` y `brand/logo-dark.svg`). Estilo de videojuego de piezas de construir, con ladrillos genéricos: nunca el nombre, el logo ni la tipografía de una marca de juguetes.
+- Tema claro y oscuro, a elección de cada dispositivo (por defecto, el del sistema).
 - Voz: clara y calmada, en español y tuteando (como los textos de push que ya existen). Nunca un tono de vigilancia, castigo o alarma innecesaria: se habla de acuerdos y de tiempo disponible, no de control.
 
 ## Evidence on Hand
