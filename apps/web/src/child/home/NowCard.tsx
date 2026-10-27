@@ -12,7 +12,7 @@ import { type CSSProperties, useEffect, useRef } from "react";
 import {
 	AmountBricks,
 	BRICK_MINUTES,
-	BrickRow,
+	BrickTower,
 	bricksFor,
 	brickUnit,
 	overrunBricks,
@@ -76,7 +76,7 @@ function sessionBricks(
 		),
 		...overrunBricks(-Math.min(0, remainingMinutes), unit),
 	];
-	return { bricks, unit, perRow: Math.min(12, Math.max(6, bricks.length)) };
+	return { bricks, unit };
 }
 
 // Rings once when a scheduled session reaches its start, on the server's
@@ -208,7 +208,7 @@ function Running({
 	const plannedMinutes = session.plannedDurationSeconds / 60;
 	// Running on time: the plate is the activity's, its bricks white plastic.
 	const running = !paused && !over;
-	const { bricks, unit, perRow } = sessionBricks(
+	const { bricks, unit } = sessionBricks(
 		session,
 		t.remainingMs,
 		running ? "#ffffff" : look.color,
@@ -247,32 +247,51 @@ function Running({
 			</div>
 
 			<div className="flex flex-col gap-2">
-				{over ? (
-					<p
-						className="font-display text-[3.5rem] leading-none font-extrabold tracking-[-0.02em] text-stop"
-						role="status"
-						aria-label={`Se acabó tu sesión de ${name}`}
-					>
-						¡Se acabó!
-					</p>
-				) : (
-					<>
+				{/* The countdown, printed on a dark tile while it runs, with the
+				    session's bricks stacked beside it as a tower. */}
+				<div
+					className={`flex flex-wrap items-end justify-between gap-x-4 gap-y-3 ${
+						running
+							? "rounded-control bg-black/25 px-4 pt-3 pb-3 shadow-[inset_0_3px_0_rgb(0_0_0/0.22),inset_0_-2px_0_rgb(255_255_255/0.1)]"
+							: ""
+					}`}
+				>
+					{over ? (
 						<p
-							className={`tabular w-fit font-display text-[4.5rem] leading-none font-extrabold tracking-[-0.02em] ${
-								paused
-									? "text-pause-ink"
-									: "rounded-control bg-black/25 px-4 pt-3 pb-1 text-white shadow-[inset_0_3px_0_rgb(0_0_0/0.2)]"
-							}`}
-							aria-hidden="true"
+							className="font-display text-[3.5rem] leading-none font-extrabold tracking-[-0.02em] text-stop"
+							role="status"
+							aria-label={`Se acabó tu sesión de ${name}`}
 						>
-							{countdown(t.remainingMs)}
+							¡Se acabó!
 						</p>
-						<p className="sr-only" aria-live="polite">
-							Te quedan {minutesText(Math.ceil(t.remainingMs / 60_000))}
-						</p>
-					</>
-				)}
-				<p className={`text-lg ${paused ? "text-pause-ink" : ""}`}>
+					) : (
+						<>
+							<p
+								className={`tabular pt-1 font-display text-[4.5rem] leading-none font-extrabold tracking-[-0.02em] ${
+									paused ? "text-pause-ink" : "text-white"
+								}`}
+								aria-hidden="true"
+							>
+								{countdown(t.remainingMs)}
+							</p>
+							<p className="sr-only" aria-live="polite">
+								Te quedan {minutesText(Math.ceil(t.remainingMs / 60_000))}
+							</p>
+						</>
+					)}
+					<BrickTower
+						bricks={bricks}
+						enter={enter}
+						label={
+							over
+								? `Tu sesión de ${minutesText(plannedMinutes)} terminó`
+								: `${minutesText(Math.max(0, t.remainingMs) / 60_000)} restantes de ${minutesText(plannedMinutes)}`
+						}
+					/>
+				</div>
+				<p
+					className={`text-lg ${paused ? "text-pause-ink" : running ? "text-white" : ""}`}
+				>
 					{paused
 						? pauseStart === null
 							? "Tu tiempo no corre mientras está en pausa."
@@ -283,19 +302,6 @@ function Running({
 								? "Ve terminando: ya casi se acaba."
 								: `Termina a las ${timeText(t.endsAtMs ?? now, timeZone)}.`}
 				</p>
-			</div>
-
-			<div className="flex flex-col gap-2">
-				<BrickRow
-					bricks={bricks}
-					perRow={perRow}
-					enter={enter}
-					label={
-						over
-							? `Tu sesión de ${minutesText(plannedMinutes)} terminó`
-							: `${minutesText(Math.max(0, t.remainingMs) / 60_000)} restantes de ${minutesText(plannedMinutes)}`
-					}
-				/>
 				<p
 					className={`text-[0.9375rem] ${paused ? "text-pause-ink" : running ? "text-white/85" : "text-ink-soft"}`}
 				>

@@ -91,7 +91,7 @@ export function ReportCard({
 				</p>
 			</div>
 			{report.note && (
-				<blockquote className="rounded-control bg-sheet px-3.5 py-2.5">
+				<blockquote className="rounded-control bg-sheet-sunk px-3.5 py-2.5">
 					«{report.note}»
 				</blockquote>
 			)}

@@ -8,7 +8,7 @@ import { type CSSProperties, useState } from "react";
 import { Link } from "wouter";
 import {
 	BRICK_MINUTES,
-	BrickRow,
+	BrickTower,
 	bricksFor,
 	brickUnit,
 	overrunBricks,
@@ -84,7 +84,7 @@ function sessionBricks(
 		),
 		...overrunBricks(-Math.min(0, remainingMinutes), unit),
 	];
-	return { bricks, unit, perRow: Math.min(12, Math.max(6, bricks.length)) };
+	return { bricks, unit };
 }
 
 function useSessionCommands(session: Session, activityName: string) {
@@ -167,7 +167,7 @@ function LiveSession({
 	// Running on time: the plate is the activity's, its bricks white plastic.
 	const running = !scheduled && !paused && !over;
 	const soft = running ? "text-white/85" : "text-ink-soft";
-	const { bricks, unit, perRow } = sessionBricks(
+	const { bricks, unit } = sessionBricks(
 		session,
 		scheduled ? session.plannedDurationSeconds * 1000 : t.remainingMs,
 		running ? "#ffffff" : look.color,
@@ -223,21 +223,30 @@ function LiveSession({
 			</div>
 
 			<div className="flex flex-col gap-2">
-				{/* The countdown, printed on a dark tile while it runs. */}
-				<p
-					className={`tabular w-fit font-display text-[4rem] leading-none font-extrabold tracking-[-0.02em] ${
+				{/* The countdown, printed on a dark tile while it runs, with the
+				    session's bricks stacked beside it as a tower. */}
+				<div
+					className={`flex flex-wrap items-end justify-between gap-x-4 gap-y-3 ${
 						running
-							? "rounded-control bg-black/25 px-4 pt-3 pb-1 text-white shadow-[inset_0_3px_0_rgb(0_0_0/0.2)]"
-							: over
-								? "text-stop"
-								: "text-ink-soft"
+							? "rounded-control bg-black/25 px-4 pt-3 pb-3 shadow-[inset_0_3px_0_rgb(0_0_0/0.22),inset_0_-2px_0_rgb(255_255_255/0.1)]"
+							: ""
 					}`}
-					aria-hidden="true"
 				>
-					{scheduled
-						? timeText(session.scheduledStartAt ?? now, timeZone)
-						: countdown(t.remainingMs)}
-				</p>
+					<p
+						className={`tabular pt-1 font-display text-[4.5rem] leading-none font-extrabold tracking-[-0.02em] ${
+							running ? "text-white" : over ? "text-stop" : "text-ink-soft"
+						}`}
+						aria-hidden="true"
+					>
+						{scheduled
+							? timeText(session.scheduledStartAt ?? now, timeZone)
+							: countdown(t.remainingMs)}
+					</p>
+					<BrickTower
+						bricks={bricks}
+						label={`${minutesText(Math.max(0, t.remainingMs) / 60_000)} restantes de ${minutesText(session.plannedDurationSeconds / 60)}`}
+					/>
+				</div>
 				<p className="sr-only" aria-live="polite">
 					{scheduled
 						? `Empieza a las ${timeText(session.scheduledStartAt ?? now, timeZone)}`
@@ -246,14 +255,6 @@ function LiveSession({
 							: `Quedan ${minutesText(Math.ceil(t.remainingMs / 60_000))}`}
 				</p>
 				<p className={over ? "font-semibold text-stop" : soft}>{status}</p>
-			</div>
-
-			<div className="flex flex-col gap-2">
-				<BrickRow
-					bricks={bricks}
-					perRow={perRow}
-					label={`${minutesText(Math.max(0, t.remainingMs) / 60_000)} restantes de ${minutesText(session.plannedDurationSeconds / 60)}`}
-				/>
 				<p className={`text-[0.9375rem] ${soft}`}>
 					{scheduled
 						? `La programó ${startedBy}`
@@ -315,7 +316,9 @@ function LiveSession({
 							</Button>
 						)}
 						<Button
-							variant={over || longPause ? "danger" : "secondary"}
+							variant={
+								over || longPause ? "danger" : running ? "light" : "secondary"
+							}
 							icon={<Square className="size-4.5" aria-hidden="true" />}
 							disabled={busy}
 							onClick={() => setConfirm("stop")}

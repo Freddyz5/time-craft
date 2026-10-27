@@ -13,7 +13,14 @@ import {
 } from "react";
 import { Brick } from "./bricks";
 
-type Variant = "primary" | "secondary" | "quiet" | "danger" | "pause";
+type Variant =
+	| "primary"
+	| "secondary"
+	| "quiet"
+	| "danger"
+	| "pause"
+	// White plastic in both themes, for a coloured plate (a running "Ahora").
+	| "light";
 
 // The brick variants live in global.css (@utility brick-*).
 const variants: Record<Variant, string> = {
@@ -23,6 +30,7 @@ const variants: Record<Variant, string> = {
 		"bg-transparent text-ink hover:bg-sheet-sunk active:bg-sheet-sunk disabled:text-ink-faint underline-offset-4",
 	danger: "brick brick-danger",
 	pause: "brick brick-pause",
+	light: "brick brick-light",
 };
 
 const sizes = {
@@ -102,7 +110,7 @@ export function Callout({
 			"[--plate-face:var(--color-pause-tint)] [--plate-side:var(--color-pause)]",
 		stop: "[--plate-face:var(--color-stop-tint)] [--plate-side:var(--color-stop)]",
 		bonus:
-			"[--plate-face:var(--color-bonus-tint)] [--plate-side:var(--color-bonus)]",
+			"[--plate-side:var(--color-bonus)] outline-3 -outline-offset-3 outline-bonus",
 		balance:
 			"[--plate-face:var(--color-balance-tint)] [--plate-side:var(--color-balance)]",
 	};

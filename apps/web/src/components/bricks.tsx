@@ -261,6 +261,54 @@ export function BrickRow({
 	);
 }
 
+// A session's bricks stacked as a tower beside its countdown: columns of
+// `perColumn`, built bottom-up and left to right, so what is left sits at the
+// bottom, the brick in use drains on top of it and used bricks rest above.
+// Each brick sits on the studs of the one below.
+export function BrickTower({
+	bricks,
+	label,
+	perColumn = 3,
+	enter = false,
+}: {
+	bricks: readonly BrickSpec[];
+	label: string;
+	perColumn?: number;
+	enter?: boolean;
+}) {
+	const changes = useBrickMotion(bricks);
+	const motions = enter
+		? bricks.map((brick) => (brick.fill > 0 ? ("snap" as const) : undefined))
+		: changes;
+	const columns = Array.from(
+		{ length: Math.ceil(bricks.length / perColumn) },
+		(_, column) =>
+			bricks
+				.slice(column * perColumn, (column + 1) * perColumn)
+				.map((brick, row) => ({ brick, index: column * perColumn + row })),
+	);
+	return (
+		<div role="img" aria-label={label} className="flex items-end gap-1.5">
+			{columns.map((column) => (
+				<div
+					key={column[0]?.index}
+					className="flex w-11 flex-col-reverse [&>*+*]:-mb-1.5"
+				>
+					{column.map(({ brick, index }) => (
+						// Position is identity, as in BrickRow.
+						<Brick
+							key={index}
+							{...brick}
+							animate={motions[index]}
+							delayMs={enter ? index * 70 : undefined}
+						/>
+					))}
+				</div>
+			))}
+		</div>
+	);
+}
+
 // A live count: `available` of `total` minutes as bricks of `unit` minutes,
 // solid first, then the draining one, then outlines.
 export function bricksFor(

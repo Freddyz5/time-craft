@@ -162,7 +162,9 @@ function LimitsForm({
 			}}
 		>
 			<fieldset className="flex flex-col gap-4">
-				<legend className="mb-3 font-semibold">Tiempo</legend>
+				<legend className="mb-3 font-display text-xl leading-tight font-bold">
+					Tiempo
+				</legend>
 				<div className="grid gap-5 sm:grid-cols-2">
 					<div className="flex flex-col gap-1.5">
 						<label htmlFor={`${id}-daily`} className="font-medium">
@@ -220,7 +222,10 @@ function LimitsForm({
 			</fieldset>
 			<fieldset className="flex flex-col gap-4 border-t-[1.5px] border-rule pt-5">
 				<legend className="sr-only">Bonos y avisos</legend>
-				<p aria-hidden="true" className="-mt-1 font-semibold">
+				<p
+					aria-hidden="true"
+					className="-mt-1 font-display text-xl leading-tight font-bold"
+				>
 					Bonos y avisos
 				</p>
 				<div className="grid gap-5 sm:grid-cols-2">
