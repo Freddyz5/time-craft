@@ -206,7 +206,7 @@ function AskForm() {
 						return (
 							<label
 								key={activity.id}
-								className="group relative flex cursor-pointer flex-col gap-2 rounded-control border-[1.5px] border-rule-strong bg-sheet p-3 transition-colors hover:bg-sheet-sunk has-checked:border-ink has-checked:shadow-[inset_0_0_0_1.5px_var(--color-ink)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
+								className="group relative flex flex-col gap-2 rounded-control border-[1.5px] border-rule-strong bg-sheet p-3 transition-colors hover:bg-sheet-sunk has-checked:border-ink has-checked:shadow-[inset_0_0_0_1.5px_var(--color-ink)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
 							>
 								<span
 									className="absolute top-2.5 right-2.5 hidden size-6 place-items-center rounded-full bg-ink text-on-ink group-has-checked:grid"

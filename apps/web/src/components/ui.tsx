@@ -63,7 +63,7 @@ export function Button({
 			type={type}
 			disabled={disabled || busy}
 			aria-busy={busy || undefined}
-			className={`inline-flex select-none items-center justify-center rounded-control font-bold [text-wrap:balance] transition-colors duration-150 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${block ? "w-full" : ""} ${className}`}
+			className={`inline-flex select-none items-center justify-center rounded-control font-bold [text-wrap:balance] transition-colors duration-150 ${variants[variant]} ${sizes[size]} ${block ? "w-full" : ""} ${className}`}
 			{...rest}
 		>
 			{busy ? (
@@ -256,7 +256,7 @@ export function Segmented<T extends string>({
 			{options.map((option) => (
 				<label
 					key={option.value}
-					className="flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-center font-bold text-ink-soft transition-colors hover:text-ink has-checked:bg-ink has-checked:text-on-ink has-checked:shadow-[0_3px_0_var(--color-ink-side)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
+					className="flex min-h-10 flex-1 items-center justify-center rounded-md px-3 text-center font-bold text-ink-soft transition-colors hover:text-ink has-checked:bg-ink has-checked:text-on-ink has-checked:shadow-[0_3px_0_var(--color-ink-side)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
 				>
 					<input
 						type="radio"

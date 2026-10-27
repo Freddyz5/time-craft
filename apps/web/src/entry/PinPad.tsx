@@ -60,7 +60,7 @@ export function PinStuds({
 }
 
 const keyClass =
-	"grid min-h-16 select-none place-items-center rounded-control leading-none disabled:cursor-not-allowed";
+	"grid min-h-16 select-none place-items-center rounded-control leading-none";
 const digitClass = `${keyClass} brick brick-secondary tabular pt-1.5 font-display text-[2rem] font-extrabold`;
 
 export function PinPad({

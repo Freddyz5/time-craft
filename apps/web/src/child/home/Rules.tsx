@@ -37,7 +37,7 @@ export function Rules({ policies }: { policies: readonly Policy[] }) {
 	);
 	return (
 		<details className="plate group">
-			<summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 rounded-callout px-4 font-semibold sm:px-5 [&::-webkit-details-marker]:hidden">
+			<summary className="flex min-h-14 list-none items-center gap-3 rounded-callout px-4 font-semibold sm:px-5 [&::-webkit-details-marker]:hidden">
 				<ScrollText className="size-5 shrink-0" aria-hidden="true" />
 				<span className="flex-1 text-lg">Tus reglas</span>
 				<ChevronDown

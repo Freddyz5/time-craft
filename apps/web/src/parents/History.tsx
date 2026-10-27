@@ -449,7 +449,7 @@ export function History() {
 						onClick={() => setWeeksBack((weeks) => weeks + 1)}
 						disabled={currentStart === null || weeksBack >= 12}
 						aria-label="Semana anterior"
-						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:opacity-35 disabled:hover:bg-transparent"
 					>
 						<ChevronLeft className="size-5" aria-hidden="true" />
 					</button>
@@ -470,7 +470,7 @@ export function History() {
 						onClick={() => setWeeksBack((weeks) => Math.max(0, weeks - 1))}
 						disabled={weeksBack === 0}
 						aria-label="Semana siguiente"
-						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:opacity-35 disabled:hover:bg-transparent"
 					>
 						<ChevronRight className="size-5" aria-hidden="true" />
 					</button>

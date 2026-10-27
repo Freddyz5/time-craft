@@ -410,7 +410,7 @@ export function BonusTasks() {
 
 					{inactive.length > 0 && (
 						<details className="group rounded-callout border-[1.5px] border-rule bg-sheet-sunk">
-							<summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-callout px-4 font-semibold [&::-webkit-details-marker]:hidden">
+							<summary className="flex min-h-12 list-none items-center justify-between gap-3 rounded-callout px-4 font-semibold [&::-webkit-details-marker]:hidden">
 								Desactivadas · {inactive.length}
 								<ChevronRight
 									className="size-5 text-ink-soft transition-transform group-open:rotate-90"
