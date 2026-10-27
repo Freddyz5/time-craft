@@ -36,7 +36,7 @@ function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
 		neutral: "bg-sheet-sunk text-ink-soft",
 		good: "bg-balance-tint text-balance-ink",
 		warn: "bg-pause-tint text-pause-ink",
-		bad: "bg-stop-tint text-[#7d1206]",
+		bad: "bg-stop-tint text-stop-ink",
 	};
 	return (
 		<span
@@ -95,7 +95,7 @@ function Section({
 }) {
 	return (
 		<Callout className="flex flex-col gap-4 p-4 sm:p-5" aria-labelledby={id}>
-			<h2 id={id} className="text-xl leading-tight font-semibold">
+			<h2 id={id} className="text-[1.375rem] leading-tight font-bold">
 				{title}
 			</h2>
 			{children}
@@ -130,7 +130,7 @@ function Usage({ view }: { view: HistoryView }) {
 		>
 			<h2
 				id="usage-title"
-				className="text-2xl leading-tight font-bold tracking-[-0.01em]"
+				className="text-[1.75rem] leading-tight font-extrabold"
 			>
 				<span className="sr-only">Uso por actividad: </span>
 				{minutesText(total)} en total
@@ -442,16 +442,14 @@ export function History() {
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-5">
 			<div className="flex flex-col gap-3">
-				<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-					Historial
-				</h1>
-				<div className="flex items-center justify-between gap-2 rounded-callout border-[1.5px] border-rule bg-sheet p-1.5">
+				<h1 className="text-[2rem] leading-tight font-extrabold">Historial</h1>
+				<div className="plate flex items-center justify-between gap-2 p-1.5">
 					<button
 						type="button"
 						onClick={() => setWeeksBack((weeks) => weeks + 1)}
 						disabled={currentStart === null || weeksBack >= 12}
 						aria-label="Semana anterior"
-						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:opacity-35 disabled:hover:bg-transparent"
 					>
 						<ChevronLeft className="size-5" aria-hidden="true" />
 					</button>
@@ -472,7 +470,7 @@ export function History() {
 						onClick={() => setWeeksBack((weeks) => Math.max(0, weeks - 1))}
 						disabled={weeksBack === 0}
 						aria-label="Semana siguiente"
-						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+						className="grid size-11 place-items-center rounded-control hover:bg-sheet-sunk disabled:opacity-35 disabled:hover:bg-transparent"
 					>
 						<ChevronRight className="size-5" aria-hidden="true" />
 					</button>

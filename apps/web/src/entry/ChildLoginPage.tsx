@@ -95,7 +95,7 @@ function WaitPanel({ wait, remainingMs }: { wait: Wait; remainingMs: number }) {
 			</p>
 			<p className="mt-1 font-medium">Podrás probar otra vez en</p>
 			<p
-				className="tabular text-[2.5rem] leading-none font-extrabold tracking-[-0.02em]"
+				className="tabular font-display text-[2.5rem] leading-none font-extrabold tracking-[-0.02em]"
 				aria-hidden="true"
 			>
 				{countdown(Math.max(0, remainingMs))}

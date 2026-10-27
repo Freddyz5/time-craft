@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useId, useState } from "react";
 import { CopyCode } from "../components/CopyCode";
+import { ThemeSetting } from "../components/ThemeSetting";
 import { useToast } from "../components/toast";
 import {
 	Button,
@@ -204,7 +205,10 @@ function CreateChild() {
 			aria-labelledby={`${id}-title`}
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id={`${id}-title`} className="text-xl leading-tight font-semibold">
+				<h2
+					id={`${id}-title`}
+					className="text-[1.375rem] leading-tight font-bold"
+				>
 					Crear la cuenta del niño
 				</h2>
 				<p className="text-ink-soft">
@@ -407,7 +411,10 @@ function ChildAccount({ child }: { child: HouseholdChild }) {
 			aria-labelledby="child-title"
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id="child-title" className="text-xl leading-tight font-semibold">
+				<h2
+					id="child-title"
+					className="text-[1.375rem] leading-tight font-bold"
+				>
 					Cuenta de {child.name}
 				</h2>
 				<p className="text-ink-soft">
@@ -595,7 +602,10 @@ function RecoveryCode() {
 			aria-labelledby="recovery-title"
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id="recovery-title" className="text-xl leading-tight font-semibold">
+				<h2
+					id="recovery-title"
+					className="text-[1.375rem] leading-tight font-bold"
+				>
 					Código de recuperación
 				</h2>
 				<p className="text-ink-soft">
@@ -656,9 +666,7 @@ export function Accounts() {
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-5">
 			<div className="flex flex-col gap-1">
-				<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-					Cuentas
-				</h1>
+				<h1 className="text-[2rem] leading-tight font-extrabold">Cuentas</h1>
 				<p className="text-ink-soft">{household.family.name}</p>
 			</div>
 
@@ -675,7 +683,7 @@ export function Accounts() {
 				<div className="flex flex-col gap-1">
 					<h2
 						id="parents-title"
-						className="text-xl leading-tight font-semibold"
+						className="text-[1.375rem] leading-tight font-bold"
 					>
 						Padres
 					</h2>
@@ -697,7 +705,10 @@ export function Accounts() {
 				aria-labelledby="push-title"
 			>
 				<div className="flex flex-col gap-1">
-					<h2 id="push-title" className="text-xl leading-tight font-semibold">
+					<h2
+						id="push-title"
+						className="text-[1.375rem] leading-tight font-bold"
+					>
 						Avisos en este dispositivo
 					</h2>
 					<p className="text-ink-soft">
@@ -706,6 +717,24 @@ export function Accounts() {
 					</p>
 				</div>
 				<PushToggle />
+			</Callout>
+
+			<Callout
+				className="flex flex-col gap-3 p-4 sm:p-5"
+				aria-labelledby="theme-title"
+			>
+				<div className="flex flex-col gap-1">
+					<h2
+						id="theme-title"
+						className="text-[1.375rem] leading-tight font-bold"
+					>
+						Tema de este dispositivo
+					</h2>
+					<p className="text-ink-soft">
+						Automático sigue al del teléfono o la computadora.
+					</p>
+				</div>
+				<ThemeSetting />
 			</Callout>
 
 			<RecoveryCode />

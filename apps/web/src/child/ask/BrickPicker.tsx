@@ -46,7 +46,7 @@ export function BrickPicker({
 					return (
 						<label
 							key={minutes}
-							className="cursor-pointer rounded-control px-0.5 pt-2 pb-1 has-focus-visible:outline-3 has-focus-visible:outline-focus"
+							className="rounded-control px-0.5 pt-2 pb-1 has-focus-visible:outline-3 has-focus-visible:outline-focus"
 						>
 							<input
 								type="radio"

@@ -1,95 +1,153 @@
 ---
 name: Time Craft
-description: El tiempo de pantalla de un niño, armado y gastado en ladrillos, como en un manual de armado.
+description: El tiempo de pantalla de un niño, armado y gastado en ladrillos sobre una placa de construir, de día y de noche.
 colors:
-  page: "#dce7f0"
+  page: "#dde2e9"
+  page-stud: "#e7eaef"
+  page-rim: "#cdd3dc"
   sheet: "#ffffff"
-  sheet-sunk: "#f2f6fa"
-  rule: "#b9c9d7"
-  rule-strong: "#6d8397"
-  ink: "#15191e"
-  ink-soft: "#46535f"
-  ink-faint: "#5f6c78"
-  balance: "#00852b"
-  balance-tint: "#dcefe2"
-  balance-ink: "#006622"
-  bonus: "#f5cd2f"
-  bonus-tint: "#fdf2c4"
+  sheet-side: "#c2c9d4"
+  sheet-sunk: "#eef1f5"
+  raised: "#ffffff"
+  raised-side: "#aeb6c2"
+  rule: "#d3d9e2"
+  rule-strong: "#7d8796"
+  ink: "#171a20"
+  ink-side: "#000000"
+  ink-soft: "#454d5a"
+  ink-faint: "#5a6372"
+  on-ink: "#ffffff"
+  balance: "#1f9a45"
+  balance-tint: "#dcf1e2"
+  balance-ink: "#146c30"
+  bonus: "#ffc800"
+  bonus-side: "#b38c00"
+  bonus-tint: "#fff3c4"
   bonus-ink: "#6b5300"
-  game: "#0055bf"
-  game-tint: "#dde8f8"
-  tv: "#9b2c7e"
-  tv-tint: "#f5e1ef"
-  pause: "#fe8a18"
+  game: "#2468d6"
+  game-side: "#164a9e"
+  game-tint: "#dfe9fa"
+  tv: "#c2338f"
+  tv-side: "#8a1f63"
+  tv-tint: "#f8e1f0"
+  pause: "#ff8c1a"
+  pause-side: "#b35c00"
   pause-tint: "#ffe9d2"
   pause-ink: "#8a4300"
-  stop: "#c91a09"
+  stop: "#d82626"
+  stop-side: "#8f1414"
+  on-stop: "#ffffff"
   stop-tint: "#fbe2de"
-  ghost: "#7a8fa3"
-  focus: "#0055bf"
+  stop-ink: "#8f1414"
+  ghost: "#9aa3b2"
+  socket: "#cfd6df"
+  focus: "#1f66d1"
+  page-dark: "#1b1e24"
+  page-stud-dark: "#242830"
+  page-rim-dark: "#16181d"
+  sheet-dark: "#2a2e36"
+  sheet-side-dark: "#121418"
+  sheet-sunk-dark: "#1f2228"
+  raised-dark: "#3a3f49"
+  raised-side-dark: "#15171b"
+  rule-dark: "#3c414c"
+  rule-strong-dark: "#79808e"
+  ink-dark: "#f3f4f7"
+  ink-side-dark: "#a3a9b4"
+  ink-soft-dark: "#b8bfcb"
+  ink-faint-dark: "#98a0ae"
+  on-ink-dark: "#16191f"
+  balance-dark: "#2fb355"
+  balance-tint-dark: "#183323"
+  balance-ink-dark: "#74d891"
+  bonus-dark: "#ffcd1a"
+  bonus-side-dark: "#a37f00"
+  bonus-tint-dark: "#3a3214"
+  bonus-ink-dark: "#ffd95a"
+  game-dark: "#2f72dc"
+  game-side-dark: "#1a4aa0"
+  game-tint-dark: "#1d2a44"
+  tv-dark: "#c93a96"
+  tv-side-dark: "#7d1f5d"
+  tv-tint-dark: "#3a1f33"
+  pause-dark: "#ff9a2e"
+  pause-side-dark: "#a85500"
+  pause-tint-dark: "#3d2a14"
+  pause-ink-dark: "#ffb866"
+  stop-dark: "#ff6b6b"
+  stop-side-dark: "#a32424"
+  on-stop-dark: "#2a0505"
+  stop-tint-dark: "#3d1a1a"
+  stop-ink-dark: "#ff8a8a"
+  ghost-dark: "#6a7180"
+  socket-dark: "#3d424d"
+  focus-dark: "#7aaeff"
+  plastic-white: "#ffffff"
 typography:
   display:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "3.5rem"
-    fontWeight: 800
-    lineHeight: 1
-    letterSpacing: "-0.02em"
-    fontFeature: "tnum"
-  display-lg:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Baloo 2 Variable, ui-rounded, ui-sans-serif, system-ui, sans-serif"
     fontSize: "4.5rem"
     fontWeight: 800
     lineHeight: 1
     letterSpacing: "-0.02em"
     fontFeature: "tnum"
-  step-number:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "2rem"
+  display-sm:
+    fontFamily: "Baloo 2 Variable, ui-rounded, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "3.5rem"
     fontWeight: 800
     lineHeight: 1
-    fontFeature: "tnum"
+    letterSpacing: "-0.02em"
+  hero:
+    fontFamily: "Baloo 2 Variable, ui-rounded, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "4.25rem"
+    fontWeight: 800
+    lineHeight: 1.02
+    letterSpacing: "-0.02em"
   headline:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.75rem"
-    fontWeight: 700
+    fontFamily: "Baloo 2 Variable, ui-rounded, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "2rem"
+    fontWeight: 800
     lineHeight: 1.25
-    letterSpacing: "-0.01em"
   headline-sm:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.5rem"
+    fontFamily: "Baloo 2 Variable, ui-rounded, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.75rem"
+    fontWeight: 800
+    lineHeight: 1.25
+  title:
+    fontFamily: "Baloo 2 Variable, ui-rounded, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.375rem"
     fontWeight: 700
     lineHeight: 1.25
-    letterSpacing: "-0.01em"
-  title:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
+  title-sm:
+    fontFamily: "Baloo 2 Variable, ui-rounded, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.25rem"
-    fontWeight: 600
+    fontWeight: 700
     lineHeight: 1.25
   body:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Nunito Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.5
   body-sm:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Nunito Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.9375rem"
     fontWeight: 400
     lineHeight: 1.5
   label:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.875rem"
-    fontWeight: 500
-    lineHeight: 1.4
+    fontFamily: "Nunito Variable, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 700
+    lineHeight: 1.5
   caption:
-    fontFamily: "Rubik Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Nunito Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.8125rem"
-    fontWeight: 500
+    fontWeight: 700
     lineHeight: 1.4
 rounded:
+  segment: "6px"
+  control: "8px"
+  callout: "10px"
   battery: "14px"
-  callout: "12px"
-  control: "10px"
-  segment: "7px"
   pill: "9999px"
 spacing:
   "1": "4px"
@@ -102,20 +160,15 @@ spacing:
 components:
   button-primary:
     backgroundColor: "{colors.ink}"
-    textColor: "{colors.sheet}"
+    textColor: "{colors.on-ink}"
+    typography: "{typography.label}"
     rounded: "{rounded.control}"
     padding: "0 16px"
     height: "48px"
   button-secondary:
-    backgroundColor: "{colors.sheet}"
+    backgroundColor: "{colors.raised}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.control}"
-    padding: "0 16px"
-    height: "48px"
-  button-secondary-hover:
-    backgroundColor: "{colors.sheet-sunk}"
-  button-quiet:
-    textColor: "{colors.ink}"
+    typography: "{typography.label}"
     rounded: "{rounded.control}"
     padding: "0 16px"
     height: "48px"
@@ -127,7 +180,18 @@ components:
     height: "48px"
   button-danger:
     backgroundColor: "{colors.stop}"
-    textColor: "{colors.sheet}"
+    textColor: "{colors.on-stop}"
+    rounded: "{rounded.control}"
+    padding: "0 16px"
+    height: "48px"
+  button-light:
+    backgroundColor: "{colors.plastic-white}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.control}"
+    padding: "0 16px"
+    height: "48px"
+  button-quiet:
+    textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     padding: "0 16px"
     height: "48px"
@@ -135,24 +199,24 @@ components:
     rounded: "{rounded.control}"
     padding: "0 12px"
     height: "40px"
-  button-lg:
-    rounded: "{rounded.control}"
-    padding: "0 16px"
-    height: "56px"
-  callout:
+  plate:
     backgroundColor: "{colors.sheet}"
     rounded: "{rounded.callout}"
     padding: "16px"
-  callout-pause:
+  plate-pause:
     backgroundColor: "{colors.pause-tint}"
-  callout-stop:
+  plate-stop:
     backgroundColor: "{colors.stop-tint}"
-  callout-bonus:
-    backgroundColor: "{colors.bonus-tint}"
-  callout-balance:
+  plate-balance:
     backgroundColor: "{colors.balance-tint}"
-  input:
-    backgroundColor: "{colors.sheet}"
+  plate-game:
+    backgroundColor: "{colors.game}"
+    textColor: "{colors.plastic-white}"
+  plate-tv:
+    backgroundColor: "{colors.tv}"
+    textColor: "{colors.plastic-white}"
+  input-slot:
+    backgroundColor: "{colors.sheet-sunk}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     padding: "0 14px"
@@ -163,237 +227,254 @@ components:
     padding: "4px"
   segmented-selected:
     backgroundColor: "{colors.ink}"
-    textColor: "{colors.sheet}"
+    textColor: "{colors.on-ink}"
     rounded: "{rounded.segment}"
     height: "40px"
-  activity-tag:
-    textColor: "{colors.sheet}"
-    rounded: "{rounded.pill}"
-    padding: "4px 10px"
+  tile-on:
+    backgroundColor: "{colors.bonus}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.control}"
+  tab-bar-item:
+    textColor: "{colors.ink-faint}"
+    typography: "{typography.caption}"
+    height: "72px"
+  tab-bar-item-child:
+    textColor: "{colors.ink-faint}"
+    height: "80px"
+  step-tile:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.on-ink}"
+    rounded: "{rounded.control}"
+    size: "40px"
+  battery:
+    backgroundColor: "{colors.sheet-sunk}"
+    rounded: "{rounded.battery}"
+    padding: "10px 8px 8px"
   parts-box:
     backgroundColor: "{colors.sheet-sunk}"
     rounded: "{rounded.control}"
     padding: "10px 14px"
-  tab-bar-item:
-    textColor: "{colors.ink-faint}"
-    typography: "{typography.caption}"
-    height: "64px"
-  tab-bar-item-active:
-    textColor: "{colors.ink}"
-  tab-bar-item-child:
-    textColor: "{colors.ink-faint}"
-    typography: "{typography.label}"
-    height: "64px"
-  battery:
-    backgroundColor: "{colors.sheet}"
-    rounded: "{rounded.battery}"
-    padding: "6px 8px 8px"
   pin-key:
-    backgroundColor: "{colors.sheet}"
+    backgroundColor: "{colors.raised}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     height: "64px"
+  activity-tag:
+    textColor: "{colors.plastic-white}"
+    rounded: "{rounded.pill}"
+    padding: "4px 12px"
 ---
 
 # Design System: Time Craft
 
 ## Overview
 
-**Creative North Star: "El manual de armado"**
+**Creative North Star: "La placa de construir"**
 
-Time Craft dibuja el tiempo como piezas de un manual de armado de ladrillos: un fondo azul pálido de manual, recuadros blancos de borde fino gris acero y tinta casi negra, y encima ladrillos de frente con sus pernos que llevan todo el color. Cada ladrillo vale 10 minutos. El saldo, la sesión en vivo, una solicitud o el premio de una tarea se leen contando ladrillos, sin leer párrafos. Los flujos de varios pasos se numeran como las páginas de un manual.
+Toda la app está hecha de piezas de construir. El suelo es una placa base con pernos en una rejilla de 24 px (gris claro de día, carbón de noche); cada recuadro es una placa de plástico con una fila de pernos en el borde superior y un canto de 6 px abajo; cada botón es un ladrillo con dos pernos que se hunde al tocarlo. El tiempo se arma y se gasta en ladrillos con volumen: cada ladrillo vale 10 minutos, y el saldo, la sesión en vivo, una solicitud o el premio de una tarea se leen contando ladrillos, sin leer párrafos.
 
-El sistema es denso pero tranquilo: el color vive en los ladrillos y en un puñado de estados, y los recuadros quedan blancos. Rechaza la estética del panel de control parental de la categoría: anillos de progreso, escudos y tarjetas grises con un único acento azul. Solo tema claro en la v1 (se usa en habitaciones iluminadas); los tokens separan tinta y fondo para poder sumar un tema oscuro sin rehacerlos.
+El color vive en los ladrillos y en las placas que informan un estado; las demás placas son de plástico neutro. «Ahora», mientras corre una sesión, es la única placa grande de color: la del color de su actividad, con la cuenta impresa en una baldosa oscura y la sesión como torre de ladrillos blancos. El sistema rechaza el panel de control parental de la categoría (anillos de progreso, escudos, tarjetas grises con un único acento azul) y el manual plano de la versión anterior.
 
-La gramática es solo la de un manual de ladrillos genérico: no hay marcas, logos ni nombres de ninguna juguetera, y la paleta evoca colores de ladrillo sin citar a nadie.
-
-El área del niño es el mismo manual a mayor escala: las mismas piezas y colores, con cifras, botones y teclas un paso más grandes y menos texto. Su saldo se dibuja como baterías hechas de ladrillos, y pide armando ladrillos, no tecleando números.
+Hay dos temas, claro y oscuro, que salen de los mismos tokens: el oscuro redefine cada valor bajo `[data-theme="dark"]` y nunca agrega piezas propias. Por defecto sigue al sistema; cada dispositivo elige Automático, Claro u Oscuro, y el tema se aplica antes del primer pintado. La gramática es la de unas piezas de construir genéricas: sin marcas, logos ni nombres de ninguna juguetera. El área del niño es la misma placa a mayor escala.
 
 **Key Characteristics:**
-- Ladrillos de frente (dos pernos, 40×26) como única unidad visual de tiempo: 1 ladrillo = 10 min.
-- Sólido = disponible; contorno punteado = usado; el ladrillo en uso se vacía desde arriba.
-- Un trabajo por color: verde saldo, amarillo bonos, azul Juego, magenta TV, naranja pausa, rojo fin, exceso y acciones que cortan.
-- Recuadros blancos de 12 px con borde de 1,5 px sobre azul pálido; sombra suave, nunca dura.
-- Rubik en todo, cifras tabulares, números de paso en 800.
+- Placa base con pernos bajo todo; recuadros como placas con pernos arriba y canto de 6 px abajo.
+- Botones-ladrillo con dos pernos que bajan 3 px al tocarlos mientras el canto se achica de 4 px a 1 px.
+- Ladrillos de frente (40×26, dos pernos) como única unidad visual de tiempo: 1 ladrillo = 10 min.
+- Sólido = disponible; contorno punteado = usado; el ladrillo en uso se vacía desde arriba; la tira de placa con sus pernos = lo que todavía se puede ganar.
+- Un trabajo por color: verde saldo, amarillo bono y marca, azul Juego, magenta TV, naranja pausa, rojo fin.
+- Baloo 2 en títulos y cifras, Nunito en el texto; cifras tabulares.
+- Claro y oscuro desde los mismos tokens.
 - Iconos Lucide de trazo 2.
-- Del lado del niño, el saldo es una batería: contorno de tinta con borne y celdas-ladrillo; el hueco liso es lo que todavía puede ganar.
 
 ## Colors
 
-Una base fría de manual (azul pálido, blanco, gris acero, tinta casi negra) y seis colores de ladrillo saturados, cada uno con un solo trabajo.
+Una base neutra de plástico gris (placa base, placas blancas o carbón, tinta) y seis colores de ladrillo saturados, cada uno con un solo trabajo. Cada color de ladrillo tiene su canto (`-side`, el plástico en sombra), su tinte (fondo de una placa que informa) y, cuando lleva texto, su tinta (`-ink`). Los valores de los dos temas están en el frontmatter: la clave sin sufijo es el tema claro; la clave con `-dark` es el mismo token en el tema oscuro.
 
 ### Primary
-- **Verde Saldo** (balance): el tiempo todavía disponible. Ladrillos de Hoy y Semana en Inicio, el interruptor encendido, el aviso de éxito y, del lado del niño, el recuadro de un «sí» a su pedido. Su tinta (balance-ink) y su tinte (balance-tint) sirven para texto y fondo de los avisos de éxito.
+- **Verde Saldo** (balance): el tiempo todavía disponible. Los ladrillos de Hoy y Semana, el interruptor encendido, el aviso de éxito y, del lado del niño, la placa tintada de un «sí» a su pedido (balance-tint con canto balance). balance-ink para texto sobre su tinte.
 
 ### Secondary
-- **Amarillo Bono** (bonus): minutos ganados con tareas, en la pared de la semana, en la caja de piezas de un reporte y en el recuadro tintado de un reporte por revisar. También es el color de la marca (ladrillo 2×2 con una aguja de reloj), de los pernos de la pestaña activa y de la selección de texto. Texto sobre tinte amarillo: bonus-ink.
-- **Azul Juego** (game) y **Magenta TV** (tv): los colores de actividad. Pintan los ladrillos de una sesión, la etiqueta de actividad en «Ahora» y el círculo del icono al elegir actividad. Una actividad sin color propio usa ink-soft con un icono genérico.
+- **Amarillo Bono** (bonus): minutos ganados con tareas (la cola amarilla del muro de la semana, el medidor de bonos, la caja de piezas de un reporte, la placa de un reporte por revisar) y el color de la marca: el ladrillo del logo, la baldosa de la pestaña activa, los pernos que se llenan en el PIN del niño y la selección de texto. Su canto (bonus-side) da el volumen de la baldosa activa.
+- **Azul Juego** (game) y **Magenta TV** (tv): los colores de actividad. Pintan los ladrillos de una sesión, la etiqueta de actividad y, mientras la sesión corre, toda la placa de «Ahora» (cara del color, canto `-side`). Una actividad sin color propio usa ink-soft en sus ladrillos.
 
 ### Tertiary
-- **Naranja Pausa** (pause): el botón Pausar, el recuadro de una sesión pausada (pause-tint con borde pause) y el titular de «pausada hace rato» (pause-ink).
-- **Rojo Fin** (stop): la cuenta regresiva pasada de tiempo, los ladrillos de exceso, los errores y los botones que cortan. El tinte (stop-tint) es el fondo de recuadros y avisos de error.
+- **Naranja Pausa** (pause): el ladrillo Pausar y la placa de una sesión en pausa (pause-tint con canto pause); pause-ink para el titular de «pausada hace rato».
+- **Rojo Fin** (stop): la cuenta pasada de tiempo, los ladrillos de exceso, los errores, el borde de la alarma y los ladrillos que cortan. stop-tint con canto stop es la placa de un error o un fin; stop-ink su texto. En oscuro el rojo sube a coral (#ff6b6b) con tinta oscura encima (on-stop).
 
 ### Neutral
-- **Azul Manual** (page): el fondo de toda la app y el estado activo del riel lateral.
-- **Hoja** (sheet): recuadros, barras y campos.
-- **Hoja Hundida** (sheet-sunk): fondos de cajas internas (caja de piezas, código de recuperación, selector segmentado) y el hover de controles claros.
-- **Regla** (rule) y **Regla Fuerte** (rule-strong): el borde de los recuadros y el borde de controles interactivos (botón secundario, campos, stepper).
-- **Tinta** (ink), **Tinta Suave** (ink-soft), **Tinta Tenue** (ink-faint): texto principal, secundario (estados, leyendas, pistas) y terciario (placeholder, pestañas inactivas).
+- **Placa Base** (page, page-stud, page-rim): el suelo de toda la app, con su perno y el aro del perno.
+- **Placa** (sheet, sheet-side): la cara y el canto de cada recuadro, barra superior, riel y barra de pestañas. En oscuro, la placa (#2a2e36) es más clara que el suelo y su canto casi negro.
+- **Placa Hundida** (sheet-sunk): el fondo de lo que está metido en la placa: campos, selector segmentado, batería, caja de piezas, código de recuperación; también el hover de filas y botones sin fondo.
+- **Plástico Elevado** (raised, raised-side): la cara y el canto del ladrillo secundario, las teclas del PIN y el perno redondo de la barra (el «+» con sesión abierta, la campana del niño).
+- **Regla** (rule) y **Regla Fuerte** (rule-strong): el contorno fino del ladrillo secundario y las divisiones; el borde de campos, del segmentado y de los pernos vacíos.
+- **Tinta** (ink, ink-side, on-ink): texto principal y el ladrillo primario (en oscuro, la tinta es casi blanca y el ladrillo primario se vuelve claro con texto oscuro). **Tinta Suave** (ink-soft) para texto secundario, **Tinta Tenue** (ink-faint) para placeholder y pestañas inactivas.
 - **Fantasma** (ghost): el contorno punteado de un ladrillo usado.
-- **Foco** (focus): anillo de foco de 3 px y cursor de texto; coincide con el azul de Juego.
+- **Hueco** (socket): la tira de placa con pernos de un lugar por ganar.
+- **Foco** (focus): el anillo de foco de 3 px y el cursor de texto. Sobre una placa de color, el foco pasa a blanco.
+- **Plástico Blanco** (plastic-white): blanco fijo en los dos temas, solo sobre una placa de color: el texto de «Ahora» en curso, su etiqueta de actividad invertida, los ladrillos de su torre y el ladrillo Detener (ladrillo claro, canto #aeb6c2).
 
 ### Named Rules
-**The One Job Rule.** Cada color de ladrillo tiene un solo trabajo: verde saldo, amarillo bonos, azul Juego, magenta TV, naranja pausa, rojo fin, exceso y acciones que cortan. Un color nunca se usa como decoración ni para otro significado.
+**The One Job Rule.** Cada color de ladrillo tiene un solo trabajo: verde saldo, amarillo bono y marca, azul Juego, magenta TV, naranja pausa, rojo fin, exceso y acciones que cortan. Un color nunca se usa como decoración ni para otro significado.
 
-**The Red Is Earned Rule.** El rojo aparece solo cuando algo se acaba o se corta. «Detener» es un botón secundario mientras la sesión corre y pasa a rojo solo cuando se pasó del tiempo o la pausa ya es larga; en el diálogo de confirmación, la acción que corta va en rojo.
+**The Red Is Earned Rule.** El rojo aparece solo cuando algo se acaba o se corta. «Detener» es un ladrillo blanco (sobre la placa de color) o secundario mientras la sesión corre a tiempo, y pasa a rojo solo cuando se pasó del tiempo o la pausa ya es larga; en el diálogo de confirmación, la acción que corta va en rojo.
 
-**The White Callout Rule.** Los recuadros son blancos; el tinte de un recuadro informa el único estado que reporta (pausa, fin, bono y, para el niño, un «sí») y nada más.
+**The One State Plate Rule.** Una placa es neutra; su cara y su canto se tiñen solo para el único estado que reporta (pausa, fin, bono, el «sí» del niño) y, mientras corre, «Ahora» toma el color de su actividad. Ninguna otra placa lleva color de fondo.
 
-**The Calm No Rule.** Del lado del niño, el rojo queda para dos cosas: el fin de su sesión («¡Se acabó!») y el PIN que no coincide. Un «no» a su pedido o a su tarea es un recuadro blanco con el icono sobre hoja hundida; el bloqueo del PIN es una caja hundida con su cuenta regresiva en tinta; un motivo que falta se dice en tinta con un icono de ayuda.
+**The Same Tokens Rule.** Los dos temas son los mismos tokens con otro valor. Ningún componente usa un color fijo que no cambie con el tema, salvo el blanco sobre una placa de color y la tinta oscura sobre una cara amarilla o naranja (la baldosa activa, el ladrillo Pausar).
+
+**The Calm No Rule.** Del lado del niño, el rojo queda para dos cosas: el fin de su sesión («¡Se acabó!») y el PIN que no coincide. Un «no» a su pedido o a su tarea es una placa neutra; el bloqueo del PIN es una caja hundida con su cuenta en tinta; un motivo que falta se dice en tinta con un icono de ayuda.
 
 ## Typography
 
-**Display Font:** Rubik Variable (autohospedada con @fontsource, con ui-sans-serif y system-ui de respaldo)
-**Body Font:** Rubik Variable
-**Label/Mono Font:** la misma, con cifras tabulares (`tabular`) en minutos, relojes, conteos y códigos.
+**Display Font:** Baloo 2 Variable (autohospedada con @fontsource-variable, con ui-rounded, ui-sans-serif y system-ui de respaldo)
+**Body Font:** Nunito Variable (autohospedada con @fontsource-variable, con ui-sans-serif y system-ui de respaldo)
 
-**Character:** Una sola familia redondeada y amable, que va de 400 en el texto a 800 en la cuenta regresiva y los números de paso. El peso hace la jerarquía; no hay segunda familia.
+**Character:** Baloo 2 es redonda y pesada, como letras moldeadas en plástico: va en todo h1, h2 y h3, en las cifras grandes y en la marca. Nunito es redonda y abierta para leer: el texto corrido, las etiquetas y los botones, estos en 700.
 
 ### Hierarchy
-- **Display large** (800, 4.5rem, 1, -0.02em, tabular): las cuentas regresivas del niño (la sesión en curso o en pausa y «Faltan» para una sesión programada). Solo ahí.
-- **Display** (800, 3.5rem, 1, -0.02em, tabular): la cuenta regresiva de «Ahora» de los padres y, del lado del niño, «¡Se acabó!» en rojo. Solo ahí. El bloqueo del PIN cuenta en el mismo peso a 2.5rem.
-- **Step number** (800, 2rem, 1, tabular): el número de paso de un flujo (Nueva sesión: 1 actividad, 2 minutos, 3 cuándo; Pedir del niño: 1 actividad, 2 cuánto, 3 motivo) y, en Pedir, la cifra elegida («30 min»).
-- **Headline** (700, 1.75rem, 1.25, -0.01em): el h1 de cada pantalla.
-- **Headline sm** (700, 1.5rem, -0.01em): el titular del saldo («Le quedan 38 min hoy») y el h1 de las páginas públicas.
-- **Title** (600, 1.25rem, 1.25): títulos de recuadro y de sección, títulos de paso y de diálogo.
-- **Body** (400, 1rem, 1.5): texto corrido; etiquetas de campo y botones en 500.
-- **Body sm** (400, 0.9375rem): pistas, errores de campo, estados bajo una fila de ladrillos.
-- **Label** (500, 0.875rem, tabular en cifras): las etiquetas de las pestañas del niño y las cifras bajo los ladrillos del selector de Pedir (600 la elegida).
-- **Caption** (500 en pestañas, 400 en leyendas; 0.8125rem): las etiquetas de la barra de pestañas de los padres y la leyenda «1 ladrillo = 10 min».
+- **Display** (Baloo 2 800, 4.5rem, 1, -0.02em, tabular): las cuentas regresivas de «Ahora» (padres y niño) y «Faltan» del niño. Solo ahí.
+- **Display sm** (Baloo 2 800, 3.5rem, 1, -0.02em): «¡Se acabó!» del niño, en rojo.
+- **Hero** (Baloo 2 800, 2.75rem en el teléfono, 3.5rem desde sm, 4.25rem desde lg, 1.02, -0.02em): solo el h1 de la landing.
+- **Headline** (Baloo 2 800, 2rem, 1.25): el h1 de cada pantalla con pestañas y los h2 de la landing (2.5rem desde sm); también las cifras de las teclas del PIN.
+- **Headline sm** (Baloo 2 800, 1.75rem, 1.25): el h1 de las páginas públicas y de Inicio, y el titular del saldo («Le quedan 38 min hoy», 2rem desde sm cuando es el titular principal del niño).
+- **Title** (Baloo 2 700, 1.375rem, 1.25): títulos de placa y de sección, títulos de paso, de diálogo y el número de paso en su baldosa.
+- **Title sm** (Baloo 2 700, 1.25rem): «Hoy», «Semana» y «Bonos de la semana» sobre sus baterías.
+- **Body** (Nunito 400, 1rem, 1.5): texto corrido; etiquetas de campo en 600.
+- **Body sm** (Nunito 400, 0.9375rem): pistas, errores de campo, leyendas y estados bajo una fila de ladrillos.
+- **Label** (Nunito 700, 1rem): botones, filas de navegación y la etiqueta de actividad.
+- **Caption** (Nunito 700, 0.8125rem): las etiquetas de la barra de pestañas de los padres (0.875rem del lado del niño) y «1 ladrillo = N min».
 
 ### Named Rules
-**The Tabular Figures Rule.** Toda cifra que cambia o se compara (minutos, relojes, conteos, PIN, código) lleva cifras tabulares para no bailar.
+**The Tabular Figures Rule.** Toda cifra que cambia o se compara (minutos, relojes, conteos, PIN, código, número de paso) lleva cifras tabulares para no bailar.
 
-**The Same World, Larger Rule.** El niño usa las mismas familias, colores y piezas, un paso más grandes: cuentas en 4.5rem, botón principal de 56 px con texto de 1.125rem, pestañas de 0.875rem con iconos de 28 px, teclas del PIN de 64 px. Nunca una familia, un color o una pieza propios.
+**The Moulded Titles Rule.** Los títulos y las cifras grandes van en Baloo 2; el texto que se lee, en Nunito. Nunca Baloo 2 en un párrafo ni Nunito en una cuenta.
 
-**The Sentence Case Rule.** Sin mayúsculas sostenidas ni espaciado ancho en etiquetas: el único tracking positivo es para el PIN y el código de recuperación, que se dictan carácter por carácter.
+**The Same World, Larger Rule.** El niño usa las mismas familias, colores y piezas, un paso más grandes: pestañas de 80 px con iconos de 28 px y etiqueta de 0.875rem, teclas del PIN de 64 px con cifras de 2rem. Nunca una familia, un color o una pieza propios.
+
+**The Sentence Case Rule.** Sin mayúsculas sostenidas ni espaciado ancho en etiquetas; el único tracking es el negativo de los títulos grandes.
 
 ## Layout
 
-Móvil primero desde 360 px. **Padres.** En el teléfono: barra superior blanca fija de 56 px (marca, nombre del niño y un botón circular «+» para nueva sesión), contenido con 16 px de margen lateral y barra de pestañas fija abajo (cinco pestañas de 64 px de alto, con el área segura). Desde 1024 px (lg) la barra se cambia por un riel lateral blanco de 16rem con la marca, el niño, «Nueva sesión» como botón y la navegación; el contenido gana 40 px de margen.
+Móvil primero desde 360 px, con un salto en lg (1024 px) y sm (640 px) para el padding.
 
-**Niño.** Barra superior blanca fija de 56 px (64 px desde lg) con la marca, «Hola, Mateo» y una campana circular de 44 px hacia Avisos (en tinta cuando Avisos está abierto). Abajo, tres pestañas de 64 px (Inicio, Pedir, Tareas) en una franja de hasta 32rem, con el área segura. Desde lg no hay riel: las tres pestañas suben a la barra superior como filas de 44 px junto a la campana, y el contenido gana 40 px de margen.
+**Padres.** En el teléfono: barra-placa superior fija de 64 px (marca con el ladrillo de 40 px, nombre del niño y un perno redondo «+» de 44 px), contenido con 16 px de margen lateral y barra de pestañas fija abajo (cinco pestañas de 72 px, en una franja de hasta 32rem, con el área segura). Desde lg, un riel-placa lateral de 17rem con la marca, el niño, «Nueva sesión» como ladrillo y la navegación; el contenido gana 40 px de margen.
 
-Anchos de lectura por pantalla (padres): Inicio llega a 72rem (max-w-6xl) y en escritorio se parte en dos columnas (1.1fr / 1fr: «Ahora» y solicitudes a la izquierda, saldo a la derecha); Reglas, Historial y Bonos usan 48rem; Nueva sesión 42rem; las páginas públicas una columna de 25rem centrada. Del lado del niño: Inicio, Pedir, Tareas y Avisos en una columna de 36rem (max-w-xl); con algo en «Ahora» (una sesión, un pedido o una respuesta), Inicio llega a 64rem y en escritorio se parte en 1.1fr / 1fr, con «Ahora» y los extras a la izquierda y las baterías ocupando la derecha. Su entrada usa el mismo marco público de 25rem, sin la fila de ladrillos de ejemplo.
+**Niño.** Barra-placa superior fija de 64 px (72 px desde lg) con el ladrillo del logo, «Hola, Mateo» en Baloo 2 y la campana como perno redondo. Abajo, tres pestañas de 80 px (Inicio, Pedir, Tareas). Desde lg no hay riel: las pestañas suben a la barra como filas de 44 px, en una franja de 64rem.
 
-Ritmo: la pila de recuadros de una pantalla va a 20 px; dentro de un recuadro, 16 px entre bloques y 8 px entre un rótulo y su fila de ladrillos. Padding de recuadro: 16 px en el teléfono, 20 px desde sm. Las filas de ladrillos son una rejilla de columnas iguales (6 a 12 por fila; la semana en 10 por fila) que se apilan como un muro. En la batería del niño, el muro de la semana elige de 8 a 12 columnas, la que deja la última fila más llena (10 si empatan), y la batería de Hoy se angosta para que sus ladrillos midan lo mismo que los de la semana cuando valen lo mismo. El medidor de bonos llega a 24rem; el selector de Pedir, a 28rem con 3 a 6 ladrillos por fila.
+Anchos: Inicio de los padres llega a 72rem y en escritorio se parte en dos columnas (1.1fr / 1fr); las demás pantallas usan columnas de 36rem a 48rem; las públicas una columna de 25rem. Del lado del niño, una columna de 36rem; con algo en «Ahora», Inicio se parte en 1.1fr / 1fr con las baterías a la derecha. La landing usa 72rem con un héroe de 1.05fr / 1fr.
+
+Ritmo: la pila de placas de una pantalla va a 20 px (más que el canto de 6 px y los pernos de 7 px, para que nunca se toquen); dentro de una placa, 16 px entre bloques y 8 px entre un rótulo y su fila de ladrillos. Padding de placa: 16 px en el teléfono, 20 px desde sm. Las filas de ladrillos son rejillas de columnas iguales que se apilan como un muro; la torre de la sesión apila columnas de tres ladrillos, cada uno sobre los pernos del de abajo.
 
 ## Elevation & Depth
 
-Profundidad casi plana: los recuadros se separan del fondo azul por el borde de 1,5 px y una sombra ambiental muy suave; lo que flota (diálogos, toasts) lleva una sombra más larga. El volumen de verdad vive dentro de los ladrillos: borde superior iluminado, base sombreada y un filo oscuro translúcido, dibujados en el SVG, no con box-shadow. Lo que se levanta (un ladrillo elegido en Pedir) sube 6 px; no gana sombra.
+La profundidad es física y de plástico: no hay sombras flotantes de interfaz, hay cantos. Cada pieza tiene una cara y un canto sólido debajo, del color `-side` de su cara, y la sombra difusa solo la apoya sobre el suelo. Lo hundido (campos, segmentado, batería, baldosa de la cuenta) lleva una sombra interior bajo su borde superior. Lo que se toca baja: un ladrillo baja 3 px y su canto se achica, como una pieza que encaja.
 
 ### Shadow Vocabulary
-- **Callout** (`box-shadow: 0 1px 0 rgb(21 25 30 / 0.04), 0 6px 18px -10px rgb(21 25 30 / 0.22)`): todo recuadro en reposo.
-- **Lift** (`box-shadow: 0 2px 4px rgb(21 25 30 / 0.08), 0 14px 28px -14px rgb(21 25 30 / 0.35)`): diálogos de confirmación y toasts.
+- **Plate** (`box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.06), 0 6px 0 var(--plate-side), 0 18px 28px -16px var(--color-shadow)`): toda placa, diálogos incluidos. Los pernos son una fila de 8 px enmascarada sobre el borde superior, del color de la cara.
+- **Bar** (`box-shadow: 0 4px 0 var(--color-sheet-side), 0 12px 20px -14px var(--color-shadow)`): la barra superior (el riel lo lleva a la derecha; la barra de pestañas lleva solo la sombra, con los pernos arriba).
+- **Brick** (`box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.3), 0 4px 0 var(--brick-side)`; presionado `0 1px 0` con `translateY(3px)`): todo botón-ladrillo.
+- **Tile** (`box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.45), 0 3px 0 var(--color-bonus-side)`): la baldosa amarilla activa; con `0 3px 0 var(--color-ink-side)`, la baldosa de tinta del número de paso y la opción elegida del segmentado.
+- **Slot** (`box-shadow: inset 0 2px 0 rgb(0 0 0 / 0.07)`): campos y segmentado.
+- **Lift** (`box-shadow: 0 4px 0 var(--color-sheet-side), 0 22px 40px -16px var(--color-shadow)`): los toasts; la alarma cambia el canto a rojo.
 
 ### Named Rules
-**The Soft Paper Rule.** Las sombras son difusas y teñidas de tinta. Nada de sombras duras desplazadas: el relieve es del ladrillo, no del papel.
+**The Plastic Edge Rule.** El volumen es un canto sólido del color en sombra de la pieza (6 px placa, 4 px ladrillo, 3 px baldosa), nunca un borde negro desplazado ni una sombra de otro color. La sombra difusa existe solo para apoyar la pieza.
+
+**The Sinking Brick Rule.** Lo que se toca se hunde (3 px, 120 ms) y no se levanta al pasar el puntero: el hover solo aclara la cara (brightness 1.06). Con reduced motion, el cambio es instantáneo.
 
 ## Shapes
 
-Esquinas suaves en dos tamaños: 12 px para recuadros, diálogos y toasts, 10 px para controles (botones, campos, stepper, segmentado, caja de piezas), 7 px para la opción interna del segmentado. Pastillas completas solo para la etiqueta de actividad, el botón «+» del teléfono, el selector de niño, el interruptor, los motivos rápidos de Pedir y la campana del niño. Bordes siempre de 1,5 px, con una excepción: el contorno de tinta de 3 px de la batería (esquinas de 14 px). El borde punteado es semántico: significa «usado» en los ladrillos y «guárdalo, se muestra una vez» en la caja del código de recuperación.
+Esquinas de plástico moldeado en pocos tamaños: 10 px para placas, diálogos y toasts; 8 px para ladrillos-botón, campos, baldosas, segmentado y caja de piezas; 6 px para la opción elegida del segmentado y los pernos del PIN; 14 px para el marco de la batería. Pastillas completas solo para la etiqueta de actividad, los pernos redondos de la barra («+» y campana), el selector de niño y el interruptor (cuya perilla es un perno visto desde arriba).
 
-La silueta propia es el ladrillo de frente con dos pernos; el medio ladrillo tiene un perno. Los pernos reaparecen fuera del ladrillo: dos pernos amarillos sobre la pestaña o fila de navegación activa, y en la entrada del niño, una fila de pernos sobre un ladrillo plano que se llenan en tinta con cada número del PIN.
-
-El hueco es la tercera forma del ladrillo: la misma silueta, lisa, en hoja hundida con borde regla fuerte. Significa «todavía puedes ganarlo» y nunca «usado».
+El perno es la forma que se repite: dos sobre cada ladrillo-botón (asomando 6 px), una fila sobre cada placa y sobre la barra de pestañas, una fila sobre un ladrillo amarillo en el PIN del niño. El ladrillo de tiempo es un SVG de frente de 40×26 con dos pernos (medio ladrillo: uno), filo translúcido, luz arriba y sombra abajo. El hueco es la tira de placa con sus pernos (socket), sin cuerpo de ladrillo. El borde punteado es semántico: «usado» en los ladrillos y «guárdalo, se muestra una vez» en la caja del código de recuperación. La batería del niño es la única pieza con un marco grueso: 3 px de tinta con su borne.
 
 ## Components
 
 ### Buttons
-Táctiles y directos, a la medida del pulgar.
-- **Shape:** esquinas de control (10 px); 48 px de alto (40 px en tamaño pequeño), texto 500 con icono Lucide a la izquierda.
-- **Primary:** tinta sólida con texto blanco, para la acción principal de cada recuadro (Aprobar, Empezar ya, Nueva sesión). Hover un gris más claro (#2a3038), activo negro.
-- **Secondary:** blanco con borde regla fuerte; hover hoja hundida.
-- **Quiet:** sin fondo ni borde («Ahora no», «Rechazar»).
-- **Pause:** naranja con texto en tinta, solo para Pausar.
-- **Danger:** rojo con texto blanco, solo para acciones que cortan cuando ya hace falta cortar.
-- **Large:** 56 px de alto con texto de 1.125rem, para la acción principal de cada pantalla del niño («Pedir tiempo», el envío de Pedir, «Activar avisos»; «Siguiente» en su entrada, a 56 px con texto de 1rem); con la cuota agotada, «Pedir tiempo extra» pasa a secundario grande.
-- **Hover / Focus:** transición de color de 150 ms; foco con anillo de 3 px en azul foco y 2 px de separación. Ocupado: el icono cambia por un spinner.
+Ladrillos con dos pernos, a la medida del pulgar.
+- **Shape:** 8 px; 48 px de alto (40 px en tamaño pequeño), Nunito 700 con icono Lucide a la izquierda. Dos pernos de 26 px como máximo asoman 6 px arriba, al 18 % de cada lado.
+- **Primary:** ladrillo de tinta con texto on-ink, para la acción principal de cada placa (Aprobar, Empezar ya, Nueva sesión, Entrar).
+- **Secondary:** ladrillo de plástico elevado con contorno regla de 1,5 px hacia adentro.
+- **Pause:** ladrillo naranja con tinta oscura, solo para Pausar.
+- **Danger:** ladrillo rojo, solo para cortar cuando ya hace falta.
+- **Light:** ladrillo blanco en los dos temas, solo sobre una placa de color (Detener en «Ahora» en curso).
+- **Quiet:** sin ladrillo, solo texto; hover en placa hundida («Ahora no», «Rechazar», «Salir»).
+- **Estados:** hover aclara la cara; activo baja 3 px; deshabilitado se vuelve placa hundida con canto regla y tinta tenue; ocupado cambia el icono por un spinner. Foco: anillo de 3 px en azul foco a 2 px.
+- **Grande:** la acción principal de una pantalla del niño y los dos accesos de la landing suben a 56 px.
 
 ### Chips
-- **Etiqueta de actividad:** pastilla del color de la actividad, texto blanco 600 e icono (mando para Juego, televisor para TV).
-- **Motivo rápido:** pastilla de 40 px, blanca con borde regla fuerte y texto 500; la elegida en tinta con texto blanco. Solo en el paso de motivo del tiempo extra.
+- **Etiqueta de actividad:** pastilla del color de la actividad, texto blanco 700 e icono (mando para Juego, televisor para TV). Sobre su propia placa en curso se invierte: blanca con texto del color de la actividad.
 
 ### Cards / Containers
-- **Corner Style:** 12 px.
-- **Background:** hoja blanca; con tono, el tinte del único estado que reporta (pausa, fin, bono, y el «sí» del niño en tinte saldo) y borde del color pleno.
-- **Shadow Strategy:** sombra Callout (ver Elevation & Depth).
-- **Border:** 1,5 px en regla.
-- **Internal Padding:** 16 px, 20 px desde sm.
+- **Corner Style:** 10 px.
+- **Background:** placa (sheet); con tono, cara y canto del único estado que reporta; «Ahora» en curso, del color de la actividad.
+- **Shadow Strategy:** sombra Plate, con su fila de pernos arriba (ver Elevation & Depth).
+- **Border:** ninguno; el canto hace de borde.
+- **Internal Padding:** 16 px, 20 px desde sm (la landing, 24 a 40 px).
 
 ### Inputs / Fields
-- **Style:** 48 px de alto, borde 1,5 px regla fuerte, fondo blanco, esquinas de 10 px; etiqueta 500 arriba y pista en body sm debajo.
-- **Focus:** borde azul foco más un halo del 25 %.
-- **Error / Disabled:** borde rojo y mensaje rojo con role="alert"; deshabilitado en hoja hundida y tinta tenue.
-- **Stepper de minutos:** botones − y + de 48 px a los lados de un campo numérico centrado (600, 1.25rem) con «min» dentro.
-- **Segmentado:** opciones de radio en una caja hundida; la elegida en tinta con texto blanco.
-- **Interruptor:** pastilla de 52×32; encendido en verde saldo.
-- **Campo del niño:** el campo de usuario de su entrada sube a 56 px con texto de 1.125rem.
+- **Style:** ranuras hundidas en la placa: 48 px, fondo placa hundida, borde regla fuerte de 1,5 px, 8 px, sombra Slot. Etiqueta Nunito 600 arriba y pista en body sm debajo.
+- **Focus:** borde azul foco más un halo de 3 px al 25 %.
+- **Error / Disabled:** borde rojo y mensaje en rojo con role="alert"; deshabilitado en tinta tenue al 70 %.
+- **Stepper de minutos:** ladrillos secundarios cuadrados de 48 px con − y + a los lados de una ranura con la cifra en Baloo 2 800 de 1.5rem y «min» dentro.
+- **Segmentado:** bandeja hundida; la opción elegida es una baldosa de tinta con su canto.
+- **Interruptor:** pastilla hundida de 52×32 con perilla-perno blanca; encendido en verde saldo.
+- **Aviso en línea (Notice):** caja de 8 px con borde de 1,5 px: hundida para información, stop-tint para error, balance-tint para éxito.
 
 ### Navigation
-- **Teléfono:** barra de pestañas blanca fija abajo, icono de 24 px sobre etiqueta caption; activa en tinta con trazo 2.25 y dos pernos amarillos en el borde superior; inactiva en tinta tenue.
-- **Escritorio:** riel lateral; fila activa sobre azul manual con los dos pernos amarillos asomando arriba; hover en hoja hundida.
-- **Niño, teléfono:** tres pestañas de 64 px, icono de 28 px sobre etiqueta label; la activa en tinta con trazo 2.25 y los dos pernos amarillos arriba, la inactiva en tinta tenue. Avisos no es pestaña: es la campana de la barra.
-- **Niño, escritorio:** las pestañas son filas de 44 px en la barra superior, con icono de 20 px; la activa sobre azul manual con los pernos asomando arriba a la izquierda; hover en hoja hundida.
+- **Teléfono, padres:** barra de pestañas-placa con su fila de pernos; cada pestaña es un icono de 22 px sobre caption 700; la activa lleva el icono en una baldosa amarilla de 48×32 (trazo 2.25) y la etiqueta en tinta; la inactiva en tinta tenue.
+- **Escritorio, padres:** riel-placa; la fila activa es una baldosa amarilla de 44 px; hover en placa hundida.
+- **Niño:** tres pestañas de 80 px con iconos de 28 px en baldosa de 56×36; desde lg, filas de 44 px en la barra superior, la activa en baldosa amarilla. Avisos es la campana, un perno redondo de 44 px que pasa a tinta cuando está abierto.
 
 ### Ladrillo (signature)
-SVG de 40×26 con dos pernos (uno en el medio ladrillo), filo translúcido y luces y sombras pintadas. Estados: sólido (disponible), vaciándose desde arriba (el ladrillo en uso, solo en cuentas en vivo), contorno punteado en gris fantasma (usado; en montos fijos ya gastados, punteado del color del monto) y rojo (exceso, redondeado hacia arriba). Las filas se arman en rejillas iguales con una leyenda «por usar / bono / usado» y el pie «1 ladrillo = N min». Un cuarto estado, el hueco (hoja hundida con borde regla fuerte, liso), marca un lugar que todavía se puede ganar; un medio ladrillo ganado se asienta dentro de su hueco. Movimiento: al gastarse un ladrillo, «soltar el ladrillo» (salto de 4 px hacia arriba, 180 ms, ease-out-quick); al entrar un ladrillo nuevo (un bono), encaje desde arriba en 260 ms; nunca en el primer pintado y nada con reduced motion. La única entrada en el primer pintado es la de un pedido que acaba de aprobarse: sus ladrillos encajan uno tras otro con 70 ms de desfase, sin aparecer antes de su turno. La carga es una torre de tres ladrillos (verde, amarillo, azul) que caen uno sobre otro.
+SVG de 40×26 con dos pernos (uno en el medio ladrillo), filo translúcido, luz en pernos y borde superior y una base sombreada. Estados: sólido (disponible), vaciándose desde arriba (el ladrillo en uso, solo en cuentas en vivo), contorno punteado en gris fantasma (usado; en montos fijos ya gastados, punteado del color del monto), rojo (exceso, redondeado hacia arriba) y hueco (la tira de placa con pernos en socket: por ganar). Movimiento: al gastarse, salto de 4 px (180 ms); al entrar un ladrillo nuevo, encaje desde 8 px arriba (260 ms); los de un pedido recién aprobado encajan uno tras otro con 70 ms de desfase; nunca en el primer pintado salvo ese caso y nada con reduced motion. La carga es una torre de tres ladrillos (verde, amarillo, azul) que caen uno sobre otro.
+
+### «Ahora» en curso (signature)
+La placa toma la cara y el canto de su actividad, con texto blanco y foco blanco. La cuenta va en Display sobre una baldosa impresa (negro al 25 % sobre la cara, sombra interior arriba), con la torre de la sesión a la derecha en ladrillos blancos: lo que queda abajo, el que se vacía encima y los usados punteados arriba. Debajo, «Termina a las…» y los ladrillos Pausar (naranja) y Detener (blanco). En pausa vuelve a placa tintada de pausa; pasada de tiempo, a placa neutra con la cuenta en rojo.
 
 ### Batería (signature, niño)
-El saldo del niño: un contorno de tinta de 3 px con esquinas de 14 px, fondo blanco y un borne de tinta a la derecha (8 px de ancho, 38 % del alto), con los ladrillos como celdas. Hoy va en una fila; la Semana es un muro con su bono sin usar en amarillo al final de lo que queda. Con una sesión abierta, Hoy muestra primero lo libre en verde y después lo que la sesión todavía va a usar en el color de la actividad, por minutos, con su ladrillo parcial. Encima, la leyenda «por usar / tu sesión / bono / usado» con muestras; debajo, «Se recarga mañana» o el día de la semana con un icono de batería cargando. Siempre con su cifra («33 min de 1 h») y su aria-label.
-
-### Medidor de bonos (niño)
-Los bonos ganados en la semana frente al tope: ladrillos amarillos y huecos hasta el tope, leyenda «bono / por ganar» y, al llegar, «¡Llegaste al tope!» en tinta bono. Va en Inicio, bajo las baterías, y arriba de Tareas.
-
-### Arma tu pedido (signature, niño)
-El selector de minutos de Pedir: los minutos que puede pedir como fila de ladrillos tocables (el último vale lo que queda, como medio ladrillo si es la mitad). Tocar uno elige hasta ese: los elegidos se levantan 6 px (200 ms, ease-out-quick) y toman el color de la actividad; los demás quedan en verde saldo, o en el tinte de la actividad para el tiempo extra, que no es saldo de nadie. Debajo de cada ladrillo, su cifra acumulada en label. Son radios ocultos: las flechas y el lector de pantalla funcionan como en cualquier elección.
-
-### PIN del niño
-Pernos sobre un ladrillo plano: de 6 a 12 pernos huecos (hoja hundida, borde regla fuerte) que se llenan en tinta, con un brillo blanco, a cada número; un PIN que no coincide sacude la fila una vez (360 ms) y el mensaje sale en rojo en una línea fija que no mueve el teclado. Teclado 3×4 de teclas de 64 px: números blancos con borde regla fuerte (600, 1.75rem, tabular), borrar sin borde y «Entrar» en tinta. El bloqueo cambia el teclado por una caja hundida con la cuenta regresiva en tinta.
+Marco de tinta de 3 px con esquinas de 14 px, fondo placa hundida y un borne de tinta a la derecha (8 px, 38 % del alto); los ladrillos son las celdas. Hoy en una fila; la Semana en un muro con el bono sin usar en amarillo al final de lo que queda. Con una sesión abierta, Hoy muestra lo libre en verde y lo que la sesión todavía va a usar en el color de la actividad. Encima la leyenda con muestras; debajo «Se recarga…» con un icono de batería cargando; siempre con su cifra y su aria-label. El medidor de bonos (amarillo ganado y huecos hasta el tope) va debajo.
 
 ### Caja de piezas (signature)
-Como la lista de piezas de un paso del manual: caja hundida con «3×» ladrillos, «1×» medio ladrillo y «= 25 min» al lado. Se usa para lo que pide el niño y lo que vale una tarea.
+Caja hundida de 8 px con «3×» ladrillos, «1×» medio ladrillo y «= 25 min» al lado. Para lo que pide el niño y lo que vale una tarea.
 
-### Paso numerado (signature)
-Número de paso grande (800) a la izquierda del título del paso, con una pista debajo. Solo en flujos de varios pasos.
+### Paso numerado
+El número en una baldosa de tinta de 40 px (Baloo 2 800, 1.375rem, tabular, canto ink-side) a la izquierda del título del paso, con su pista debajo. Solo en flujos de varios pasos y en «Cómo funciona» de la landing (48 px).
+
+### PIN del niño
+Una fila de pernos sobre un ladrillo amarillo plano: vacíos en placa hundida con borde regla fuerte, se llenan en amarillo con un brillo a cada número; un PIN que no coincide sacude la fila una vez (360 ms). Teclado 3×4 de ladrillos secundarios de 64 px con cifras en Baloo 2 800 de 2rem, borrar sin ladrillo y «Entrar» como ladrillo primario.
 
 ### Toasts y diálogos
-Toasts en recuadro de 12 px con sombra Lift, abajo al centro en el teléfono (sobre las pestañas) y abajo a la derecha en escritorio; la alarma de aviso y fin va en tinta con borde rojo. Los diálogos de confirmación son `<dialog>` nativos de 26rem, con «Volver» secundario y la acción en rojo o tinta; entran con un ascenso corto de 260 ms. La alarma de la pestaña acompaña al aviso y al fin con un timbre y una vibración; del lado del niño suma «¡Ya puedes empezar!» (tres notas que suben) y un «sí» a su pedido (una quinta brillante).
+Toasts de 10 px con sombra Lift y borde regla, abajo al centro en el teléfono (sobre las pestañas) y abajo a la derecha en escritorio; la alarma va en tinta con borde y canto rojos. Los diálogos son `<dialog>` nativos con forma de placa (26rem), «Volver» secundario y la acción en rojo o tinta; entran con un ascenso corto de 260 ms sobre un fondo negro al 55 %.
+
+### Marca
+El ladrillo amarillo 2×2 de frente con una aguja de reloj (brand/mark.svg y BrandMark), a 40 px en las barras y 56 px en grande, con «Time Craft» en Baloo 2 800. Es un dibujo fijo: no cambia con el tema.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** mostrar el tiempo en ladrillos de 10 min; si un límite no cabe en la fila, sube el valor del ladrillo (20, 30 o 60 min) y escribe «1 ladrillo = N min» en la leyenda.
-- **Do** usar sólido para disponible, contorno punteado para usado y medio ladrillo de un perno para medio ladrillo en montos fijos (una solicitud, una tarea, el largo de una sesión).
-- **Do** vaciar desde arriba solo el ladrillo en uso de una cuenta en vivo; los montos fijos no se vacían.
-- **Do** redondear hacia abajo los minutos consumidos y hacia arriba los que le quedan a una sesión en curso, para que las cifras sumen.
-- **Do** pintar el exceso con ladrillos rojos detrás de la fila, redondeados hacia arriba para que cualquier exceso se vea.
-- **Do** dar a cada recuadro una sola acción primaria en tinta.
-- **Do** acompañar cada fila de ladrillos con su texto (aria-label y cifra «38 min de 1 h»): el dibujo nunca es la única fuente del número.
-- **Do** respetar reduced motion: los cambios de ladrillo son instantáneos.
-- **Do** dibujar el saldo del niño como baterías de ladrillos que comparten el tamaño del ladrillo: Hoy más corta, la Semana en un muro de 8 a 12 columnas.
-- **Do** separar, con una sesión abierta, lo libre en verde de lo que la sesión todavía va a usar en el color de la actividad.
-- **Do** usar el hueco solo para lo que todavía se puede ganar (el medidor de bonos).
-- **Do** tintar en verde saldo solo el recuadro de un «sí»; un «no» va en un recuadro blanco.
+- **Do** construir cada recuadro como placa (pernos arriba, canto de 6 px) sobre la placa base, y cada botón como ladrillo que se hunde.
+- **Do** mostrar el tiempo en ladrillos de 10 min; si un límite no cabe en la fila, sube el valor (20, 30 o 60 min) y escribe «1 ladrillo = N min».
+- **Do** usar sólido para disponible, contorno punteado para usado, medio ladrillo de un perno para medio ladrillo en montos fijos y la tira de placa con pernos solo para lo que todavía se puede ganar.
+- **Do** vaciar desde arriba solo el ladrillo en uso de una cuenta en vivo.
+- **Do** pintar el exceso con ladrillos rojos, redondeados hacia arriba.
+- **Do** dar a cada placa una sola acción primaria en tinta.
+- **Do** acompañar cada fila de ladrillos con su texto (aria-label y cifra «38 min de 1 h»).
+- **Do** definir todo color como token con un valor por tema; el blanco fijo solo va sobre una placa de color.
+- **Do** dar volumen con el canto del color en sombra de la pieza (`-side`).
+- **Do** respetar reduced motion: los ladrillos cambian al instante y los botones no se mueven.
+- **Do** tintar en verde saldo solo la placa de un «sí»; un «no» va en una placa neutra.
 
 ### Don't:
 - **Don't** usar anillos de progreso, escudos ni tarjetas grises con un acento azul: es el panel de control parental que este sistema rechaza.
 - **Don't** usar el rojo para algo que no termine, se pase o corte.
 - **Don't** usar un color de ladrillo fuera de su trabajo, ni como decoración.
-- **Don't** nombrar ni imitar una marca de juguetes: solo la gramática del manual.
-- **Don't** poner rótulos en mayúsculas espaciadas sobre los títulos ni sombras duras desplazadas.
+- **Don't** nombrar ni imitar una marca de juguetes ni su logo: solo la gramática de las piezas.
+- **Don't** usar un borde negro desplazado ni sombras de otro color como relieve: el canto es del color de la pieza.
+- **Don't** poner rótulos en mayúsculas espaciadas sobre los títulos.
 - **Don't** usar emojis ni caracteres como iconos: los iconos son Lucide de trazo 2.
-- **Don't** agregar un tema oscuro en la v1; si llega, se resuelve en los tokens, sin mezclar tinta y fondo.
-- **Don't** usar el rojo del lado del niño fuera del fin de su sesión y del PIN que no coincide: ni para un «no», ni para el bloqueo, ni para un campo que falta.
+- **Don't** escribir un color fijo que no cambie con el tema, salvo el blanco sobre una placa de color.
+- **Don't** usar el rojo del lado del niño fuera del fin de su sesión y del PIN que no coincide.
 - **Don't** usar el hueco para tiempo usado: usado es el contorno punteado.
 - **Don't** llevar al área del niño mascotas, estrellas ni confeti de app de recompensas: el premio son ladrillos que encajan.

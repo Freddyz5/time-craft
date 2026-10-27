@@ -123,7 +123,7 @@ export function RequestCard({
 		>
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex min-w-0 flex-col gap-1">
-					<h3 id={titleId} className="text-lg leading-snug font-semibold">
+					<h3 id={titleId} className="text-[1.1875rem] leading-snug font-bold">
 						{childName} pide {minutesText(request.requestedMinutes)}
 						{extra ? " extra" : ""} de {activity?.name ?? "pantalla"}
 					</h3>

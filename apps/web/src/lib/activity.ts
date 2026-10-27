@@ -6,6 +6,9 @@ export interface ActivityLook {
 	// CSS colour of its bricks and its tint for backgrounds.
 	color: string;
 	tint: string;
+	// The plate "Ahora" sits on while it runs: its face and edge (white text
+	// reads on both).
+	plate: { face: string; side: string };
 	Icon: LucideIcon;
 }
 
@@ -13,14 +16,21 @@ const looks: Record<string, ActivityLook> = {
 	game: {
 		color: "var(--color-game)",
 		tint: "var(--color-game-tint)",
+		plate: { face: "var(--color-game)", side: "var(--color-game-side)" },
 		Icon: Gamepad2,
 	},
-	tv: { color: "var(--color-tv)", tint: "var(--color-tv-tint)", Icon: Tv },
+	tv: {
+		color: "var(--color-tv)",
+		tint: "var(--color-tv-tint)",
+		plate: { face: "var(--color-tv)", side: "var(--color-tv-side)" },
+		Icon: Tv,
+	},
 };
 
 const fallback: ActivityLook = {
 	color: "var(--color-ink-soft)",
 	tint: "var(--color-sheet-sunk)",
+	plate: { face: "#4a5263", side: "#2a2f38" },
 	Icon: Blocks,
 };
 

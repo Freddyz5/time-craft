@@ -108,12 +108,12 @@ export function Home() {
 	// Phone: now, batteries, extras. Laptop: now and extras on the left, the
 	// batteries spanning the right, so both columns end near each other.
 	return (
-		<div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
+		<div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:items-start">
 			<h1 className="sr-only">Tu tiempo</h1>
 			<AnswerAnnouncer arrival={arrival} />
 			<div className="flex flex-col gap-5">{now}</div>
 			<div className="flex flex-col gap-5 lg:row-span-2">{batteries}</div>
-			<div className="flex flex-col gap-5">{extras}</div>
+			<div className="flex flex-col gap-5 lg:self-start">{extras}</div>
 		</div>
 	);
 }

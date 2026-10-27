@@ -81,7 +81,7 @@ export function ReportCard({
 			aria-labelledby={titleId}
 		>
 			<div className="flex flex-col gap-1">
-				<h3 id={titleId} className="text-lg leading-snug font-semibold">
+				<h3 id={titleId} className="text-[1.1875rem] leading-snug font-bold">
 					{childName} hizo «{task?.name ?? "una tarea"}»
 				</h3>
 				<p className="text-[0.9375rem] text-bonus-ink">
@@ -91,7 +91,7 @@ export function ReportCard({
 				</p>
 			</div>
 			{report.note && (
-				<blockquote className="rounded-control bg-sheet px-3.5 py-2.5">
+				<blockquote className="rounded-control bg-sheet-sunk px-3.5 py-2.5">
 					«{report.note}»
 				</blockquote>
 			)}
@@ -145,7 +145,7 @@ export function ReportCard({
 
 			{mode !== "idle" && (
 				<form
-					className="flex flex-col gap-4 border-t-[1.5px] border-[#d9b21f] pt-4"
+					className="flex flex-col gap-4 border-t-[1.5px] border-bonus-side pt-4"
 					onSubmit={(event) => {
 						event.preventDefault();
 						review.mutate(
