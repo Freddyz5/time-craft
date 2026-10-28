@@ -9,7 +9,9 @@
 	"exports": {
 		".": {
 			"types": "./src/app.ts"
-		}
+		},
+		"./container": "./src/container.ts",
+		"./seed": "./src/seed.ts"
 	},
 	"scripts": {
 		"dev": "bun --env-file=../../.env --watch --port=3000 src/index.ts",
