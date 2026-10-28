@@ -209,6 +209,8 @@ export function RequestCard({
 			{mode === "adjust" && (
 				<form
 					className="flex flex-col gap-4 border-t-[1.5px] border-rule pt-4"
+					// The start time is checked by laterIsValid (see WhenPicker).
+					noValidate
 					onSubmit={(event) => {
 						event.preventDefault();
 						approve.mutate({ minutes, when, note });

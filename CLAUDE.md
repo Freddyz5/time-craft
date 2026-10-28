@@ -17,6 +17,7 @@ Fuente de verdad: [docs/contexto-v1.md](docs/contexto-v1.md). Schema de referenc
 apps/
   api/        Hono en Vercel: rutas, auth (Better Auth), adaptadores (Drizzle, QStash, Web Push), composition root
   web/        Astro (salida estática) + islas React + Tailwind
+  e2e/        Playwright: los 8 pasos del flujo contra la web y el smoke test de producción (no se despliega)
 packages/
   core/       dominio, casos de uso y puertos
   db/         schema Drizzle, migraciones, cliente y seed
@@ -26,6 +27,7 @@ packages/
 Dirección de dependencias:
 
 - `api → core` y `api → db`. Los adaptadores de `api` implementan los puertos de `core`.
+- `e2e` usa el seed y el container de `api` (`@time-craft/api/seed`, `/container`) para crear su familia de prueba; nada depende de `e2e`.
 - `core` no depende de Drizzle, Hono ni Better Auth (tampoco de `db`).
 - Los paquetes internos se exportan como TypeScript fuente, sin build propio. `apps/api` los empaqueta en su build (`scripts/build.ts`) y `apps/web` a través de Vite.
 
@@ -75,4 +77,10 @@ bun run db:studio      # Drizzle Studio sobre DATABASE_URL_UNPOOLED
 bun run db:seed        # hogar completo desde las variables SEED_* (idempotente; imprime el código de recuperación una vez)
 
 bun run test --filter=@time-craft/core   # cualquier tarea, en un solo paquete
+
+bun run e2e            # e2e con Playwright contra E2E_BASE_URL (por defecto la web local); crea y borra su familia
+bun run e2e:smoke      # smoke test de solo lectura (E2E_BASE_URL y E2E_API_URL), apto para producción
+bun run e2e:family:create   # una familia de prueba para mirar a mano; e2e:family:delete <id>… | --all la borra
 ```
+
+El e2e escribe en la base de `DATABASE_URL_UNPOOLED` y solo acepta una marcada como de pruebas (`COMMENT ON DATABASE … IS 'timecraft:dev'`, en Neon `dev` o una local): nunca producción. Lo que no se automatiza se revisa con [docs/verificacion-manual.md](docs/verificacion-manual.md).

@@ -204,6 +204,8 @@ export function NewSession() {
 
 			<form
 				className="flex flex-col gap-5"
+				// The start time is checked by laterIsValid (see WhenPicker).
+				noValidate
 				onSubmit={(event) => {
 					event.preventDefault();
 					start.mutate(undefined);

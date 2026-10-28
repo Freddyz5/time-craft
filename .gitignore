@@ -17,6 +17,9 @@ dist/
 # Test coverage
 coverage/
 
+# Playwright (apps/e2e): results, report and the run's signed-in state
+.e2e/
+
 # Logs
 *.log
 

@@ -61,6 +61,7 @@ Cada ladrillo vale 10 minutos. Un ladrillo sólido es tiempo que todavía queda,
 apps/
   api/        Hono en Vercel: rutas, auth, adaptadores (Drizzle, QStash, Web Push)
   web/        Astro + islas React + Tailwind; el logo vive en apps/web/brand/
+  e2e/        Playwright: el flujo de punta a punta y el smoke test de producción
 packages/
   core/       dominio, casos de uso y puertos
   db/         schema Drizzle, migraciones, cliente y seed
@@ -84,6 +85,7 @@ bun run lint            # Biome en todo el repo
 bun run typecheck       # tsc en paquetes y api; astro check en la web
 bun run test            # tests con bun test
 bun run build           # web → apps/web/dist, api → apps/api/dist
+bun run e2e             # los 8 pasos del flujo con Playwright (ver apps/e2e/CLAUDE.md)
 bun run --cwd apps/web brand   # regenera el logo y los iconos desde apps/web/brand/mark.svg
 ```
 
@@ -99,7 +101,8 @@ El logo es un ladrillo amarillo 2×2 con la aguja de un reloj. `apps/web/brand/m
 
 - [docs/contexto-v1.md](docs/contexto-v1.md): qué hace la versión 1 y por qué (la fuente de verdad del producto).
 - [docs/timecraft_v1.sql](docs/timecraft_v1.sql): el schema de referencia.
-- [docs/deploy.md](docs/deploy.md): Vercel, Neon, QStash y el primer despliegue.
+- [docs/deploy.md](docs/deploy.md): Vercel, Neon, QStash, el primer despliegue y cómo correr el e2e contra dev.
+- [docs/verificacion-manual.md](docs/verificacion-manual.md): lo que se revisa a mano en teléfonos reales antes de cada release.
 - Cada app y paquete tiene su `CLAUDE.md` con lo que hace y lo que no debe hacer, y el diseño se describe en [apps/web/DESIGN.md](apps/web/DESIGN.md).
 
 Un PR por fase desde `dev`; un release es un PR de `dev` a `prod`.
