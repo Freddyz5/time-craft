@@ -183,6 +183,8 @@ Por qué así:
 
 ### 8. GitHub: reglas de las ramas
 
+Si GitHub no te deja crear rulesets en este repo, salta este paso y el 19. Entonces `prod` y `dev` no tienen protección: el flujo (un PR por fase hacia `dev`, el release como PR de `dev` a `prod`, CI en verde) lo sigues tú, y el job `PR to prod comes from dev` queda en rojo si un PR hacia `prod` sale de otra rama, pero no impide fusionarlo.
+
 En el repo: **Settings → Rules → Rulesets → New ruleset → New branch ruleset**. Crea dos.
 
 Ruleset **`prod`**:
@@ -333,7 +335,7 @@ Cada app tiene su versión semántica en su `package.json`, independiente de los
 - *Desplegar ya* (falló `Release`, o hay que publicar un commit sin release): proyecto → **Deployments** → filtra por *Production* → el deployment de ese commit (aunque esté *Canceled*) → **⋯ → Redeploy** → desmarca **Use project's Ignore Build Step** → **Redeploy**. Construye ese commit con las variables actuales. La versión que muestra es la de su `package.json`. Si el problema fue `Release`, lo normal es corregirlo y hacer **Re-run jobs**.
 - *Volver atrás*: en el proyecto, **Instant Rollback** en el tile de producción. En Hobby solo vuelve al deployment anterior. Mientras dure el rollback, Vercel no publica deployments nuevos de producción: cuando el arreglo esté desplegado, **Undo Rollback** y elige ese deployment.
 
-Los rulesets solo aceptan PRs, así que esos pushes los hace una GitHub App tuya, la única en sus listas de bypass. Un token personal también podría, pero depende de tu cuenta y llega a todos tus repos. La App solo puede escribir el contenido de este repo, y cada token que el workflow le pide dura una hora.
+Esos pushes los hace una GitHub App tuya. El token propio del workflow (`GITHUB_TOKEN`) no sirve: lo que empuja no dispara otros workflows, y `Migrate` tiene que correr en el commit del release. Un token personal también podría, pero depende de tu cuenta y llega a todos tus repos. La App solo puede escribir el contenido de este repo, y cada token que el workflow le pide dura una hora. Si las ramas tienen rulesets (paso 8), la App va en sus listas de bypass (paso 19).
 
 Configúrala antes del release que lleve `release.yml` a `prod`. Si no, ese job falla al pedir el token; después de configurarla, basta con **Re-run jobs**.
 
@@ -345,13 +347,15 @@ Configúrala antes del release que lleve `release.yml` a `prod`. Si no, ese job 
   - *Webhook*: desmarca **Active**.
   - *Repository permissions* → **Contents**: **Read and write**. Nada más (*Metadata* queda en solo lectura, es obligatorio).
   - *Where can this GitHub App be installed?*: **Only on this account** → **Create GitHub App**.
-- [ ] En la página de la App, anota el **Client ID**. En *Private keys* → **Generate a private key**: se descarga un `.pem`.
+- [ ] En la página de la App, anota el **Client ID**. En la barra izquierda, **Credentials → Key pairs → New key**: se descarga un `.pem`. GitHub guarda solo la parte pública; si lo pierdes, crea otra.
 - [ ] **Install App** → tu cuenta → **Only select repositories** → `time-craft` → **Install**.
-- [ ] En el repo, **Settings → Environments → `prod`** (el del paso 2: solo la rama `prod` lee sus secretos, así que un workflow de otra rama no puede pedir un token de la App):
+- [ ] En el repo, **Settings → Environments → `prod`** (el del paso 2; con su regla de rama, solo `prod` lee sus secretos y un workflow de otra rama no puede pedir un token de la App):
   - **Environment variables → Add environment variable**: `RELEASE_APP_CLIENT_ID` = el Client ID.
   - **Environment secrets → Add environment secret**: `RELEASE_APP_PRIVATE_KEY` = el contenido completo del `.pem`, de `-----BEGIN` a `KEY-----`. Después borra el archivo de tu máquina.
 
 ### 19. GitHub: la App en la lista de bypass
+
+Solo si creaste los rulesets del paso 8. Sin rulesets, `prod` y `dev` aceptan pushes directos y la App ya puede hacer los suyos: salta este paso.
 
 - [ ] **Settings → Rules → Rulesets → `prod`** → *Bypass list* → **Add bypass** → elige la App → **Save changes**. Deja la App en *Always allow*.
 - [ ] Lo mismo en el ruleset **`dev`**.

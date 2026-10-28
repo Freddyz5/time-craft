@@ -8,11 +8,12 @@ name: Release
 # hold the same versions. Vercel deploys production only from these release
 # commits (scripts/vercel-ignore.mjs), so a failed run means no deploy.
 #
-# The prod and dev rulesets take only pull requests. The release app, a
-# GitHub App in both bypass lists, is the one that pushes (docs/deploy.md,
-# part E). Its pushes run the other workflows as any push does: Migrate must
-# run on the release commit, because Vercel's Deployment Checks hold the
-# api's production deployment until it passes on that same commit.
+# The release app, a GitHub App, does the pushes (docs/deploy.md, part E).
+# Its pushes run the other workflows as any push does, and the workflow's
+# own GITHUB_TOKEN's would not: Migrate must run on the release commit,
+# because Vercel's Deployment Checks hold the api's production deployment
+# until it passes on that same commit. If prod and dev get rulesets, the
+# app goes in their bypass lists.
 
 on:
   push:
