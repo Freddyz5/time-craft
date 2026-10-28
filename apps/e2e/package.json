@@ -1,0 +1,24 @@
+{
+	"name": "@time-craft/e2e",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"e2e": "playwright test --project=e2e",
+		"smoke": "playwright test --project=smoke",
+		"family:create": "bun --env-file=../../.env scripts/family.ts create",
+		"family:delete": "bun --env-file=../../.env scripts/family.ts delete",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.64.1",
+		"@time-craft/api": "workspace:*",
+		"@time-craft/core": "workspace:*",
+		"@time-craft/db": "workspace:*",
+		"@time-craft/tsconfig": "workspace:*",
+		"@types/node": "^22",
+		"drizzle-orm": "^0.45.4",
+		"typescript": "^6.0.3"
+	}
+}

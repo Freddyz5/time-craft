@@ -17,7 +17,11 @@
 		"db:generate": "turbo run db:generate",
 		"db:migrate": "turbo run db:migrate",
 		"db:studio": "turbo run db:studio",
-		"db:seed": "turbo run db:seed"
+		"db:seed": "turbo run db:seed",
+		"e2e": "bun --cwd=apps/e2e run e2e",
+		"e2e:smoke": "bun --cwd=apps/e2e run smoke",
+		"e2e:family:create": "bun --cwd=apps/e2e run family:create",
+		"e2e:family:delete": "bun --cwd=apps/e2e run family:delete"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",

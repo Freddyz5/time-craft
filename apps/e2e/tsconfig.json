@@ -1,0 +1,7 @@
+{
+	"extends": "@time-craft/tsconfig/node.json",
+	"compilerOptions": {
+		"lib": ["es2024", "dom"]
+	},
+	"include": ["."]
+}
