@@ -105,4 +105,4 @@ El logo es un ladrillo amarillo 2×2 con la aguja de un reloj. `apps/web/brand/m
 - [docs/verificacion-manual.md](docs/verificacion-manual.md): lo que se revisa a mano en teléfonos reales antes de cada release.
 - Cada app y paquete tiene su `CLAUDE.md` con lo que hace y lo que no debe hacer, y el diseño se describe en [apps/web/DESIGN.md](apps/web/DESIGN.md).
 
-Un PR por fase desde `dev`; un release es un PR de `dev` a `prod`.
+Un PR por fase desde `dev`; un release es un PR de `dev` a `prod`. Cada release calcula la versión de la web y la de la api a partir de los commits (semantic-release), con su tag, su `CHANGELOG.md` y su GitHub Release.

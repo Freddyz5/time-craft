@@ -11,6 +11,12 @@
 // types, so a change that reaches the web only through the api leaves the
 // web's build output as it was.
 //
+// Production deploys only releases: the app builds on prod only for its own
+// release commit, which .github/workflows/release.yml pushes after the merge
+// from dev (the message comes from scripts/release/config.mjs). The merge
+// itself is skipped, so each release builds once and with its version. An
+// emergency deploy is a Redeploy without the ignore step (docs/deploy.md).
+//
 // When in doubt it builds: on a branch's first deployment, when that commit
 // is missing from Vercel's shallow clone (turbo then reports every package),
 // or when turbo fails. Runs before the install, with plain Node.
@@ -66,7 +72,23 @@ function queryTurbo(base, target) {
 	return JSON.parse(output).data;
 }
 
+// @time-craft/web builds on prod only for "chore(release): web-v…".
+function decideProduction(target) {
+	const message = process.env.VERCEL_GIT_COMMIT_MESSAGE;
+	if (message === undefined) {
+		return [BUILD, "no commit message to check"];
+	}
+	const release = `chore(release): ${target.replace("@time-craft/", "")}-v`;
+	if (message.startsWith(release)) {
+		return [BUILD, message.split("\n")[0]];
+	}
+	return [SKIP, `production deploys only ${target}'s release commits`];
+}
+
 function decide({ target, typeOnly }) {
+	if (process.env.VERCEL_ENV === "production") {
+		return decideProduction(target);
+	}
 	const base = process.env.VERCEL_GIT_PREVIOUS_SHA ?? "";
 	if (!/^[0-9a-f]{7,40}$/.test(base)) {
 		return [BUILD, "first deployment of this branch"];
