@@ -9,6 +9,7 @@ Cómo se publica Time Craft y qué hay que configurar a mano, una sola vez, en V
 | Saltar el build de la app que un commit no afecta | [`scripts/vercel-ignore.mjs`](../scripts/vercel-ignore.mjs) (el `ignoreCommand` de cada app) |
 | Lint, typecheck, tests y build en cada PR | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) |
 | Migraciones de Neon al hacer push a `dev` o `prod` | [`.github/workflows/migrate.yml`](../.github/workflows/migrate.yml) |
+| E2E contra dev y smoke test de producción, a mano | [`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml) (parte D) |
 | Versión de Node (22) | `engines` en `apps/api/package.json` y `apps/web/package.json` |
 
 ## Cómo fluye un cambio
@@ -260,6 +261,54 @@ Las variables de la línea de comandos ganan a las del `.env`. El seed imprime e
 Una migración nueva se genera con `bun run db:generate` y nunca se edita a mano. Se aplica sola al llegar a `dev` y a `prod`.
 
 Para forzar el build de una app que el paso de ignorar saltó: **Deployments → ⋯ → Redeploy** y desmarca **Use project's Ignore Build Step**.
+
+---
+
+## Parte D. Comprobación: e2e y smoke test
+
+El e2e (`apps/e2e`) recorre los 8 pasos del flujo en la web de dev. Escribe en Neon `dev`: crea una familia de prueba por corrida y la borra al terminar. El smoke test solo lee producción. Lo que no se puede automatizar está en [verificacion-manual.md](verificacion-manual.md).
+
+### 14. Marcar Neon `dev` como base de pruebas (una vez)
+
+Una cadena de conexión de Neon no dice a qué rama apunta, así que el e2e se niega a escribir en una base que no esté marcada. La marca es un comentario de la base, que vive solo en la rama donde se escribe: `main` nunca la tiene.
+
+- [ ] Neon → **SQL Editor** → elige la rama **`dev`** (¡no `main`!) y la base `neondb` → corre:
+  ```sql
+  COMMENT ON DATABASE neondb IS 'timecraft:dev';
+  ```
+- [ ] Si alguna vez reinicias `dev` desde `main` (*Reset from parent*), la marca se pierde y el e2e se niega a correr hasta que la vuelvas a poner.
+
+Para correr el e2e en tu máquina contra una base local, márcala igual.
+
+### 15. Vercel: bypass de la protección para el e2e
+
+La web de dev y sus previews tienen Vercel Authentication. El e2e entra con un secreto de automatización.
+
+- [ ] Proyecto **time-craft-web** → **Settings → Deployment Protection → Protection Bypass for Automation → Add Secret** (nombre, p. ej., `e2e`) → copia el secreto.
+- [ ] Sirve en todos los deployments del proyecto, también en los que ya existen, hasta que lo revoques. No hace falta redeploy.
+
+### 16. GitHub: lo que lee el workflow `E2E`
+
+En el repo, **Settings → Environments → `dev`** (el mismo del paso 2):
+
+- [ ] **Environment secrets → Add environment secret**: `VERCEL_AUTOMATION_BYPASS_SECRET` = el secreto del paso 15. `DATABASE_URL_UNPOOLED` ya está (paso 2).
+- [ ] **Environment variables → Add environment variable**: `E2E_BASE_URL` = `<WEB_DEV>`.
+
+En **Settings → Secrets and variables → Actions → Variables** (del repositorio, para el smoke test):
+
+- [ ] `E2E_PROD_WEB_URL` = `<WEB_PROD>` y `E2E_PROD_API_URL` = `<API_PROD>`.
+
+### 17. Correrlo
+
+- [ ] **Actions → E2E → Run workflow**, rama **`dev`** (el Environment solo deja leer sus secretos a esa rama):
+  - `e2e`: el flujo completo contra `<WEB_DEV>` (unos minutos).
+  - `e2e-slow`: además, una sesión de 2 minutos que espera el aviso, el fin y el cierre real por QStash (unos 4 minutos más).
+  - `smoke`: producción, solo lectura.
+  - `base_url` (opcional): la URL de una preview de PR de la web, para probar un cambio antes de fusionarlo. Las previews hablan con la api de dev, que es la de `dev` ya fusionada.
+- [ ] GitHub solo ofrece **Run workflow** cuando `e2e.yml` está en la rama por defecto (`prod`), como pasó con `Migrate`: hasta el siguiente release, córrelo desde tu máquina (abajo).
+- [ ] Si falla, el job sube el reporte de Playwright como artefacto `e2e-report` (con trazas y capturas). Una corrida cortada a la mitad deja su familia: el último paso del job borra las que queden (`bun run e2e:family:delete --all`).
+
+En tu máquina: `bun run e2e` contra `bun run dev` (con el servidor de desarrollo de QStash) o, con `E2E_BASE_URL`, `DATABASE_URL_UNPOOLED` y `VERCEL_AUTOMATION_BYPASS_SECRET` en la shell, contra dev. El smoke: `E2E_BASE_URL=<WEB_PROD> E2E_API_URL=<API_PROD> bun run e2e:smoke`. Detalles en [`apps/e2e/CLAUDE.md`](../apps/e2e/CLAUDE.md).
 
 ## QStash y la protección de Vercel
 
