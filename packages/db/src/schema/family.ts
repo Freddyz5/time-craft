@@ -114,7 +114,7 @@ export const children = pgTable(
 	],
 );
 
-// Activities that use up the quota (version 1: game and TV).
+// Activities that use up the quota (milestone 1: game and TV).
 export const activities = pgTable(
 	"activities",
 	{

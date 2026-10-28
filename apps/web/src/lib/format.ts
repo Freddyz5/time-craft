@@ -146,7 +146,7 @@ function offsetAt(instant: Date, timeZone: string): string {
 export function todayAt(hhmm: string, now: number, timeZone: string): string {
 	const day = calendarDay(now, timeZone);
 	// The offset at a nearby instant is right except across a DST change,
-	// which no family zone in v1 has (America/Guayaquil).
+	// which no family zone in milestone 1 has (America/Guayaquil).
 	return `${day}T${hhmm}:00${offsetAt(new Date(now), timeZone)}`;
 }
 

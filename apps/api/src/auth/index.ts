@@ -42,7 +42,7 @@ export interface AuthOptions {
 }
 
 // Endpoints Better Auth exposes that this app does not use: profile and
-// email changes go through the domain tables, and there is no email in v1.
+// email changes go through the domain tables, and there is no email in milestone 1.
 const DISABLED_PATHS = [
 	"/update-user",
 	"/change-email",

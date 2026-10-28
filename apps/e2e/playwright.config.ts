@@ -1,5 +1,5 @@
 // Two suites against E2E_BASE_URL (local, the dev domain or a PR preview):
-// - e2e: the eight steps of the v1 flow, on a family the setup project
+// - e2e: the eight steps of the milestone 1 flow, on a family the setup project
 //   creates for the run and the teardown project deletes. Tests share that
 //   family, so they run one at a time and each starts from a reset.
 // - smoke: production, read only (no family, no database).

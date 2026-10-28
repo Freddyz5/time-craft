@@ -21,10 +21,17 @@
 		"e2e": "bun --cwd=apps/e2e run e2e",
 		"e2e:smoke": "bun --cwd=apps/e2e run smoke",
 		"e2e:family:create": "bun --cwd=apps/e2e run family:create",
-		"e2e:family:delete": "bun --cwd=apps/e2e run family:delete"
+		"e2e:family:delete": "bun --cwd=apps/e2e run family:delete",
+		"release": "semantic-release --extends ./scripts/release/config.mjs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",
+		"@semantic-release/changelog": "7.0.0",
+		"@semantic-release/commit-analyzer": "13.0.1",
+		"@semantic-release/git": "11.0.1",
+		"@semantic-release/release-notes-generator": "14.1.1",
+		"conventional-changelog-conventionalcommits": "9.3.1",
+		"semantic-release": "25.0.9",
 		"turbo": "2.11.9"
 	}
 }

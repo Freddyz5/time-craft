@@ -1,11 +1,11 @@
-# Contexto: Time Craft · Versión 1 (MVP)
+# Contexto: Time Craft · Hito 1 (MVP)
 
 ## Qué es
 Sistema familiar para controlar cuánto tiempo pasa mi hijo de 9 años con videojuegos (Minecraft en PC Windows) y TV (YouTube en una TV LG). Funciona con una cuota de tiempo diaria y semanal, tipo "créditos". Lo usamos los dos padres y el niño, cada uno desde su teléfono o navegador, desde cualquier lugar.
 
-**Versión 1:** cronómetro compartido, cuotas, alarmas push y dashboard. Se registra manualmente: no detecta el juego ni la TV. Eso queda para versiones posteriores.
+**Hito 1:** cronómetro compartido, cuotas, alarmas push y dashboard. Se registra manualmente: no detecta el juego ni la TV. Eso queda para hitos posteriores.
 
-**Nomenclatura:** el producto avanza por **versiones** (v1, v2…). Cada versión se construye en **fases**, y cada fase es un PR con varios commits.
+**Nomenclatura:** el producto avanza por **hitos** (hito 1, hito 2…). Cada hito se construye en **fases**, y cada fase es un PR con varios commits. La web y la api tienen además su propia **versión** semántica (`1.4.0`), independiente de los hitos: la calcula cada release a partir de los commits (ver `docs/deploy.md`, parte E).
 
 **Restricción:** todo debe funcionar en planes gratuitos (Vercel Hobby, Neon Free, Upstash QStash Free).
 
@@ -35,7 +35,7 @@ packages/
 - Dirección de dependencias: `api → core` y `api → db`. Los adaptadores (en `api`) implementan los puertos de `core`.
 - Lint/format con Biome.
 
-## Fases de la versión 1 (un PR por fase, ramas desde `dev`)
+## Fases del hito 1 (un PR por fase, ramas desde `dev`)
 1. **Monorepo:** esqueleto vacío, Bun, Turborepo (`dev`, `build`, `lint`, `typecheck`, `test`, `db:generate`, `db:migrate`), Biome, GitHub Action de lint + typecheck + test. Deploy "hello world" de la api importando algo de `packages/core` para validar el empaquetado en Vercel.
 2. **db:** schema Drizzle de las 18 tablas (las de Better Auth generadas con su CLI), índices parciales, migraciones versionadas (`generate` + `migrate`, nunca `push` en prod), seed.
 3. **core:** reglas de negocio con arquitectura hexagonal. Tests con fakes en memoria y reloj fijo.
@@ -54,7 +54,7 @@ packages/
 - **Cambio de límites a mitad de semana:** la política vigente al momento de calcular aplica a toda la semana (decidido).
 - **Sesión que cruza la medianoche o el cambio de semana:** se imputa entera al día (y semana) de inicio (decidido, opción A). La regla vive en una sola función de `core` (estrategia de imputación) para poder pasar a repartirla por tramos (opción B) sin cambiar el schema. Como el saldo se calcula, el cambio también recalcula el historial.
 - **Empezar ahora o más tarde:** al aprobar (o al crear una sesión directa) el padre elige empezar ya o programar la hora de inicio, como máximo hasta el final del día. Mientras está programada no consume. Al arrancar, la duración se recorta al disponible de ese momento; si es 0, se cancela y se avisa. Un padre puede adelantarla o cancelarla.
-- **Sesión pausada y olvidada:** una pausa no consume, pero bloquea nuevas sesiones (solo una programada o activa por niño). En la versión 1 no hay límite de pausa; el dashboard de padres la muestra destacada para cerrarla a mano (decidido).
+- **Sesión pausada y olvidada:** una pausa no consume, pero bloquea nuevas sesiones (solo una programada o activa por niño). En el hito 1 no hay límite de pausa; el dashboard de padres la muestra destacada para cerrarla a mano (decidido).
 - **Tiempo extra solo con cuota agotada:** si al niño le queda disponible, debe pedir `start`, no `extra_time`.
 - **El servidor es la fuente de verdad del cronómetro.** Guarda inicio, duración y pausas; cada cliente calcula lo restante, así todos ven lo mismo.
 - **No se guarda el saldo.** Se calcula a partir de las sesiones, para no tener dos fuentes de verdad.
@@ -76,7 +76,7 @@ packages/
   - Las previews de Vercel cambian de URL y Google exige registrar las URLs de retorno: el login con Google se activa solo en `dev` (dominio fijo) y producción. En previews se entra con contraseña.
 - **Restablecer contraseña o PIN:** un padre puede restablecer la contraseña del otro padre y el PIN del niño desde la app. Endpoint propio que verifica que sea de la misma familia y luego fija la contraseña con el hasher y el adaptador internos de Better Auth (`auth.$context`). No se usa el plugin `admin` (decidido en la fase 4): su `setUserPassword` exige una sesión de administrador y el flujo del código de recuperación no tiene sesión.
 - **Código de recuperación de la familia** (último recurso si ambos pierden acceso): código largo aleatorio de un solo uso, generado al configurar el hogar, guardado hasheado en `families.recovery_code_hash`. Se imprime o se guarda en lugar seguro. Con él se restablece la contraseña de un padre; al usarlo se genera uno nuevo. Endpoint con rate limit estricto.
-- **Sin correo en la versión 1:** no hay "olvidé mi contraseña" por email. Si se necesita más adelante, se conecta Resend (plan gratis) sin cambiar el schema.
+- **Sin correo en el hito 1:** no hay "olvidé mi contraseña" por email. Si se necesita más adelante, se conecta Resend (plan gratis) sin cambiar el schema.
 - **Script de desarrollo:** queda solo como herramienta del desarrollador, no como vía de recuperación.
 - **Niño:** plugin `username`, login con usuario + PIN. El username es **único global**. Como Better Auth exige email, se usa uno sintético (`usuario@hijos.timecraft.local`). Su cuenta la crea un padre desde la api, también con el contexto interno de Better Auth (usuario + cuenta `credential`): con `disableSignUp`, `auth.api.signUpEmail` falla incluso en el servidor.
 - **PIN:** mínimo 6 dígitos (se baja `minPasswordLength` a 6 y se exige más a los padres con validación propia).
@@ -123,7 +123,7 @@ Por qué no un cron/tick por minuto: Vercel Hobby solo permite cron diario, y un
 8. **Consultar** (todos, solo lectura): saldo, cronómetro en vivo, historial y desglose por actividad, overrides y solicitudes rechazadas.
 
 ## Base de datos (PostgreSQL, 18 tablas)
-Archivo de referencia: `timecraft_v1.sql` (validado contra PostgreSQL 16, incluidos los índices parciales y los CHECK).
+Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, incluidos los índices parciales y los CHECK).
 
 **Identidad (Better Auth, ids TEXT):**
 - **auth_user**: name, email (unique), email_verified, image, username (unique, plugin), display_username
@@ -194,13 +194,13 @@ Archivo de referencia: `timecraft_v1.sql` (validado contra PostgreSQL 16, inclui
 
 Se validan al arrancar con un schema de zod: si falta una, la api falla de inmediato en lugar de fallar a mitad de un flujo.
 
-## Fuera de la versión 1 (descartado por ahora)
+## Fuera del hito 1 (descartado por ahora)
 - Que el niño planifique su semana.
 - Que el niño termine antes por su cuenta.
 - Logros y rachas.
 - Que el niño sugiera contenido.
-- Versiones siguientes:
-  - **Versión 2:** agente en la PC que detecta Minecraft, avisa y lo cierra.
-  - **Versión 3:** hub local para la TV LG (detección, mensajes en pantalla, apagado).
-  - **Versión 4:** app propia en la TV con modo catálogo y canal "estilo TV de los 90s".
-  - **Versión 5:** extras.
+- Hitos siguientes:
+  - **Hito 2:** agente en la PC que detecta Minecraft, avisa y lo cierra.
+  - **Hito 3:** hub local para la TV LG (detección, mensajes en pantalla, apagado).
+  - **Hito 4:** app propia en la TV con modo catálogo y canal "estilo TV de los 90s".
+  - **Hito 5:** extras.

@@ -1,5 +1,5 @@
 -- =====================================================================
--- Time Craft · Versión 1 (MVP) · schema v4
+-- Time Craft · Hito 1 (MVP) · schema v4
 -- Cronómetro compartido, cuotas diaria/semanal, alarma, dashboard
 -- + el niño entra con usuario + PIN desde cualquier navegador, ve su
 --   saldo y cronómetro, solicita empezar, pide tiempo extra y reporta
@@ -169,7 +169,7 @@ CREATE TABLE children (
     CONSTRAINT fk_children_auth_user FOREIGN KEY (auth_user_id) REFERENCES auth_user (id)
 );
 
--- Actividades que consumen cuota (versión 1: Juego y TV)
+-- Actividades que consumen cuota (hito 1: Juego y TV)
 CREATE TABLE activities (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     family_id       UUID         NOT NULL,

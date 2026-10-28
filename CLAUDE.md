@@ -2,14 +2,14 @@
 
 Sistema familiar para controlar el tiempo de pantalla de un niño de 9 años (Minecraft en PC y YouTube en una TV LG) con cuotas diarias y semanales tipo "créditos".
 Lo usan los dos padres y el niño, cada uno desde su teléfono o navegador y desde cualquier lugar.
-Versión 1 (MVP): cronómetro compartido, cuotas, bonos por tareas, alarmas push y dashboard. Se registra a mano: no detecta el juego ni la TV.
+Hito 1 (MVP): cronómetro compartido, cuotas, bonos por tareas, alarmas push y dashboard. Se registra a mano: no detecta el juego ni la TV.
 Los padres inician, pausan y detienen sesiones y aprueban solicitudes; el niño solo ve su saldo y pide (empezar, tiempo extra, bonos).
 El servidor es la fuente de verdad del cronómetro, y el saldo no se guarda: se calcula a partir de las sesiones.
 Las alarmas (inicio programado, aviso, fin y cierre automático) van por Upstash QStash, sin cron.
 Stack: Bun + Turborepo, Hono en Vercel, Better Auth, PostgreSQL en Neon con Drizzle, y Astro estático con islas React y Tailwind.
 Todo debe funcionar en planes gratuitos (Vercel Hobby, Neon Free, QStash Free).
-El producto avanza por versiones; cada versión se construye en fases y cada fase es un PR.
-Fuente de verdad: [docs/contexto-v1.md](docs/contexto-v1.md). Schema de referencia: [docs/timecraft_v1.sql](docs/timecraft_v1.sql). Si algo no está ahí, pregunta antes de suponer.
+El producto avanza por hitos; cada hito se construye en fases y cada fase es un PR. La web y la api llevan además su propia versión semántica, independiente de los hitos (ver «Ramas y despliegue»).
+Fuente de verdad: [docs/contexto-hito-1.md](docs/contexto-hito-1.md). Schema de referencia: [docs/timecraft_hito_1.sql](docs/timecraft_hito_1.sql). Si algo no está ahí, pregunta antes de suponer.
 
 ## Estructura del monorepo
 
@@ -45,10 +45,11 @@ Cada app y paquete tiene su propio `CLAUDE.md` con su responsabilidad y lo que n
 
 ## Ramas y despliegue
 
-- Un PR por fase, desde una rama creada a partir de `dev` (p. ej. `feat/f2-db`) y hacia `dev`. Un release es un PR de `dev` a `prod`, fusionado con merge commit (sin squash ni rebase). `prod` solo recibe PRs desde `dev` (lo exige el job `PR to prod comes from dev` de `ci.yml`) y las dos ramas exigen CI en verde.
+- Un PR por fase, desde una rama creada a partir de `dev` (p. ej. `feat/f2-db`) y hacia `dev`. Un release es un PR de `dev` a `prod`, fusionado con merge commit (sin squash ni rebase). `prod` solo recibe PRs desde `dev` (lo revisa el job `PR to prod comes from dev` de `ci.yml`) y se fusiona con CI en verde. Las ramas no tienen rulesets: GitHub no lo bloquea, es una regla del flujo.
 - Vercel tiene un proyecto por app, cada uno configurado en el `vercel.json` de la app. `prod` despliega a producción, `dev` a sus dominios fijos y las demás ramas a previews. La web reescribe `/api/*` hacia la api de su ambiente (`API_ORIGIN`, que Vercel resuelve en cada petición): producción → api de producción; `dev` y las previews de PR → api de dev. `BETTER_AUTH_URL` es el origen de la web, no el de la api.
-- Cada app se reconstruye solo si el commit la afecta (`scripts/vercel-ignore.mjs`, con `turbo query`). La web usa de la api solo los tipos: si empieza a importar código de otro paquete del workspace, lo declara en su `package.json` y no lo marca `--type-only`.
+- Cada app se reconstruye solo si el commit la afecta (`scripts/vercel-ignore.mjs`, con `turbo query`). En producción, solo con su commit de release (`chore(release): web-v…`); el merge de `dev` a `prod` no despliega. Para una emergencia: Redeploy en Vercel sin el paso de ignorar. La web usa de la api solo los tipos: si empieza a importar código de otro paquete del workspace, lo declara en su `package.json` y no lo marca `--type-only`.
 - Migraciones: `.github/workflows/migrate.yml` las aplica en cada push a `dev` (rama `dev` de Neon) y a `prod` (rama `main`), con el `DATABASE_URL_UNPOOLED` del GitHub Environment de esa rama. Las previews de PR usan Neon `dev`.
+- Versiones: la web y la api tienen cada una su versión semántica en su `package.json`, que no se edita a mano. En cada push a `prod`, `.github/workflows/release.yml` corre semantic-release por app (`scripts/release/`). Cuenta los commits desde el último tag de la app que tocaron su carpeta, la de un paquete del workspace del que depende o un archivo raíz del build (un `feat(core)` sube la api; la web no cuenta la api, de la que solo usa tipos). Escribe la versión y el `CHANGELOG.md` de la app, hace el commit en `prod`, crea el tag (`web-v1.2.0`, `api-v1.2.0`) y el GitHub Release, y al final fusiona `prod` en `dev`. Por eso el tipo del commit importa: `feat` sube el minor; `fix`, `perf`, `refactor`, `build`, `style`, `chore` y `ci` el patch (todo lo que se despliega publica versión); `!` o `BREAKING CHANGE:` el major; `docs` y `test` no publican. Esos pushes los hace la GitHub App de releases: con el `GITHUB_TOKEN` del workflow no correría Migrate en el commit del release. La web muestra su versión en las pantallas de entrada y la api la devuelve en `/health`.
 - Lo que se configura a mano en los dashboards y el primer despliegue: [docs/deploy.md](docs/deploy.md).
 
 ### Migraciones compatibles hacia atrás

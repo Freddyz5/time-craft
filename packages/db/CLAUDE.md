@@ -1,6 +1,6 @@
 # packages/db
 
-Schema Drizzle de las 18 tablas (incluidas las de Better Auth), índices parciales, migraciones versionadas, cliente y seed. Referencia: [docs/timecraft_v1.sql](../../docs/timecraft_v1.sql). Se exporta como TypeScript fuente, sin build.
+Schema Drizzle de las 18 tablas (incluidas las de Better Auth), índices parciales, migraciones versionadas, cliente y seed. Referencia: [docs/timecraft_hito_1.sql](../../docs/timecraft_hito_1.sql). Se exporta como TypeScript fuente, sin build.
 
 - `src/schema/`: un archivo por sección del SQL (`auth`, `family`, `rules`, `requests`, `timer`, `bonuses`, `notifications`) y `relations.ts` para el query API. Cada tabla exporta sus tipos inferidos (`Family`, `NewFamily`…). Los nombres de constraints e índices son los del SQL de referencia. Las tablas `auth_*` se comparan con el CLI de Better Auth (cómo, en `apps/api/CLAUDE.md`).
 - `src/client.ts`: `createDb(connectionString)` con el driver `neon-serverless` (Pool por WebSocket, para transacciones interactivas). Node 22+ y Bun traen `WebSocket` global, así que no se configura `ws`. `Db` y `Transaction` aceptan cualquier base Postgres de Drizzle con este schema (Neon o PGlite).

@@ -1,7 +1,7 @@
 name: E2E
 
 # By hand: Actions → E2E → Run workflow, on the dev branch.
-# - e2e: the v1 flow (apps/e2e) against the web's dev domain, or against a
+# - e2e: the milestone 1 flow (apps/e2e) against the web's dev domain, or against a
 #   PR preview given as base_url (PR previews use the dev api and Neon dev).
 #   It creates its own test family on Neon dev and deletes it afterwards.
 # - e2e-slow: the same, plus the tests that wait for QStash (minutes).
