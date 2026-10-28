@@ -1,4 +1,4 @@
-// Better Auth tables, written by hand from docs/timecraft_v1.sql and checked
+// Better Auth tables, written by hand from docs/timecraft_hito_1.sql and checked
 // against the Better Auth CLI output (apps/api/CLAUDE.md says how). The api
 // maps each model to these export names with modelName; columns are
 // snake_case, and timestamps keep the time zone like the rest of the schema.

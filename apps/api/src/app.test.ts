@@ -2,6 +2,7 @@
 // typed end to end (this file fails to typecheck if they are not).
 import { describe, expect, test } from "bun:test";
 import { hc } from "hono/client";
+import pkg from "../package.json" with { type: "json" };
 import type { AppType } from "./app";
 import { createTestApp } from "./testing/harness";
 
@@ -31,9 +32,12 @@ describe("AppType", () => {
 		}
 	});
 
-	test("/health answers without a session", async () => {
+	test("/health answers without a session, with the api's version", async () => {
 		const t = await createTestApp();
 		const response = await t.app.request("/health");
-		expect(await response.json()).toMatchObject({ ok: true });
+		expect(await response.json()).toEqual({
+			ok: true,
+			app: { name: "Time Craft", version: pkg.version },
+		});
 	});
 });

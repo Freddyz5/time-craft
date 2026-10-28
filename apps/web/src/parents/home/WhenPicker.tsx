@@ -68,6 +68,10 @@ export function WhenPicker({
 					<label htmlFor={timeId} className="font-medium">
 						Hora de inicio
 					</label>
+					{/* min and step only guide the browser's picker. The step counts
+					    from min (now), so most five-minute marks fail the browser's
+					    own check: forms holding this picker set noValidate and
+					    rely on laterIsValid. */}
 					<input
 						id={timeId}
 						type="time"

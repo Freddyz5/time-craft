@@ -1,0 +1,134 @@
+name: E2E
+
+# By hand: Actions → E2E → Run workflow, on the dev branch.
+# - e2e: the milestone 1 flow (apps/e2e) against the web's dev domain, or against a
+#   PR preview given as base_url (PR previews use the dev api and Neon dev).
+#   It creates its own test family on Neon dev and deletes it afterwards.
+# - e2e-slow: the same, plus the tests that wait for QStash (minutes).
+# - smoke: production, read only.
+# The dev GitHub Environment holds what the e2e needs (docs/deploy.md):
+# DATABASE_URL_UNPOOLED (the one Migrate uses), the web's
+# VERCEL_AUTOMATION_BYPASS_SECRET and the E2E_BASE_URL variable. The smoke
+# test reads the repository variables E2E_PROD_WEB_URL and E2E_PROD_API_URL.
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: What to run
+        type: choice
+        options: [e2e, e2e-slow, smoke]
+        default: e2e
+      base_url:
+        description: "e2e only: a PR preview of the web (empty: the dev domain)"
+        required: false
+        default: ""
+
+# One run at a time per environment: runs on dev share Neon dev.
+concurrency:
+  group: e2e-${{ inputs.suite == 'smoke' && 'prod' || 'dev' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E on dev
+    if: inputs.suite != 'smoke'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Its deployment branch rule only lets the dev branch read the secrets.
+    environment: dev
+    env:
+      E2E_BASE_URL: ${{ inputs.base_url || vars.E2E_BASE_URL }}
+      DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      E2E_SLOW: ${{ inputs.suite == 'e2e-slow' && '1' || '' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      # Playwright's runner is Node; Chrome comes with the runner image.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Cache Bun packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Check the configuration
+        run: |
+          missing=""
+          [ -n "$E2E_BASE_URL" ] || missing="$missing E2E_BASE_URL (variable)"
+          [ -n "$DATABASE_URL_UNPOOLED" ] || missing="$missing DATABASE_URL_UNPOOLED (secret)"
+          [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ] || missing="$missing VERCEL_AUTOMATION_BYPASS_SECRET (secret)"
+          if [ -n "$missing" ]; then
+            echo "::error::The dev environment is missing:$missing (see docs/deploy.md)."
+            exit 1
+          fi
+
+      - name: Run the e2e
+        run: bun run e2e
+
+      # A run cut short leaves its family behind; this removes any.
+      - name: Delete leftover test families
+        if: always()
+        run: bun run e2e:family:delete --all
+
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report
+          path: |
+            apps/e2e/.e2e/report
+            apps/e2e/.e2e/results
+          retention-days: 7
+
+  smoke:
+    name: Smoke test on production
+    if: inputs.suite == 'smoke'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      E2E_BASE_URL: ${{ vars.E2E_PROD_WEB_URL }}
+      E2E_API_URL: ${{ vars.E2E_PROD_API_URL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Cache Bun packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Check the configuration
+        run: |
+          if [ -z "$E2E_BASE_URL" ] || [ -z "$E2E_API_URL" ]; then
+            echo "::error::Set the repository variables E2E_PROD_WEB_URL and E2E_PROD_API_URL (see docs/deploy.md)."
+            exit 1
+          fi
+
+      - name: Run the smoke test
+        run: bun run e2e:smoke

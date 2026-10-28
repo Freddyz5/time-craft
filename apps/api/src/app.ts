@@ -2,8 +2,9 @@
 // of them need a parent or the child signed in, except the recovery code),
 // and the QStash callback at /internal/jobs.
 // AppType is what the web's typed client uses: hc<AppType>("/").
-import { appInfo } from "@time-craft/core";
 import { Hono } from "hono";
+// The release writes the api's version here (scripts/release).
+import pkg from "../package.json" with { type: "json" };
 import { type AppDeps, type AppEnv, resolveActor } from "./http/context";
 import { notFound, onError } from "./http/errors";
 import { accountRoutes, recoveryRoutes } from "./routes/accounts";
@@ -30,7 +31,9 @@ export function createApp(deps: AppDeps) {
 	app.onError(onError);
 	app.notFound(notFound);
 
-	app.get("/health", (c) => c.json({ ok: true, app: appInfo() }));
+	app.get("/health", (c) =>
+		c.json({ ok: true, app: { name: "Time Craft", version: pkg.version } }),
+	);
 	app.on(["GET", "POST"], "/api/auth/*", (c) => deps.auth.handler(c.req.raw));
 	app.use("/api/*", async (c, next) => {
 		if (!isPublic(c.req.path)) {

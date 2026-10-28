@@ -1,7 +1,11 @@
 // The public pages' frame (login, recovery): the mark, one line on what the
 // app is, a short row of bricks showing the idea, and the form on a plate.
 // The child's login leaves the bricks out: to them, bricks are their time.
+// The web's version sits in the bottom corner.
 import type { ReactNode } from "react";
+// The release writes the web's version here (scripts/release); Vite bundles
+// only this field.
+import { version } from "../../package.json";
 import { Wordmark } from "../components/brand";
 import { BrickRow, bricksFor } from "../components/bricks";
 
@@ -19,7 +23,10 @@ export function PublicFrame({
 	bricks?: boolean;
 }) {
 	return (
-		<div className="flex min-h-dvh flex-col items-center px-4 py-8 sm:justify-center sm:py-12">
+		<div className="relative flex min-h-dvh flex-col items-center px-4 py-8 sm:justify-center sm:py-12">
+			<p className="absolute right-4 bottom-2 text-sm text-ink-faint tabular-nums">
+				v{version}
+			</p>
 			<div className="flex w-full max-w-[25rem] flex-col gap-6">
 				<div className="flex flex-col gap-4">
 					<Wordmark size="lg" />

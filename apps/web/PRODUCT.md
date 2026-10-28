@@ -19,7 +19,7 @@ Funciona bien cuando cualquiera de los padres sabe de un vistazo cuánto le qued
 
 ## Positioning
 
-No es un control parental que espía ni bloquea: en la versión 1 no detecta el juego ni la TV, todo se registra a mano. Es una cuenta compartida y transparente: el servidor es la fuente de verdad del cronómetro, así que padres y niño ven exactamente los mismos números. El saldo nunca se guarda, se calcula a partir de las sesiones. El niño pide y los padres deciden, y las reglas están a la vista de todos.
+No es un control parental que espía ni bloquea: en el hito 1 no detecta el juego ni la TV, todo se registra a mano. Es una cuenta compartida y transparente: el servidor es la fuente de verdad del cronómetro, así que padres y niño ven exactamente los mismos números. El saldo nunca se guarda, se calcula a partir de las sesiones. El niño pide y los padres deciden, y las reglas están a la vista de todos.
 
 ## Operating Context
 
@@ -36,9 +36,9 @@ No es un control parental que espía ni bloquea: en la versión 1 no detecta el 
 - Vocabulario: saldo; disponible (lo menor entre lo que queda del día y de la semana); bonos y tope semanal de bonos; aviso previo; sesión programada, en curso o pausada; solicitud (empezar o tiempo extra); tiempo extra dado por un padre (override, siempre con motivo y en una sesión nueva); reporte de tarea; código de recuperación.
 - Reglas: una cuota global (Juego y TV comparten la bolsa) y, opcionalmente, límites propios por actividad. Cambiar un límite crea una política nueva y conserva el historial. La política vigente aplica a toda la semana en curso.
 - Los bonos suman a la bolsa semanal hasta un tope y no suben el límite diario. El exceso cuenta: se descuenta el tiempo real consumido.
-- Cuentas: los padres entran con Google (en dev y producción) o con correo y contraseña, sin registro público. Un padre crea la cuenta del niño, restablece su PIN y cierra sus sesiones de login, y puede restablecer la contraseña del otro padre. El código de recuperación de la familia es el último recurso. En la versión 1 no se envían correos.
+- Cuentas: los padres entran con Google (en dev y producción) o con correo y contraseña, sin registro público. Un padre crea la cuenta del niño, restablece su PIN y cierra sus sesiones de login, y puede restablecer la contraseña del otro padre. El código de recuperación de la familia es el último recurso. En el hito 1 no se envían correos.
 - Técnica: Astro estático con islas React y Tailwind, sin SSR. Todo corre en planes gratuitos (Vercel Hobby, Neon Free, QStash Free).
-- Fuera de la versión 1: detección del juego o la TV, planificación por parte del niño, que el niño termine antes por su cuenta, logros y rachas.
+- Fuera del hito 1: detección del juego o la TV, planificación por parte del niño, que el niño termine antes por su cuenta, logros y rachas.
 
 ## Brand Commitments
 
