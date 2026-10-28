@@ -126,9 +126,7 @@ export function NewSession() {
 				<ArrowLeft className="size-4.5" aria-hidden="true" />
 				Inicio
 			</Link>
-			<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-				Nueva sesión
-			</h1>
+			<h1 className="text-[2rem] leading-tight font-extrabold">Nueva sesión</h1>
 			<p className="text-ink-soft">
 				Para {child.name}, sin esperar a que la pida.
 			</p>
@@ -155,7 +153,7 @@ export function NewSession() {
 			<div className="mx-auto flex max-w-2xl flex-col gap-5">
 				{header}
 				<Callout className="flex flex-col items-start gap-3 p-5">
-					<h2 className="text-xl leading-tight font-semibold">
+					<h2 className="text-[1.375rem] leading-tight font-bold">
 						{status === "scheduled"
 							? "Ya hay una sesión programada"
 							: status === "paused"
@@ -228,7 +226,7 @@ export function NewSession() {
 							return (
 								<label
 									key={activity.id}
-									className="flex cursor-pointer flex-col gap-2 rounded-control border-[1.5px] border-rule-strong bg-sheet p-3 transition-colors hover:bg-sheet-sunk has-checked:border-ink has-checked:bg-sheet has-checked:shadow-[inset_0_0_0_1.5px_var(--color-ink)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
+									className="flex flex-col gap-2 rounded-control border-[1.5px] border-rule-strong bg-sheet p-3 transition-colors hover:bg-sheet-sunk has-checked:border-ink has-checked:bg-sheet has-checked:shadow-[inset_0_0_0_1.5px_var(--color-ink)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
 								>
 									<input
 										type="radio"
@@ -280,7 +278,7 @@ export function NewSession() {
 								type="button"
 								aria-pressed={value === preset}
 								onClick={() => setMinutes(preset)}
-								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white"
+								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-on-ink"
 							>
 								{preset} min
 							</button>
@@ -290,7 +288,7 @@ export function NewSession() {
 								type="button"
 								aria-pressed={value === max}
 								onClick={() => setMinutes(max)}
-								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white"
+								className="tabular min-h-10 rounded-full border-[1.5px] border-rule-strong bg-sheet px-4 font-medium hover:bg-sheet-sunk aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-on-ink"
 							>
 								Todo: {max} min
 							</button>

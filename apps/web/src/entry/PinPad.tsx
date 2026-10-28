@@ -1,6 +1,7 @@
 // The child's PIN: the digits typed so far drawn as studs on a brick, and a
-// big 3×4 keypad for a thumb (1–9, delete, 0, Entrar). A PIN is 6 to 12
-// digits, so the row starts with six empty studs and grows as it fills.
+// big 3×4 keypad of brick keys for a thumb (1–9, delete, 0, Entrar). A PIN
+// is 6 to 12 digits, so the row starts with six empty studs and grows as it
+// fills.
 import { ArrowRight, Delete, LoaderCircle } from "lucide-react";
 
 export const PIN_MIN = 6;
@@ -33,9 +34,9 @@ export function PinStuds({
 						<span
 							// biome-ignore lint/suspicious/noArrayIndexKey: slots are positions
 							key={index}
-							className={`relative block aspect-[2/1] rounded-t-[5px] transition-colors duration-150 ${
+							className={`relative block aspect-[2/1] rounded-t-[6px] transition-colors duration-150 ${
 								index < length
-									? "bg-ink"
+									? "bg-bonus"
 									: "border-[1.5px] border-b-0 border-rule-strong bg-sheet-sunk"
 							}`}
 						>
@@ -45,7 +46,7 @@ export function PinStuds({
 						</span>
 					))}
 				</div>
-				<span className="block h-2.5 w-full rounded-[4px] border-[1.5px] border-rule-strong bg-sheet-sunk" />
+				<span className="block h-3 w-full rounded-[4px] bg-bonus shadow-[inset_0_-3px_0_var(--color-bonus-side)]" />
 			</div>
 			<p className="sr-only" aria-live="polite">
 				{length === 0
@@ -59,7 +60,8 @@ export function PinStuds({
 }
 
 const keyClass =
-	"grid min-h-16 select-none place-items-center rounded-control text-[1.75rem] leading-none font-semibold transition-[background-color,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed";
+	"grid min-h-16 select-none place-items-center rounded-control leading-none";
+const digitClass = `${keyClass} brick brick-secondary tabular pt-1.5 font-display text-[2rem] font-extrabold`;
 
 export function PinPad({
 	onDigit,
@@ -85,7 +87,7 @@ export function PinPad({
 					key={digit}
 					type="button"
 					onClick={() => onDigit(digit)}
-					className={`${keyClass} tabular border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk active:bg-page`}
+					className={digitClass}
 				>
 					{digit}
 				</button>
@@ -95,15 +97,11 @@ export function PinPad({
 				onClick={onDelete}
 				disabled={!canDelete}
 				aria-label="Borrar el último número"
-				className={`${keyClass} text-ink hover:bg-sheet-sunk active:bg-page disabled:text-ink-faint/60`}
+				className={`${keyClass} text-ink hover:bg-sheet-sunk active:bg-sheet-sunk disabled:text-ink-faint/60`}
 			>
 				<Delete className="size-7" aria-hidden="true" />
 			</button>
-			<button
-				type="button"
-				onClick={() => onDigit("0")}
-				className={`${keyClass} tabular border-[1.5px] border-rule-strong bg-sheet text-ink hover:bg-sheet-sunk active:bg-page`}
-			>
+			<button type="button" onClick={() => onDigit("0")} className={digitClass}>
 				0
 			</button>
 			<button
@@ -111,7 +109,7 @@ export function PinPad({
 				onClick={onSubmit}
 				disabled={!canSubmit || busy}
 				aria-busy={busy || undefined}
-				className={`${keyClass} gap-1 bg-ink text-[1.0625rem] font-medium text-white hover:bg-[#2a3038] active:bg-black disabled:bg-[#c5ced7] disabled:text-ink-soft`}
+				className={`${keyClass} brick brick-primary gap-1 text-[1.0625rem] font-bold`}
 			>
 				{busy ? (
 					<LoaderCircle className="size-6 animate-spin" aria-hidden="true" />

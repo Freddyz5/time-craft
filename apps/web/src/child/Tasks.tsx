@@ -72,7 +72,7 @@ function TaskCard({
 			aria-labelledby={titleId}
 		>
 			<div className="flex flex-col gap-1">
-				<h3 id={titleId} className="text-xl leading-tight font-semibold">
+				<h3 id={titleId} className="text-[1.375rem] leading-tight font-bold">
 					{task.name}
 				</h3>
 				{task.description && (
@@ -190,7 +190,7 @@ function ReportItem({
 		<li
 			className={`flex flex-col gap-1 rounded-control border-[1.5px] p-3 ${
 				report.status === "approved"
-					? "border-[#d9b21f] bg-bonus-tint"
+					? "border-bonus-side bg-bonus-tint"
 					: "border-rule bg-sheet"
 			}`}
 		>
@@ -236,9 +236,7 @@ export function Tasks() {
 
 	const header = (
 		<div className="flex flex-col gap-1">
-			<h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.01em]">
-				Tareas
-			</h1>
+			<h1 className="text-[2rem] leading-tight font-extrabold">Tareas</h1>
 			<p className="text-ink-soft">
 				Haz una tarea, avísale a mamá o papá y gana minutos para tu semana.
 			</p>
@@ -287,7 +285,7 @@ export function Tasks() {
 
 			{tasks.data.tasks.length === 0 ? (
 				<Callout className="flex flex-col gap-2 p-4 sm:p-5">
-					<h2 className="text-xl leading-tight font-semibold">
+					<h2 className="text-[1.375rem] leading-tight font-bold">
 						Todavía no hay tareas
 					</h2>
 					<p className="text-ink-soft">
@@ -328,7 +326,7 @@ export function Tasks() {
 				>
 					<h2
 						id="reports-title"
-						className="text-xl leading-tight font-semibold"
+						className="text-[1.375rem] leading-tight font-bold"
 					>
 						Tus reportes de esta semana
 					</h2>

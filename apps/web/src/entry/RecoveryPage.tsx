@@ -71,7 +71,7 @@ export default function RecoveryPage() {
 				</Notice>
 				<a
 					href="/login"
-					className="inline-flex min-h-12 items-center justify-center rounded-control bg-ink px-4 font-medium text-white no-underline hover:bg-[#2a3038]"
+					className="inline-flex min-h-12 items-center justify-center rounded-control bg-ink px-4 font-medium text-on-ink no-underline hover:bg-ink/85"
 				>
 					Ir a entrar
 				</a>

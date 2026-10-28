@@ -107,7 +107,7 @@ export function PushOffer() {
 			aria-labelledby="push-offer"
 		>
 			<div className="flex flex-col gap-1">
-				<h2 id="push-offer" className="text-xl leading-tight font-semibold">
+				<h2 id="push-offer" className="text-[1.375rem] leading-tight font-bold">
 					Avisos en este dispositivo
 				</h2>
 				<p className="text-ink-soft">

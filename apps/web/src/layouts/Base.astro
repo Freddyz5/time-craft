@@ -1,5 +1,5 @@
 ---
-// The document shell every page shares: language, viewport, theme colour,
+// The document shell every page shares: language, viewport, theme, icons,
 // the manifest for Web Push, and the global styles.
 import "../styles/global.css";
 
@@ -20,13 +20,32 @@ const {
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="description" content={description} />
 		<meta name="theme-color" content="#ffffff" />
-		<meta name="color-scheme" content="light" />
-		<link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
-		<link rel="apple-touch-icon" href="/icons/icon-192.png" />
+		<meta name="color-scheme" content="light dark" />
+		<script is:inline>
+			// The theme before the first paint: the choice saved on this device,
+			// else the system's. Keep in sync with src/lib/theme.ts.
+			(() => {
+				let choice = "system";
+				try {
+					choice = localStorage.getItem("timecraft:theme") ?? "system";
+				} catch {}
+				const dark =
+					choice === "dark" ||
+					(choice !== "light" &&
+						matchMedia("(prefers-color-scheme: dark)").matches);
+				document.documentElement.dataset.theme = dark ? "dark" : "light";
+				document
+					.querySelector('meta[name="theme-color"]')
+					?.setAttribute("content", dark ? "#2a2e36" : "#ffffff");
+			})();
+		</script>
+		<link rel="icon" href="/favicon.ico" sizes="48x48" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 		<link rel="manifest" href="/manifest.webmanifest" />
 		<title>{title}</title>
 	</head>
-	<body class="bg-page text-ink">
+	<body class="baseplate text-ink">
 		<slot />
 	</body>
 </html>

@@ -22,7 +22,9 @@ import { Shell } from "./Shell";
 function NotFound() {
 	return (
 		<div className="mx-auto flex max-w-md flex-col items-start gap-4 py-10">
-			<h1 className="text-2xl font-bold">Esta página no existe</h1>
+			<h1 className="text-[1.75rem] leading-tight font-extrabold">
+				Esta página no existe
+			</h1>
 			<p className="text-ink-soft">Puede que el enlace esté incompleto.</p>
 			<Link href="/" className={buttonClass("primary")}>
 				Ir al inicio
@@ -44,7 +46,9 @@ function ParentsRoot() {
 	if (guard.status === "no_role") {
 		return (
 			<StandaloneFrame>
-				<h1 className="text-xl font-semibold">Esta cuenta no es de un padre</h1>
+				<h1 className="text-[1.5rem] leading-tight font-bold">
+					Esta cuenta no es de un padre
+				</h1>
 				<p className="text-ink-soft">
 					Entraste con una cuenta que no pertenece a ninguna familia de Time
 					Craft.
@@ -58,7 +62,9 @@ function ParentsRoot() {
 	if (guard.status === "error") {
 		return (
 			<StandaloneFrame>
-				<h1 className="text-xl font-semibold">No pudimos abrir la app</h1>
+				<h1 className="text-[1.5rem] leading-tight font-bold">
+					No pudimos abrir la app
+				</h1>
 				<p className="text-ink-soft">{errorMessage(guard.error)}</p>
 				<Button variant="primary" onClick={guard.retry}>
 					Reintentar

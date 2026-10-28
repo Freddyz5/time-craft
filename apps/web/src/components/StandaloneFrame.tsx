@@ -7,7 +7,7 @@ export function StandaloneFrame({ children }: { children: ReactNode }) {
 	return (
 		<div className="grid min-h-dvh place-items-center px-4 py-10">
 			<div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
-				<BrandMark className="size-12" />
+				<BrandMark className="size-16" />
 				{children}
 			</div>
 		</div>

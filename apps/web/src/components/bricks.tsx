@@ -4,8 +4,9 @@
 // - the brick in use drains from the top (only in live counts);
 // - a half brick, one stud wide, is half a brick's worth (in static amounts:
 //   a request, a task's reward, a session's length);
-// - an empty socket, a plain outline on a sunk ground, is a place a brick can
-//   still go (bonus minutes not earned yet). It never means "used".
+// - an empty socket, a bare strip of plate with its studs showing, is a place
+//   a brick can still go (bonus minutes not earned yet). It never means
+//   "used".
 // One brick is 10 minutes unless a limit is too large to fit a row; then each
 // brick is worth more and the legend says so.
 import { useEffect, useId, useRef } from "react";
@@ -43,7 +44,7 @@ interface BrickProps extends BrickSpec {
 
 // Molded plastic edge: a thin dark rim gives light bricks (yellow on white)
 // a visible boundary.
-const RIM = "rgb(21 25 30 / 0.3)";
+const RIM = "rgb(10 12 16 / 0.24)";
 
 export function Brick({
 	fill,
@@ -73,22 +74,23 @@ export function Brick({
 				className={`block h-auto w-full overflow-visible ${animation}`}
 				aria-hidden="true"
 			>
-				<g
-					fill="var(--color-sheet-sunk)"
-					stroke="var(--color-rule-strong)"
-					strokeWidth="1.25"
-				>
+				<g fill="var(--color-socket)">
+					{studs.map((x) => (
+						<rect key={x} x={x} y="14" width="10" height="7" rx="2.4" />
+					))}
+					<rect x="1" y="19.5" width={width} height="5.5" rx="2.2" />
+				</g>
+				<g fill="#fff" opacity="0.35">
 					{studs.map((x) => (
 						<rect
 							key={x}
-							x={x + 0.75}
-							y="1.75"
-							width="8.5"
-							height="5"
-							rx="1.4"
+							x={x + 1.5}
+							y="14.8"
+							width="7"
+							height="1.4"
+							rx="0.7"
 						/>
 					))}
-					<rect x="1.75" y="6.75" width={width - 1.5} height="17.5" rx="2.4" />
 				</g>
 			</svg>
 		);
@@ -131,10 +133,10 @@ export function Brick({
 						<rect
 							key={x}
 							x={x}
-							y="1"
+							y="0.5"
 							width="10"
-							height="6.5"
-							rx="1.6"
+							height="7"
+							rx="2.4"
 							fill={color}
 							stroke={RIM}
 							strokeWidth="0.75"
@@ -145,41 +147,37 @@ export function Brick({
 						y="6"
 						width={width}
 						height="19"
-						rx="2.6"
+						rx="3"
 						fill={color}
 						stroke={RIM}
 						strokeWidth="0.75"
 					/>
-					{/* A lit top edge and a shaded base. */}
+					{/* Moulded volume: lit studs and top edge, a shaded lower face. */}
 					{studs.map((x) => (
 						<rect
 							key={x}
-							x={x + 1}
-							y="1.6"
-							width="8"
-							height="1.6"
-							rx="0.8"
+							x={x + 1.5}
+							y="1.3"
+							width="7"
+							height="1.8"
+							rx="0.9"
 							fill="#fff"
-							opacity="0.45"
+							opacity="0.5"
 						/>
 					))}
 					<rect
 						x="2.5"
-						y="7.2"
+						y="7.3"
 						width={width - 3}
-						height="2"
-						rx="1"
+						height="2.2"
+						rx="1.1"
 						fill="#fff"
-						opacity="0.3"
+						opacity="0.38"
 					/>
-					<rect
-						x="1"
-						y="21"
-						width={width}
-						height="4"
-						rx="2"
+					<path
+						d={`M1.4 19.5H${width + 0.6}V22a3 3 0 0 1-3 3H4.4a3 3 0 0 1-3-3z`}
 						fill="#000"
-						opacity="0.16"
+						opacity="0.2"
 					/>
 				</g>
 			)}
@@ -258,6 +256,54 @@ export function BrickRow({
 					animate={motions[index]}
 					delayMs={enter ? index * 70 : undefined}
 				/>
+			))}
+		</div>
+	);
+}
+
+// A session's bricks stacked as a tower beside its countdown: columns of
+// `perColumn`, built bottom-up and left to right, so what is left sits at the
+// bottom, the brick in use drains on top of it and used bricks rest above.
+// Each brick sits on the studs of the one below.
+export function BrickTower({
+	bricks,
+	label,
+	perColumn = 3,
+	enter = false,
+}: {
+	bricks: readonly BrickSpec[];
+	label: string;
+	perColumn?: number;
+	enter?: boolean;
+}) {
+	const changes = useBrickMotion(bricks);
+	const motions = enter
+		? bricks.map((brick) => (brick.fill > 0 ? ("snap" as const) : undefined))
+		: changes;
+	const columns = Array.from(
+		{ length: Math.ceil(bricks.length / perColumn) },
+		(_, column) =>
+			bricks
+				.slice(column * perColumn, (column + 1) * perColumn)
+				.map((brick, row) => ({ brick, index: column * perColumn + row })),
+	);
+	return (
+		<div role="img" aria-label={label} className="flex items-end gap-1.5">
+			{columns.map((column) => (
+				<div
+					key={column[0]?.index}
+					className="flex w-14 flex-col-reverse [&>*+*]:-mb-2"
+				>
+					{column.map(({ brick, index }) => (
+						// Position is identity, as in BrickRow.
+						<Brick
+							key={index}
+							{...brick}
+							animate={motions[index]}
+							delayMs={enter ? index * 70 : undefined}
+						/>
+					))}
+				</div>
 			))}
 		</div>
 	);
