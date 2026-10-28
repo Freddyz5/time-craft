@@ -2,14 +2,14 @@
 
 Sistema familiar para controlar el tiempo de pantalla de un niño de 9 años (Minecraft en PC y YouTube en una TV LG) con cuotas diarias y semanales tipo "créditos".
 Lo usan los dos padres y el niño, cada uno desde su teléfono o navegador y desde cualquier lugar.
-Versión 1 (MVP): cronómetro compartido, cuotas, bonos por tareas, alarmas push y dashboard. Se registra a mano: no detecta el juego ni la TV.
+Hito 1 (MVP): cronómetro compartido, cuotas, bonos por tareas, alarmas push y dashboard. Se registra a mano: no detecta el juego ni la TV.
 Los padres inician, pausan y detienen sesiones y aprueban solicitudes; el niño solo ve su saldo y pide (empezar, tiempo extra, bonos).
 El servidor es la fuente de verdad del cronómetro, y el saldo no se guarda: se calcula a partir de las sesiones.
 Las alarmas (inicio programado, aviso, fin y cierre automático) van por Upstash QStash, sin cron.
 Stack: Bun + Turborepo, Hono en Vercel, Better Auth, PostgreSQL en Neon con Drizzle, y Astro estático con islas React y Tailwind.
 Todo debe funcionar en planes gratuitos (Vercel Hobby, Neon Free, QStash Free).
-El producto avanza por versiones; cada versión se construye en fases y cada fase es un PR.
-Fuente de verdad: [docs/contexto-v1.md](docs/contexto-v1.md). Schema de referencia: [docs/timecraft_v1.sql](docs/timecraft_v1.sql). Si algo no está ahí, pregunta antes de suponer.
+El producto avanza por hitos; cada hito se construye en fases y cada fase es un PR. La web y la api llevan además su propia versión semántica, independiente de los hitos (ver «Ramas y despliegue»).
+Fuente de verdad: [docs/contexto-hito-1.md](docs/contexto-hito-1.md). Schema de referencia: [docs/timecraft_hito_1.sql](docs/timecraft_hito_1.sql). Si algo no está ahí, pregunta antes de suponer.
 
 ## Estructura del monorepo
 

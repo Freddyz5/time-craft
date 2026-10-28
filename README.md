@@ -99,8 +99,8 @@ El logo es un ladrillo amarillo 2×2 con la aguja de un reloj. `apps/web/brand/m
 
 ## Despliegue y documentación
 
-- [docs/contexto-v1.md](docs/contexto-v1.md): qué hace la versión 1 y por qué (la fuente de verdad del producto).
-- [docs/timecraft_v1.sql](docs/timecraft_v1.sql): el schema de referencia.
+- [docs/contexto-hito-1.md](docs/contexto-hito-1.md): qué hace el hito 1 y por qué (la fuente de verdad del producto).
+- [docs/timecraft_hito_1.sql](docs/timecraft_hito_1.sql): el schema de referencia.
 - [docs/deploy.md](docs/deploy.md): Vercel, Neon, QStash, el primer despliegue y cómo correr el e2e contra dev.
 - [docs/verificacion-manual.md](docs/verificacion-manual.md): lo que se revisa a mano en teléfonos reales antes de cada release.
 - Cada app y paquete tiene su `CLAUDE.md` con lo que hace y lo que no debe hacer, y el diseño se describe en [apps/web/DESIGN.md](apps/web/DESIGN.md).
