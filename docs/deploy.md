@@ -179,7 +179,7 @@ Por qué así:
 - Todas las previews (dev y las de PR) usan la api de dev. `BETTER_AUTH_TRUSTED_ORIGINS` deja que las previews de PR de la web, cada una con su URL, inicien sesión contra ella.
 - Google va solo en Production y en la rama `dev`: las previews de PR cambian de URL y Google no las aceptaría. Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
 - No van en Vercel: `DATABASE_URL_UNPOOLED` (está en GitHub, paso 2), `SEED_*` (solo para el seed desde tu máquina) ni `API_DEV_URL` (solo local).
-- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar, con **Use project's Ignore Build Step** desmarcado. El redeploy usa el mismo commit, así que el paso de ignorar no ve cambios y lo cancelaría.
+- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar, con **Use project's Ignore Build Step** desmarcado. El redeploy usa el mismo commit, así que el paso de ignorar no ve cambios y lo cancelaría. En producción, la api además espera a que vuelvas a correr `Migrate` (parte E, *Desplegar ya*).
 
 ### 8. GitHub: reglas de las ramas
 
@@ -219,7 +219,7 @@ Las previews del propio PR de esta fase no funcionan del todo: su web apunta a l
   - **CI** sobre `dev`.
   - **Migrate** (Actions): aplica en Neon `dev` las migraciones pendientes. En su log, `drizzle-kit migrate` termina sin error.
   - **Vercel**: un deployment de cada proyecto para `dev`, en `<WEB_DEV>` y `<API_DEV>`. Es el primero de `dev` en estos proyectos, así que el paso de ignorar no tiene con qué comparar y construye.
-- [ ] Proyecto **time-craft-api** → **Settings → Build and Deployment → Deployment Checks → Add Checks** → *GitHub* → elige `Migrate database` → guarda. Desde ahora, un deployment de producción de la api no se publica hasta que ese job pasa en el mismo commit. Si algún día necesitas saltarlo: **Force Promote** en el deployment.
+- [ ] Proyecto **time-craft-api** → **Settings → Build and Deployment → Deployment Checks → Add Checks** → *GitHub* → elige `Migrate database` (no `Migrate database (dev)`, que es el de la rama `dev`) → guarda. Desde ahora, un deployment de producción de la api no se publica hasta que ese job pasa en el mismo commit. Solo cuenta un run que termine después de crear el deployment: un Redeploy espera hasta que vuelvas a correr Migrate (parte E). Si algún día necesitas saltarlo: **Force Promote** en el deployment.
 
 ### 10. Seed de una base vacía
 
@@ -332,7 +332,7 @@ Cada app tiene su versión semántica en su `package.json`, independiente de los
 
 **Emergencias:**
 
-- *Desplegar ya* (falló `Release`, o hay que publicar un commit sin release): proyecto → **Deployments** → filtra por *Production* → el deployment de ese commit (aunque esté *Canceled*) → **⋯ → Redeploy** → desmarca **Use project's Ignore Build Step** → **Redeploy**. Construye ese commit con las variables actuales. La versión que muestra es la de su `package.json`. Si el problema fue `Release`, lo normal es corregirlo y hacer **Re-run jobs**.
+- *Desplegar ya* (falló `Release`, o hay que publicar un commit sin release): proyecto → **Deployments** → filtra por *Production* → el deployment de ese commit (aunque esté *Canceled*) → **⋯ → Redeploy** → desmarca **Use project's Ignore Build Step** → **Redeploy**. Construye ese commit con las variables actuales. La versión que muestra es la de su `package.json`. La api queda en *Running Checks*: su Deployment Check solo cuenta un `Migrate database` que termine después de crear el deployment, y el de ese commit ya corrió. Actions → **Migrate** → el run de `prod` de ese commit → **Re-run all jobs** (sin nada pendiente, no cambia la base); al terminar, Vercel publica la api. Si el problema fue `Release`, lo normal es corregirlo y hacer **Re-run jobs**.
 - *Volver atrás*: en el proyecto, **Instant Rollback** en el tile de producción. En Hobby solo vuelve al deployment anterior. Mientras dure el rollback, Vercel no publica deployments nuevos de producción: cuando el arreglo esté desplegado, **Undo Rollback** y elige ese deployment.
 
 Esos pushes los hace una GitHub App tuya. El token propio del workflow (`GITHUB_TOKEN`) no sirve: lo que empuja no dispara otros workflows, y `Migrate` tiene que correr en el commit del release. Un token personal también podría, pero depende de tu cuenta y llega a todos tus repos. La App solo puede escribir el contenido de este repo, y cada token que el workflow le pide dura una hora. Si las ramas tienen rulesets (paso 8), la App va en sus listas de bypass (paso 19).
@@ -390,7 +390,8 @@ Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o
 | Iniciar sesión da 403 `Invalid origin` | En dev o producción: `BETTER_AUTH_URL` no es exactamente el dominio de la web (`https://`, sin `/` final). En una preview de PR: revisa `<SCOPE>` en `BETTER_AUTH_TRUSTED_ORIGINS`. |
 | Google responde `redirect_uri_mismatch` | Falta `<dominio de la web>/api/auth/callback/google` en el cliente OAuth (paso 6). |
 | En QStash los mensajes fallan con 401 | La api tiene Vercel Authentication activado (paso 3), o las claves de firma son de otra región. Con 404, `PUBLIC_API_URL` no apunta a la api. |
-| La api de producción queda en *Waiting for checks* | El job `Migrate database` de ese commit falló o no corrió: revisa Actions → Migrate. |
+| La api de producción queda en *Waiting for checks* o *Running Checks* | El job `Migrate database` de ese commit falló o no corrió: revisa Actions → Migrate. Si es un Redeploy, el job ya había pasado antes y no cuenta: **Re-run all jobs** en el run de `prod` de ese commit (parte E). |
+| Iniciar una sesión da 500 `internal_error` y el log dice `invalid destination url: endpoint resolves to a loopback address` | `PUBLIC_API_URL` es local (`http://localhost:3000`) en ese ambiente: pon el dominio de la api y haz Redeploy. Desde que la api lo valida, falla al arrancar con `PUBLIC_API_URL` en `Invalid environment variables`. |
 | `Migrate` falla con `has no DATABASE_URL_UNPOOLED secret` | Falta el secreto en el Environment de esa rama (paso 2). Después, Actions → Migrate → **Run workflow** en esa rama (el botón aparece cuando `migrate.yml` ya está en `prod`). |
 | `Release` falla en *Get a token for the release app* | Falta `RELEASE_APP_CLIENT_ID` o `RELEASE_APP_PRIVATE_KEY` en el Environment `prod`, o la App no está instalada en el repo (paso 18). Corrígelo y **Re-run jobs**: el job parte de la punta de `prod`, así que retoma lo que haya quedado sin publicar. |
 | `Release` falla al hacer push con `push declined due to repository rule violations` | La App no está en la lista de bypass del ruleset de esa rama (paso 19). Agrégala y **Re-run jobs**. |
