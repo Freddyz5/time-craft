@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Freddyz5/time-craft/compare/web-v1.1.0...web-v1.2.0) (2026-10-31)
+
+### Features
+
+* **mobile:** add the Android app, a Capacitor shell around the web ([d79ca55](https://github.com/Freddyz5/time-craft/commit/d79ca552f56afeb87a4e3516e62cac88067e007b))
+* **web:** run inside the Android app ([3d95551](https://github.com/Freddyz5/time-craft/commit/3d9555179c62fa755069d81fa9c5c7a334a8da79))
+
 ## [1.1.0](https://github.com/Freddyz5/time-craft/compare/web-v1.0.0...web-v1.1.0) (2026-10-31)
 
 ### Features
