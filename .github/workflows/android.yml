@@ -8,12 +8,13 @@ name: Android app
 # - By hand (Actions › Android app › Run workflow): pick the web it opens,
 #   dev or prod; the APK is a downloadable artifact of the run.
 #
-# Each GitHub Environment (dev, prod) holds the web it opens in the variable
-# TIMECRAFT_WEB_URL. The repository's secrets hold the Firebase config and
-# the release key: GOOGLE_SERVICES_JSON, ANDROID_KEYSTORE_BASE64,
-# ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD
-# (docs/deploy.md, part F). Every APK is signed with the same key, or a
-# phone refuses to update the installed app.
+# The repository's variables hold the webs it can open
+# (TIMECRAFT_WEB_URL_PROD, TIMECRAFT_WEB_URL_DEV) and its secrets the
+# Firebase config and the release key: GOOGLE_SERVICES_JSON,
+# ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and
+# ANDROID_KEY_PASSWORD (docs/deploy.md, part F). No GitHub Environment: a
+# tag could not use prod's, which only accepts the prod branch. Every APK is
+# signed with the same key, or a phone refuses to update the installed app.
 
 on:
   push:
@@ -34,7 +35,6 @@ jobs:
     name: Build the APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: ${{ github.event_name == 'push' && 'prod' || inputs.web }}
     steps:
       - uses: actions/checkout@v7
 
@@ -86,7 +86,7 @@ jobs:
 
       - name: Build the APK
         env:
-          TIMECRAFT_WEB_URL: ${{ vars.TIMECRAFT_WEB_URL }}
+          TIMECRAFT_WEB_URL: ${{ (github.event_name == 'push' || inputs.web == 'prod') && vars.TIMECRAFT_WEB_URL_PROD || vars.TIMECRAFT_WEB_URL_DEV }}
         working-directory: apps/mobile
         run: bun run android:release
 

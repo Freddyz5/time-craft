@@ -103,6 +103,19 @@ Cambia de verdad la contraseña de un padre. En producción, ten la contraseña 
 - [ ] El otro padre la reanuda y luego la detiene: el primero lo ve en menos de 10 s, y el Historial dice quién la inició y quién la detuvo.
 - [ ] Opcional: en un teléfono, adelanta la hora del sistema 5 minutos (*Ajustes › Fecha y hora*, sin hora automática). La cuenta regresiva sigue igual a la del otro teléfono. Vuelve a poner la hora automática.
 
+## 8. App Android
+
+Con la app instalada en los teléfonos ([deploy.md](deploy.md#parte-f-app-android-hito-2), pasos 22 y 23) y los avisos activados en ella. Cierra la app (quítala de recientes) y apaga la pantalla antes de cada paso del otro lado.
+
+- [ ] **Login:** un padre entra con **Continuar con Google** desde la app: aparece el selector de cuentas del teléfono, sin pedir contraseña. El niño entra con usuario y PIN y, al volver a abrir la app, con **Entrar con huella**.
+- [ ] **Huella de padres:** al abrir el lado de los padres pide la huella; tras dos minutos fuera de la app la vuelve a pedir. En Cuentas, «Pedir huella al abrir la app» apagado deja de pedirla.
+- [ ] **Push inmediatos:** el niño pide tiempo → al padre le suena **«Nueva solicitud»** con la pantalla apagada, con el sonido elegido en Cuentas › Sonido. Tocar el aviso abre Inicio con la solicitud.
+- [ ] **Aviso previo y fin** (como la sección 3, con «Aviso antes del final» en 1 min y una sesión de 2 min): con la pantalla apagada, el aviso previo suena aunque el teléfono esté en silencio; el fin enciende la pantalla con **«Se acabó el tiempo»** a pantalla completa y suena hasta tocar **Detener**. Con «Repetir el fin…» apagado en Sonido, suena una vez.
+- [ ] **App abierta:** con Inicio delante, el fin suena una sola vez (la notificación del teléfono, no también la pestaña) y la pantalla se actualiza sola.
+- [ ] **Sonidos:** cambiar el sonido del fin en Cuentas › Sonido y **Probar la alarma de fin** suena con el nuevo.
+- [ ] **Sin internet:** con el modo avión, la app muestra «Sin conexión»; **Reintentar** vuelve al quitarlo.
+- [ ] En el SQL Editor de Neon: `select device_label, created_at, last_used_at from native_push_tokens order by created_at desc limit 5;` muestra una fila por teléfono («App en …») con `last_used_at` reciente.
+
 ## Registro
 
 | Fecha | Ambiente | Commit | Teléfonos | Resultado y notas |
