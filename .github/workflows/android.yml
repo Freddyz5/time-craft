@@ -1,0 +1,118 @@
+name: Android app
+
+# Builds the Android app (apps/mobile) as a signed APK.
+#
+# - On a mobile-v* tag (release.yml creates it on prod): the APK opens the
+#   production web and is attached to that tag's GitHub release, where the
+#   family downloads it.
+# - By hand (Actions › Android app › Run workflow): pick the web it opens,
+#   dev or prod; the APK is a downloadable artifact of the run.
+#
+# Each GitHub Environment (dev, prod) holds the web it opens in the variable
+# TIMECRAFT_WEB_URL. The repository's secrets hold the Firebase config and
+# the release key: GOOGLE_SERVICES_JSON, ANDROID_KEYSTORE_BASE64,
+# ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD
+# (docs/deploy.md, part F). Every APK is signed with the same key, or a
+# phone refuses to update the installed app.
+
+on:
+  push:
+    tags: ["mobile-v*"]
+  workflow_dispatch:
+    inputs:
+      web:
+        description: Which web the app opens
+        type: choice
+        options: [dev, prod]
+        default: dev
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    name: Build the APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ github.event_name == 'push' && 'prod' || inputs.web }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      # Capacitor 8 builds with Java 21. The runner has the Android SDK.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Cache Bun packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Write the Firebase config and the release key
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        working-directory: apps/mobile/android
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::The release key is missing (secret ANDROID_KEYSTORE_BASE64, docs/deploy.md part F)."
+            exit 1
+          fi
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          else
+            echo "::warning::No GOOGLE_SERVICES_JSON: this APK cannot receive notifications."
+          fi
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > release.keystore
+          {
+            echo "storeFile=release.keystore"
+            echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=$ANDROID_KEY_ALIAS"
+            echo "keyPassword=$ANDROID_KEY_PASSWORD"
+          } > keystore.properties
+
+      - name: Build the APK
+        env:
+          TIMECRAFT_WEB_URL: ${{ vars.TIMECRAFT_WEB_URL }}
+        working-directory: apps/mobile
+        run: bun run android:release
+
+      - name: Name the APK
+        id: apk
+        run: |
+          version=$(jq -r .version apps/mobile/package.json)
+          file="time-craft-${version}.apk"
+          cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Attach it to the release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" "${{ steps.apk.outputs.file }}" --clobber
+
+      - name: Keep it as an artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v7
+        with:
+          name: time-craft-${{ inputs.web }}-apk
+          path: ${{ steps.apk.outputs.file }}
+          retention-days: 14
+
+      - name: Remove the key from the runner
+        if: always()
+        working-directory: apps/mobile/android
+        run: rm -f release.keystore keystore.properties app/google-services.json

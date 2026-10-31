@@ -1,10 +1,11 @@
 name: Release
 
-# Every push to prod is a release from dev. semantic-release gives the web
-# and the api their next version from the commits since each one's last tag
+# Every push to prod is a release from dev. semantic-release gives the web,
+# the api and the Android app their next version from the commits since each one's last tag
 # (scripts/release/config.mjs): it writes it into the app's package.json and
-# CHANGELOG.md, commits that to prod, tags it (web-v1.2.0, api-v1.2.0) and
-# publishes a GitHub release. Then prod goes back into dev, so both branches
+# CHANGELOG.md, commits that to prod, tags it (web-v1.2.0, api-v1.2.0,
+# mobile-v1.2.0) and publishes a GitHub release; a mobile-v tag then builds
+# the APK (android.yml). Then prod goes back into dev, so both branches
 # hold the same versions. Vercel deploys production only from these release
 # commits (scripts/vercel-ignore.mjs), so a failed run means no deploy.
 #
@@ -24,7 +25,7 @@ permissions:
 
 jobs:
   release:
-    name: Release web and api
+    name: Release web, api and mobile
     # The release commits come back here as pushes to prod: nothing to do.
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
@@ -98,6 +99,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           RELEASE_APP: api
+        run: bun run release
+
+      # Its tag, pushed with the app's token, starts android.yml.
+      - name: Release the Android app
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE_APP: mobile
         run: bun run release
 
       # A fast-forward when dev has not moved since the release, a merge
