@@ -25,7 +25,7 @@ API REST con Hono, desplegada en Vercel. Contiene las rutas, la autenticación (
 
 ## QStash en local
 
-QStash no puede llamar a `localhost`, así que hay dos caminos:
+QStash no puede llamar a `localhost` (la api no arranca con un `PUBLIC_API_URL` local si `QSTASH_URL` no es local), así que hay dos caminos:
 
 1. **Servidor de desarrollo de QStash** (recomendado): corre en tu máquina y llama a la api local.
    ```sh

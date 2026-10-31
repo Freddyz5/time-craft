@@ -116,9 +116,44 @@ export async function disablePush(): Promise<PushState> {
 	return pushState();
 }
 
+// A push as the service worker forwards it to an open tab.
+export interface TabPush {
+	kind: string;
+	title: string;
+	body: string;
+	tag: string;
+	data: Readonly<Record<string, string>>;
+	// The one tab that rings for it (the others only refresh).
+	ring: boolean;
+}
+
+function text(value: unknown): string {
+	return typeof value === "string" ? value : "";
+}
+
+function tabPush(message: Record<string, unknown>): TabPush {
+	const data: Record<string, string> = {};
+	if (typeof message.data === "object" && message.data !== null) {
+		for (const [key, value] of Object.entries(message.data)) {
+			if (typeof value === "string") {
+				data[key] = value;
+			}
+		}
+	}
+	return {
+		kind: text(message.kind),
+		title: text(message.title),
+		body: text(message.body),
+		tag: text(message.tag),
+		data,
+		// A service worker from before this field rang every tab.
+		ring: message.ring !== false,
+	};
+}
+
 // Pushes arriving while a tab is open: the service worker forwards them so
-// the app can refresh at once instead of waiting for its next poll.
-export function onPushMessage(listener: (kind: string) => void): () => void {
+// the app can refresh at once instead of waiting for its next poll, and ring.
+export function onPushMessage(listener: (push: TabPush) => void): () => void {
 	if (!("serviceWorker" in navigator)) {
 		return () => undefined;
 	}
@@ -130,9 +165,7 @@ export function onPushMessage(listener: (kind: string) => void): () => void {
 			"type" in data &&
 			data.type === "push"
 		) {
-			listener(
-				"kind" in data && typeof data.kind === "string" ? data.kind : "",
-			);
+			listener(tabPush(data as Record<string, unknown>));
 		}
 	};
 	navigator.serviceWorker.addEventListener("message", handler);

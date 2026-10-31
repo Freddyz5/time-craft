@@ -20,7 +20,12 @@ import {
 import { useToast } from "../../components/toast";
 import { Callout } from "../../components/ui";
 import { activityById, activityLook, bagFor } from "../../lib/activity";
-import { ring, useSessionAlarm } from "../../lib/alarm";
+import {
+	type AlarmWords,
+	pushWillRing,
+	ringOnce,
+	useSessionAlarm,
+} from "../../lib/alarm";
 import { serverNow, useServerNow } from "../../lib/clock";
 import { countdown, minutesText, timeText } from "../../lib/format";
 import { pausedSince, timing } from "../../lib/timer";
@@ -81,7 +86,7 @@ function sessionBricks(
 
 // Rings once when a scheduled session reaches its start, on the server's
 // clock, even if the next poll has not seen it running yet.
-function useReadyAlarm(session: Session, onReady: () => void) {
+function useReadyAlarm(session: Session, onReady: () => AlarmWords) {
 	const onReadyRef = useRef(onReady);
 	onReadyRef.current = onReady;
 	const at =
@@ -99,17 +104,17 @@ function useReadyAlarm(session: Session, onReady: () => void) {
 			readyRung.add(key);
 			return;
 		}
-		const timer = setTimeout(
-			() => {
-				if (readyRung.has(key)) {
-					return;
-				}
-				readyRung.add(key);
-				ring("ready");
-				onReadyRef.current();
-			},
-			Math.max(0, delay),
-		);
+		const fire = async () => {
+			if (readyRung.has(key)) {
+				return;
+			}
+			readyRung.add(key);
+			if (await pushWillRing()) {
+				return;
+			}
+			ringOnce(sessionId, "ready", () => onReadyRef.current());
+		};
+		const timer = setTimeout(() => void fire(), Math.max(0, delay));
 		return () => clearTimeout(timer);
 	}, [sessionId, at]);
 }
@@ -337,23 +342,27 @@ export function NowCard({
 	useSessionAlarm(
 		{ sessionId: session.id, endsAtMs: t.endsAtMs, warningMinutes },
 		(kind) => {
-			toast.show(
-				"alarm",
+			const words =
 				kind === "warning"
-					? `${warningMinutes === 1 ? "Te queda" : "Te quedan"} ${warningMinutes} min de ${name}`
-					: `Se acabó tu sesión de ${name}`,
-				kind === "warning"
-					? "Ve terminando para apagar a tiempo."
-					: "Guarda y apaga. Avisa a mamá o papá para que la detengan.",
-			);
+					? {
+							title: `${warningMinutes === 1 ? "Te queda" : "Te quedan"} ${warningMinutes} min de ${name}`,
+							body: "Ve terminando para apagar a tiempo.",
+						}
+					: {
+							title: `Se acabó tu sesión de ${name}`,
+							body: "Guarda y apaga. Avisa a mamá o papá para que la detengan.",
+						};
+			toast.show("alarm", words.title, words.body);
+			return words;
 		},
 	);
 	useReadyAlarm(session, () => {
-		toast.show(
-			"alarm",
-			"¡Ya puedes empezar!",
-			`Tu sesión de ${name} empieza ahora.`,
-		);
+		const words = {
+			title: "¡Ya puedes empezar!",
+			body: `Tu sesión de ${name} empieza ahora.`,
+		};
+		toast.show("alarm", words.title, words.body);
+		return words;
 	});
 
 	return session.status === "scheduled" ? (

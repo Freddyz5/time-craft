@@ -73,6 +73,32 @@ describe("parseEnv", () => {
 		).toThrow("BETTER_AUTH_TRUSTED_ORIGINS");
 	});
 
+	test("a local PUBLIC_API_URL needs QStash's local server", () => {
+		for (const local of [
+			"http://localhost:3000",
+			"http://api.localhost:3000",
+			"http://127.0.0.1:3000",
+			"http://[::1]:3000",
+		]) {
+			expect(() => parseEnv({ ...valid, PUBLIC_API_URL: local })).toThrow(
+				"PUBLIC_API_URL",
+			);
+			expect(() =>
+				parseEnv({
+					...valid,
+					PUBLIC_API_URL: local,
+					QSTASH_URL: "https://qstash-us-east-1.upstash.io",
+				}),
+			).toThrow("PUBLIC_API_URL");
+			const env = parseEnv({
+				...valid,
+				PUBLIC_API_URL: local,
+				QSTASH_URL: "http://127.0.0.1:8080",
+			});
+			expect(env.PUBLIC_API_URL).toBe(local);
+		}
+	});
+
 	test("Google needs both variables", () => {
 		expect(() =>
 			parseEnv({ ...valid, GOOGLE_CLIENT_SECRET: "only-the-secret" }),

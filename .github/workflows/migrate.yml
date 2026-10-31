@@ -24,7 +24,11 @@ permissions:
 
 jobs:
   migrate:
-    name: Migrate database
+    # `Migrate database` is the check Vercel waits for before publishing the
+    # production api. A release commit is pushed to prod and then to dev, so
+    # dev's run takes another name: it must not pass that check before prod's
+    # database is migrated.
+    name: ${{ github.ref_name == 'dev' && 'Migrate database (dev)' || 'Migrate database' }}
     # Only dev and prod have an environment with a database.
     if: github.ref_name == 'dev' || github.ref_name == 'prod'
     runs-on: ubuntu-latest
