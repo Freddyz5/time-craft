@@ -95,17 +95,20 @@ jobs:
           RELEASE_APP: web
         run: bun run release
 
-      - name: Release the api
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-          RELEASE_APP: api
-        run: bun run release
-
       # Its tag, pushed with the app's token, starts android.yml.
       - name: Release the Android app
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           RELEASE_APP: mobile
+        run: bun run release
+
+      # Last: each release commit is its own push to prod, and a newer push
+      # cancels the Migrate run still waiting for the one before it. Vercel
+      # publishes the api only when Migrate passes on its release commit.
+      - name: Release the api
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE_APP: api
         run: bun run release
 
       # A fast-forward when dev has not moved since the release, a merge
