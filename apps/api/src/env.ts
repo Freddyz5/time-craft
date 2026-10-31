@@ -15,6 +15,41 @@ const postgresUrl = z.preprocess(
 	z.string().regex(/^postgres(ql)?:\/\//, "must be a postgres:// URL"),
 );
 
+// The Firebase service account's JSON key, pasted as one value. A wrong value
+// is reported with a fixed message, never echoed.
+const serviceAccountKey = z.object({
+	project_id: z.string().min(1),
+	client_email: z.string().min(1),
+	private_key: z.string().includes("PRIVATE KEY"),
+});
+
+function parseJson(value: string): unknown {
+	try {
+		return JSON.parse(value);
+	} catch {
+		return undefined;
+	}
+}
+
+const fcmServiceAccount = optional.transform((value, ctx) => {
+	if (value === undefined) {
+		return undefined;
+	}
+	const key = serviceAccountKey.safeParse(parseJson(value));
+	if (!key.success) {
+		ctx.addIssue({
+			code: "custom",
+			message: "must be the service account's JSON key",
+		});
+		return z.NEVER;
+	}
+	return {
+		projectId: key.data.project_id,
+		clientEmail: key.data.client_email,
+		privateKey: key.data.private_key,
+	};
+});
+
 // A URL that points at this machine (false if it is not a URL).
 function isLoopback(value: unknown): boolean {
 	if (typeof value !== "string" || !URL.canParse(value)) {
@@ -82,6 +117,10 @@ export const envSchema = z
 				.string()
 				.regex(/^(mailto:|https:\/\/)/, "must be a mailto: or https:// URL"),
 		),
+
+		// Push to the Android app (Firebase Cloud Messaging). Without it the
+		// app gets no notifications; browsers still get Web Push.
+		FCM_SERVICE_ACCOUNT: fcmServiceAccount,
 	})
 	.refine(
 		(env) =>

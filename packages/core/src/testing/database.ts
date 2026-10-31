@@ -7,7 +7,7 @@ import type { BonusTask, TaskReport } from "../domain/bonus";
 import type { Period } from "../domain/calendar";
 import type { Activity, Child, Family, Parent } from "../domain/family";
 import type { QuotaPolicy } from "../domain/policy";
-import type { PushSubscription } from "../domain/push";
+import type { NativePushToken, PushSubscription } from "../domain/push";
 import type { ChildRequest, QuotaOverride } from "../domain/request";
 import { isOpen, type Session } from "../domain/session";
 import type { UnitOfWork } from "../ports";
@@ -26,6 +26,7 @@ export interface Tables {
 	bonusTasks: Map<string, BonusTask>;
 	taskReports: Map<string, TaskReport>;
 	pushSubscriptions: Map<string, PushSubscription>;
+	nativePushTokens: Map<string, NativePushToken>;
 }
 
 export type Row<K extends keyof Tables> =
@@ -45,6 +46,7 @@ function emptyTables(): Tables {
 		bonusTasks: new Map(),
 		taskReports: new Map(),
 		pushSubscriptions: new Map(),
+		nativePushTokens: new Map(),
 	};
 }
 
@@ -539,6 +541,29 @@ function createRepositories(t: () => Tables): Repositories {
 				for (const other of values("pushSubscriptions")) {
 					if (other.endpoint === endpoint) {
 						t().pushSubscriptions.delete(other.id);
+					}
+				}
+			},
+		},
+
+		nativePushTokens: {
+			findByToken: async (token) =>
+				copy(
+					values("nativePushTokens").find((saved) => saved.token === token) ??
+						null,
+				),
+			upsertByToken: async (saved) => {
+				for (const other of values("nativePushTokens")) {
+					if (other.token === saved.token) {
+						t().nativePushTokens.delete(other.id);
+					}
+				}
+				t().nativePushTokens.set(saved.id, copy(saved));
+			},
+			deleteByToken: async (token) => {
+				for (const other of values("nativePushTokens")) {
+					if (other.token === token) {
+						t().nativePushTokens.delete(other.id);
 					}
 				}
 			},

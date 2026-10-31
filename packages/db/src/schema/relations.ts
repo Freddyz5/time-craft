@@ -5,7 +5,7 @@ import { relations } from "drizzle-orm";
 import { authAccount, authSession, authUser } from "./auth";
 import { bonusTasks, taskReports } from "./bonuses";
 import { activities, children, families, parents } from "./family";
-import { pushSubscriptions } from "./notifications";
+import { nativePushTokens, pushSubscriptions } from "./notifications";
 import { childRequests, quotaOverrides } from "./requests";
 import { quotaPolicies } from "./rules";
 import { sessionAlerts, sessionPauses, sessions } from "./timer";
@@ -16,6 +16,7 @@ export const authUserRelations = relations(authUser, ({ one, many }) => ({
 	parent: one(parents),
 	child: one(children),
 	pushSubscriptions: many(pushSubscriptions),
+	nativePushTokens: many(nativePushTokens),
 }));
 
 export const authSessionRelations = relations(authSession, ({ one }) => ({
@@ -224,6 +225,16 @@ export const pushSubscriptionsRelations = relations(
 	({ one }) => ({
 		authUser: one(authUser, {
 			fields: [pushSubscriptions.authUserId],
+			references: [authUser.id],
+		}),
+	}),
+);
+
+export const nativePushTokensRelations = relations(
+	nativePushTokens,
+	({ one }) => ({
+		authUser: one(authUser, {
+			fields: [nativePushTokens.authUserId],
 			references: [authUser.id],
 		}),
 	}),

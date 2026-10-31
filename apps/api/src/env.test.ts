@@ -110,4 +110,25 @@ describe("parseEnv", () => {
 		});
 		expect(env.GOOGLE_CLIENT_ID).toBe("id");
 	});
+
+	test("reads the Firebase service account from its JSON key", () => {
+		const env = parseEnv({
+			...valid,
+			FCM_SERVICE_ACCOUNT: JSON.stringify({
+				type: "service_account",
+				project_id: "time-craft",
+				client_email: "push@time-craft.iam.gserviceaccount.com",
+				private_key:
+					"-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n",
+			}),
+		});
+		expect(env.FCM_SERVICE_ACCOUNT).toMatchObject({
+			projectId: "time-craft",
+			clientEmail: "push@time-craft.iam.gserviceaccount.com",
+		});
+		expect(parseEnv(valid).FCM_SERVICE_ACCOUNT).toBeUndefined();
+		expect(() =>
+			parseEnv({ ...valid, FCM_SERVICE_ACCOUNT: "not json" }),
+		).toThrow("FCM_SERVICE_ACCOUNT: must be the service account's JSON key");
+	});
 });
