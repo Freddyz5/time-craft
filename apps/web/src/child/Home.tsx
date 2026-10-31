@@ -1,11 +1,13 @@
 // Inicio. Phone order: what is happening now (a running, paused or scheduled
-// session), the request waiting for an answer or the answer that just came,
+// session, and while its alarm is due, whether this tab can ring), the
+// request waiting for an answer or the answer that just came,
 // then the batteries of today and the week with the bonuses and when each
 // recharges, and the way to ask for more; below, the rules folded, and while
 // this device has no notifications, a quiet offer to turn them on. On a
 // laptop "Ahora" and the batteries sit side by side.
 import { Hand } from "lucide-react";
 import { Link } from "wouter";
+import { TabAlarm } from "../components/TabAlarm";
 import { buttonClass, LoadingBricks, Notice } from "../components/ui";
 import { useBalance, useLiveSession, usePolicies } from "../lib/queries";
 import { useChild } from "./context";
@@ -42,6 +44,9 @@ export function Home() {
 
 	const balances = balance.data.balances;
 	const session = live.data.live?.session ?? null;
+	// The tab rings at the start, the warning or the end still ahead.
+	const alarmDue =
+		session?.status === "running" || session?.status === "scheduled";
 	const exhausted =
 		balances.length > 0 && balances.every((b) => b.availableSeconds === 0);
 	const strip = requests.pending ? (
@@ -64,6 +69,7 @@ export function Home() {
 					}
 				/>
 			)}
+			{alarmDue && <TabAlarm audience="child" />}
 			{strip}
 		</>
 	);

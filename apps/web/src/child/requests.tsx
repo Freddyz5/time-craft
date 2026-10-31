@@ -14,7 +14,7 @@ import { Link } from "wouter";
 import { AmountBricks, PartsBox } from "../components/bricks";
 import { Button, Callout } from "../components/ui";
 import { activityById, activityLook } from "../lib/activity";
-import { ring } from "../lib/alarm";
+import { ringOnce } from "../lib/alarm";
 import { serverNow, useServerNow } from "../lib/clock";
 import { calendarDay, countdown, minutesText, timeText } from "../lib/format";
 import { useHistory, usePendingRequests } from "../lib/queries";
@@ -71,16 +71,14 @@ export function useMyRequests() {
 		const name =
 			activityById(activities, answered.activityId)?.name ?? "pantalla";
 		const yes = answered.status === "approved";
+		const text = yes
+			? `¡${who} dijo que sí! ${minutesText(answered.approvedMinutes ?? answered.requestedMinutes)} de ${name}.`
+			: `${who} dijo que no esta vez.`;
 		if (yes) {
-			ring("answer");
+			// Once, whether the push or this poll brought it first.
+			ringOnce(answered.id, "answer", () => ({ title: text }));
 		}
-		setArrival({
-			requestId: answered.id,
-			yes,
-			text: yes
-				? `¡${who} dijo que sí! ${minutesText(answered.approvedMinutes ?? answered.requestedMinutes)} de ${name}.`
-				: `${who} dijo que no esta vez.`,
-		});
+		setArrival({ requestId: answered.id, yes, text });
 	}, [requests, activities, parentName]);
 	useEffect(() => {
 		if (arrival === null) {

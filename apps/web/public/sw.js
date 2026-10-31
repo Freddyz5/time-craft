@@ -33,17 +33,43 @@ self.addEventListener("push", (event) => {
 	event.waitUntil(
 		Promise.all([
 			self.registration.showNotification(title, options),
-			// An open tab refreshes right away instead of waiting for its poll.
+			// An open tab refreshes right away instead of waiting for its poll,
+			// and one of them rings with this device's sound.
 			self.clients
 				.matchAll({ type: "window", includeUncontrolled: true })
 				.then((windows) => {
+					const ringer = pickRinger(windows);
 					for (const client of windows) {
-						client.postMessage({ type: "push", kind: message.kind });
+						client.postMessage({
+							type: "push",
+							kind: message.kind,
+							title,
+							body: options.body,
+							tag: message.tag || "",
+							data: message.data || {},
+							ring: client === ringer,
+						});
 					}
 				}),
 		]),
 	);
 });
+
+// The tab that rings: one of the app's (not the landing or a login page),
+// the one in front if there is one. Two tabs ringing at once would only echo.
+function pickRinger(windows) {
+	const app = windows.filter((client) => {
+		const path = new URL(client.url).pathname;
+		return (
+			/^\/(padres|nino)(\/|$)/.test(path) && !path.startsWith("/nino/entrar")
+		);
+	});
+	return (
+		app.find((client) => client.focused) ||
+		app.find((client) => client.visibilityState === "visible") ||
+		app[0]
+	);
+}
 
 self.addEventListener("notificationclick", (event) => {
 	event.notification.close();

@@ -1,7 +1,7 @@
 // Avisos: what this device tells the child even with the app closed (the
 // warning, the end, "you can start", the parents' answers), turning that on
-// or off here, a sound check for the open tab's own alarm, and signing out of
-// a device that is not theirs. Inicio offers it once, quietly, while it is off.
+// or off here, the sounds of the open tab's own alarm, and signing out of a
+// device that is not theirs. Inicio offers it once, quietly, while it is off.
 import {
 	Bell,
 	BellOff,
@@ -10,13 +10,12 @@ import {
 	MessageCircle,
 	Play,
 	TimerOff,
-	Volume2,
 } from "lucide-react";
 import { useState } from "react";
+import { SoundSettings } from "../components/SoundSettings";
 import { ThemeSetting } from "../components/ThemeSetting";
 import { useToast } from "../components/toast";
 import { Button, Callout, Notice } from "../components/ui";
-import { testRing } from "../lib/alarm";
 import { ApiError } from "../lib/api";
 import { disablePush, enablePush, usePushState } from "../lib/push";
 import { usePolicies } from "../lib/queries";
@@ -214,26 +213,7 @@ export function Notifications() {
 				)}
 			</Callout>
 
-			<Callout
-				className="flex flex-col items-start gap-3 p-4 sm:p-5"
-				aria-labelledby="sound-title"
-			>
-				<h2
-					id="sound-title"
-					className="text-[1.375rem] leading-tight font-bold"
-				>
-					Con la app abierta
-				</h2>
-				<p className="text-ink-soft">
-					También suena y vibra justo a tiempo. Prueba cómo suena.
-				</p>
-				<Button
-					icon={<Volume2 className="size-5" aria-hidden="true" />}
-					onClick={() => void testRing("warning")}
-				>
-					Probar el sonido
-				</Button>
-			</Callout>
+			<SoundSettings audience="child" />
 
 			<Callout
 				className="flex flex-col gap-3 p-4 sm:p-5"

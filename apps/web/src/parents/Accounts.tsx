@@ -1,6 +1,6 @@
 // Cuentas: the child's login (create it, reset the PIN, see and close the
 // devices where it is signed in), the parents' passwords, this device's
-// notifications and the family's recovery code.
+// notifications and alarm sounds, and the family's recovery code.
 import { useQueryClient } from "@tanstack/react-query";
 import {
 	KeyRound,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useId, useState } from "react";
 import { CopyCode } from "../components/CopyCode";
+import { SoundSettings } from "../components/SoundSettings";
 import { ThemeSetting } from "../components/ThemeSetting";
 import { useToast } from "../components/toast";
 import {
@@ -718,6 +719,8 @@ export function Accounts() {
 				</div>
 				<PushToggle />
 			</Callout>
+
+			<SoundSettings audience="parents" />
 
 			<Callout
 				className="flex flex-col gap-3 p-4 sm:p-5"
