@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1](https://github.com/Freddyz5/time-craft/compare/api-v1.0.0...api-v1.0.1) (2026-10-31)
+
+### Bug Fixes
+
+* **api:** refuse a local PUBLIC_API_URL with the real QStash ([d2289f5](https://github.com/Freddyz5/time-craft/commit/d2289f557b32d1c499af199b4dd3ad8f24464e79))
+
 ## 1.0.0 (2026-10-28)
 
 ### Features
