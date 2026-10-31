@@ -67,3 +67,60 @@ describe("push subscriptions", () => {
 		await kit.core.removeSubscription(h.mom, { endpoint: ENDPOINT });
 	});
 });
+
+describe("app push tokens", () => {
+	const TOKEN = "fcm-token-abc";
+
+	test("are saved for the signed-in person", async () => {
+		const saved = await kit.core.registerNativeToken(h.mom, {
+			token: TOKEN,
+			platform: "android",
+			deviceLabel: "App en Pixel 8",
+		});
+		expect(saved).toMatchObject({
+			authUserId: h.auth.mom,
+			token: TOKEN,
+			platform: "android",
+			deviceLabel: "App en Pixel 8",
+		});
+		expect(kit.db.all("nativePushTokens")).toHaveLength(1);
+	});
+
+	test("an app where someone else signs in now belongs to them", async () => {
+		await kit.core.registerNativeToken(h.mom, {
+			token: TOKEN,
+			platform: "android",
+		});
+		await kit.core.registerNativeToken(h.child, {
+			token: TOKEN,
+			platform: "android",
+		});
+		expect(kit.db.all("nativePushTokens").map((s) => s.authUserId)).toEqual([
+			h.auth.child,
+		]);
+	});
+
+	test("only android", async () => {
+		await expect(
+			kit.core.registerNativeToken(h.mom, {
+				token: TOKEN,
+				platform: "ios" as "android",
+			}),
+		).rejects.toMatchObject({
+			code: "invalid_input",
+			details: { field: "platform" },
+		});
+	});
+
+	test("removing someone else's token does nothing", async () => {
+		await kit.core.registerNativeToken(h.mom, {
+			token: TOKEN,
+			platform: "android",
+		});
+		await kit.core.removeNativeToken(h.child, { token: TOKEN });
+		expect(kit.db.all("nativePushTokens")).toHaveLength(1);
+		await kit.core.removeNativeToken(h.mom, { token: TOKEN });
+		expect(kit.db.all("nativePushTokens")).toHaveLength(0);
+		await kit.core.removeNativeToken(h.mom, { token: TOKEN });
+	});
+});

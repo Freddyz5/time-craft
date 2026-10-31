@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Time Craft</string>
+    <string name="title_activity_main">Time Craft</string>
+    <string name="package_name">app.timecraft</string>
+    <string name="custom_url_scheme">app.timecraft</string>
+</resources>

@@ -6,10 +6,12 @@ import { useToast } from "../components/toast";
 import { Button, Callout } from "../components/ui";
 import { ApiError } from "../lib/api";
 import { errorMessage } from "../lib/errors";
+import { isNativeApp } from "../lib/native";
 import { disablePush, enablePush, usePushState } from "../lib/push";
 
-const deniedHelp =
-	"Están bloqueados para este sitio. En Chrome: toca el candado junto a la dirección › Permisos › Notificaciones › Permitir, y vuelve aquí.";
+const deniedHelp = isNativeApp()
+	? "Están bloqueados para Time Craft. En Ajustes › Apps › Time Craft › Notificaciones, permítelos y vuelve aquí."
+	: "Están bloqueados para este sitio. En Chrome: toca el candado junto a la dirección › Permisos › Notificaciones › Permitir, y vuelve aquí.";
 
 export function PushToggle({ compact = false }: { compact?: boolean }) {
 	const { state, setState } = usePushState();
@@ -49,7 +51,9 @@ export function PushToggle({ compact = false }: { compact?: boolean }) {
 	if (state === "unsupported") {
 		return compact ? null : (
 			<p className="text-ink-soft">
-				Este navegador no puede recibir avisos. En Android, ábrelo en Chrome.
+				{isNativeApp()
+					? "Esta versión de la app todavía no puede recibir avisos."
+					: "Este navegador no puede recibir avisos. En Android, ábrelo en Chrome."}
 			</p>
 		);
 	}

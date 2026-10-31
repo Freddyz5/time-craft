@@ -1,5 +1,7 @@
 // /login for parents: Google first (where the environment has it), then email
 // and password. There is no sign-up: only the parents the seed created get in.
+// In the Android app, Google comes from the phone's account picker (an ID
+// token) instead of Google's page, which refuses to load inside an app.
 import { GOOGLE_CLIENT_ID } from "astro:env/client";
 import { Eye, EyeOff } from "lucide-react";
 import { type SubmitEvent, useEffect, useId, useState } from "react";
@@ -8,6 +10,7 @@ import { ApiError, api, call } from "../lib/api";
 import { authClient } from "../lib/auth";
 import { errorMessage } from "../lib/errors";
 import { homeFor, safeNext } from "../lib/guard";
+import { googleIdToken, isNativeApp, rememberArea } from "../lib/native";
 import { PublicFrame } from "./PublicFrame";
 
 const googleErrors: Record<string, string> = {
@@ -68,6 +71,7 @@ export default function LoginPage() {
 	}, [next]);
 
 	async function afterSignIn() {
+		rememberArea("parent");
 		try {
 			const household = await call(api.me.$get());
 			window.location.assign(safeNext(next, household.me.kind));
@@ -119,6 +123,10 @@ export default function LoginPage() {
 	async function google() {
 		setError(null);
 		setBusy("google");
+		if (isNativeApp()) {
+			await googleInApp();
+			return;
+		}
 		const target = safeNext(next, "parent");
 		const result = await authClient.signIn.social({
 			provider: "google",
@@ -131,6 +139,35 @@ export default function LoginPage() {
 				"No se pudo abrir Google. Prueba otra vez o usa tu correo y contraseña.",
 			);
 		}
+	}
+
+	async function googleInApp() {
+		let idToken: string;
+		try {
+			idToken = await googleIdToken(GOOGLE_CLIENT_ID ?? "");
+		} catch {
+			// Cancelled in the picker, or the app is not registered with
+			// Google yet (docs/deploy.md).
+			setBusy(null);
+			setError(
+				"No se pudo entrar con Google. Prueba otra vez o usa tu correo y contraseña.",
+			);
+			return;
+		}
+		const result = await authClient.signIn.social({
+			provider: "google",
+			idToken: { token: idToken },
+		});
+		if (result.error) {
+			setBusy(null);
+			setError(
+				result.error.code?.toLowerCase().includes("signup")
+					? (googleErrors.signup_disabled ?? null)
+					: "No se pudo entrar con Google. Prueba otra vez o usa tu correo y contraseña.",
+			);
+			return;
+		}
+		await afterSignIn();
 	}
 
 	return (

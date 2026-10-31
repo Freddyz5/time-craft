@@ -12,6 +12,7 @@ import { balanceRoutes } from "./routes/balance";
 import { bonusTaskRoutes } from "./routes/bonus-tasks";
 import { historyRoutes } from "./routes/history";
 import { jobRoutes } from "./routes/jobs";
+import { nativePushTokenRoutes } from "./routes/native-push-tokens";
 import { overrideRoutes } from "./routes/overrides";
 import { policyRoutes } from "./routes/policies";
 import { pushSubscriptionRoutes } from "./routes/push-subscriptions";
@@ -54,6 +55,7 @@ export function createApp(deps: AppDeps) {
 		.route("/api", bonusTaskRoutes(deps))
 		.route("/api", taskReportRoutes(deps))
 		.route("/api", pushSubscriptionRoutes(deps))
+		.route("/api", nativePushTokenRoutes(deps))
 		.route("/", jobRoutes(deps));
 }
 

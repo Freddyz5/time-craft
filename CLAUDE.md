@@ -3,13 +3,14 @@
 Sistema familiar para controlar el tiempo de pantalla de un niño de 9 años (Minecraft en PC y YouTube en una TV LG) con cuotas diarias y semanales tipo "créditos".
 Lo usan los dos padres y el niño, cada uno desde su teléfono o navegador y desde cualquier lugar.
 Hito 1 (MVP): cronómetro compartido, cuotas, bonos por tareas, alarmas push y dashboard. Se registra a mano: no detecta el juego ni la TV.
+Hito 2: app Android (Capacitor) que muestra la misma web y hace sonar las alarmas con la pantalla apagada, con login de Google nativo y huella.
 Los padres inician, pausan y detienen sesiones y aprueban solicitudes; el niño solo ve su saldo y pide (empezar, tiempo extra, bonos).
 El servidor es la fuente de verdad del cronómetro, y el saldo no se guarda: se calcula a partir de las sesiones.
 Las alarmas (inicio programado, aviso, fin y cierre automático) van por Upstash QStash, sin cron.
 Stack: Bun + Turborepo, Hono en Vercel, Better Auth, PostgreSQL en Neon con Drizzle, y Astro estático con islas React y Tailwind.
 Todo debe funcionar en planes gratuitos (Vercel Hobby, Neon Free, QStash Free).
 El producto avanza por hitos; cada hito se construye en fases y cada fase es un PR. La web y la api llevan además su propia versión semántica, independiente de los hitos (ver «Ramas y despliegue»).
-Fuente de verdad: [docs/contexto-hito-1.md](docs/contexto-hito-1.md). Schema de referencia: [docs/timecraft_hito_1.sql](docs/timecraft_hito_1.sql). Si algo no está ahí, pregunta antes de suponer.
+Fuente de verdad: [docs/contexto-hito-1.md](docs/contexto-hito-1.md) y, para la app Android, [docs/contexto-hito-2.md](docs/contexto-hito-2.md). Schema de referencia: [docs/timecraft_hito_1.sql](docs/timecraft_hito_1.sql) (más la tabla `native_push_tokens` del hito 2). Si algo no está ahí, pregunta antes de suponer.
 
 ## Estructura del monorepo
 
@@ -17,6 +18,7 @@ Fuente de verdad: [docs/contexto-hito-1.md](docs/contexto-hito-1.md). Schema de 
 apps/
   api/        Hono en Vercel: rutas, auth (Better Auth), adaptadores (Drizzle, QStash, Web Push), composition root
   web/        Astro (salida estática) + islas React + Tailwind
+  mobile/     app Android: Capacitor alrededor de la web publicada, avisos FCM y alarma nativa (no se despliega en Vercel)
   e2e/        Playwright: los 8 pasos del flujo contra la web y el smoke test de producción (no se despliega)
 packages/
   core/       dominio, casos de uso y puertos
@@ -27,6 +29,7 @@ packages/
 Dirección de dependencias:
 
 - `api → core` y `api → db`. Los adaptadores de `api` implementan los puertos de `core`.
+- `mobile` no depende de ningún paquete: muestra la web publicada. Sus scripts de build leen los sonidos y la marca de `web` por ruta relativa.
 - `e2e` usa el seed y el container de `api` (`@time-craft/api/seed`, `/container`) para crear su familia de prueba; nada depende de `e2e`.
 - `core` no depende de Drizzle, Hono ni Better Auth (tampoco de `db`).
 - Los paquetes internos se exportan como TypeScript fuente, sin build propio. `apps/api` los empaqueta en su build (`scripts/build.ts`) y `apps/web` a través de Vite.
@@ -49,7 +52,7 @@ Cada app y paquete tiene su propio `CLAUDE.md` con su responsabilidad y lo que n
 - Vercel tiene un proyecto por app, cada uno configurado en el `vercel.json` de la app. `prod` despliega a producción, `dev` a sus dominios fijos y las demás ramas a previews. La web reescribe `/api/*` hacia la api de su ambiente (`API_ORIGIN`, que Vercel resuelve en cada petición): producción → api de producción; `dev` y las previews de PR → api de dev. `BETTER_AUTH_URL` es el origen de la web, no el de la api.
 - Cada app se reconstruye solo si el commit la afecta (`scripts/vercel-ignore.mjs`, con `turbo query`). En producción, solo con su commit de release (`chore(release): web-v…`); el merge de `dev` a `prod` no despliega. Para una emergencia: Redeploy en Vercel sin el paso de ignorar; en producción la api queda en *Running Checks* (un redeploy nunca cumple su Deployment Check) y se publica con Force Promote, tras ver que `Migrate` pasó en ese commit. La web usa de la api solo los tipos: si empieza a importar código de otro paquete del workspace, lo declara en su `package.json` y no lo marca `--type-only`.
 - Migraciones: `.github/workflows/migrate.yml` las aplica en cada push a `dev` (rama `dev` de Neon) y a `prod` (rama `main`), con el `DATABASE_URL_UNPOOLED` del GitHub Environment de esa rama. Las previews de PR usan Neon `dev`.
-- Versiones: la web y la api tienen cada una su versión semántica en su `package.json`, que no se edita a mano. En cada push a `prod`, `.github/workflows/release.yml` corre semantic-release por app (`scripts/release/`). Cuenta los commits desde el último tag de la app que tocaron su carpeta, la de un paquete del workspace del que depende o un archivo raíz del build (un `feat(core)` sube la api; la web no cuenta la api, de la que solo usa tipos). Escribe la versión y el `CHANGELOG.md` de la app, hace el commit en `prod`, crea el tag (`web-v1.2.0`, `api-v1.2.0`) y el GitHub Release, y al final fusiona `prod` en `dev`. Por eso el tipo del commit importa: `feat` sube el minor; `fix`, `perf`, `refactor`, `build`, `style`, `chore` y `ci` el patch (todo lo que se despliega publica versión); `!` o `BREAKING CHANGE:` el major; `docs` y `test` no publican. Esos pushes los hace la GitHub App de releases: con el `GITHUB_TOKEN` del workflow no correría Migrate en el commit del release. La web muestra su versión en las pantallas de entrada y la api la devuelve en `/health`.
+- Versiones: la web, la api y la app Android tienen cada una su versión semántica en su `package.json`, que no se edita a mano. En cada push a `prod`, `.github/workflows/release.yml` corre semantic-release por app (`scripts/release/`). Cuenta los commits desde el último tag de la app que tocaron su carpeta, la de un paquete del workspace del que depende o un archivo raíz del build (un `feat(core)` sube la api; la web no cuenta la api, de la que solo usa tipos). Escribe la versión y el `CHANGELOG.md` de la app, hace el commit en `prod`, crea el tag (`web-v1.2.0`, `api-v1.2.0`, `mobile-v1.2.0`) y el GitHub Release, y al final fusiona `prod` en `dev`. Un tag `mobile-v…` construye el APK firmado y lo adjunta a su release (`.github/workflows/android.yml`). Por eso el tipo del commit importa: `feat` sube el minor; `fix`, `perf`, `refactor`, `build`, `style`, `chore` y `ci` el patch (todo lo que se despliega publica versión); `!` o `BREAKING CHANGE:` el major; `docs` y `test` no publican. Esos pushes los hace la GitHub App de releases: con el `GITHUB_TOKEN` del workflow no correría Migrate en el commit del release. La web muestra su versión en las pantallas de entrada y la api la devuelve en `/health`.
 - Lo que se configura a mano en los dashboards y el primer despliegue: [docs/deploy.md](docs/deploy.md).
 
 ### Migraciones compatibles hacia atrás
@@ -78,6 +81,8 @@ bun run db:studio      # Drizzle Studio sobre DATABASE_URL_UNPOOLED
 bun run db:seed        # hogar completo desde las variables SEED_* (idempotente; imprime el código de recuperación una vez)
 
 bun run test --filter=@time-craft/core   # cualquier tarea, en un solo paquete
+
+TIMECRAFT_WEB_URL=<web> bun --cwd=apps/mobile run android:debug   # APK de prueba (Java 21 y SDK de Android)
 
 bun run e2e            # e2e con Playwright contra E2E_BASE_URL (por defecto la web local); crea y borra su familia
 bun run e2e:smoke      # smoke test de solo lectura (E2E_BASE_URL y E2E_API_URL), apto para producción

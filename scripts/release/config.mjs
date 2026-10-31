@@ -1,11 +1,13 @@
-// semantic-release's config for one app, picked by RELEASE_APP (web or api):
+// semantic-release's config for one app, picked by RELEASE_APP (web, api or
+// mobile):
 //
 //   RELEASE_APP=web bun run release
 //
 // .github/workflows/release.yml runs it for each app on every push to prod.
 // Each app has its own version: its package.json holds it, its tags read
-// web-v1.2.0 or api-v1.2.0, and it gets its own CHANGELOG.md and GitHub
-// release. The version counts only the commits that touched the app, a
+// web-v1.2.0, api-v1.2.0 or mobile-v1.2.0, and it gets its own CHANGELOG.md
+// and GitHub release. A mobile-v tag builds the signed APK and attaches it
+// to that release (.github/workflows/android.yml). The version counts only the commits that touched the app, a
 // workspace package it depends on or a root file every build reads, so a
 // feat(core) releases the api. As in scripts/vercel-ignore.mjs, the web
 // leaves out the api: it uses only its types.
@@ -22,6 +24,9 @@ const root = fileURLToPath(new URL("../..", import.meta.url));
 const apps = {
 	web: { name: "@time-craft/web", typeOnly: ["@time-craft/api"] },
 	api: { name: "@time-craft/api", typeOnly: [] },
+	// The app shows the deployed web: a web release reaches it without a new
+	// APK, so only apps/mobile's own changes release it.
+	mobile: { name: "@time-craft/mobile", typeOnly: [] },
 };
 
 // What turbo also counts for every package: its global dependencies, its own

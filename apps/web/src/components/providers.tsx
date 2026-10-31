@@ -4,8 +4,14 @@
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import { alarmForPush, ringOnce, unlockAudioOnTap } from "../lib/alarm";
-import { onPushMessage, registerServiceWorker } from "../lib/push";
+import { onNativePush, syncSoundSettings } from "../lib/native";
+import {
+	onPushMessage,
+	refreshNativeToken,
+	registerServiceWorker,
+} from "../lib/push";
 import { createQueryClient } from "../lib/queries";
+import { readSoundSettings } from "../lib/sounds";
 import { followSystemTheme } from "../lib/theme";
 import { ToastProvider, useToast } from "./toast";
 
@@ -14,6 +20,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		void registerServiceWorker();
+		// The Android app: its channels follow this phone's sounds, and its
+		// push token may have changed since it was registered.
+		syncSoundSettings(readSoundSettings());
+		void refreshNativeToken().catch(() => undefined);
 		const stopAudio = unlockAudioOnTap();
 		const stopTheme = followSystemTheme();
 		return () => {
@@ -26,6 +36,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 		<QueryClientProvider client={client}>
 			<ToastProvider>
 				<PushAlarm />
+				<NativePushNotice />
 				{children}
 			</ToastProvider>
 		</QueryClientProvider>
@@ -61,6 +72,30 @@ function PushAlarm() {
 					);
 					return { title: push.title, body: push.body };
 				});
+			}),
+		[client, toast],
+	);
+	return null;
+}
+
+// In the Android app, a push reaches the web from the app's own messaging
+// service, which already rang it: refresh now and show its words, quietly.
+function NativePushNotice() {
+	const client = useQueryClient();
+	const toast = useToast();
+	useEffect(
+		() =>
+			onNativePush((push) => {
+				void client.invalidateQueries();
+				const kind = alarmForPush(push.kind);
+				if (kind === null) {
+					return;
+				}
+				toast.show(
+					kind === "notice" || kind === "answer" ? "notice" : "alarm",
+					push.title,
+					push.body,
+				);
 			}),
 		[client, toast],
 	);

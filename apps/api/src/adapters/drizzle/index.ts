@@ -11,7 +11,7 @@ import {
 	familyRepository,
 	parentRepository,
 } from "./family";
-import { pushSubscriptionRepository } from "./push";
+import { nativePushTokenRepository, pushSubscriptionRepository } from "./push";
 import { childRequestRepository, quotaOverrideRepository } from "./requests";
 import { quotaPolicyRepository } from "./rules";
 import { sessionAlertRepository, sessionRepository } from "./timer";
@@ -30,6 +30,7 @@ export function createRepositories(db: Db): Repositories {
 		bonusTasks: bonusTaskRepository(db),
 		taskReports: taskReportRepository(db),
 		pushSubscriptions: pushSubscriptionRepository(db),
+		nativePushTokens: nativePushTokenRepository(db),
 	};
 }
 

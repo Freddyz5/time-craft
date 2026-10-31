@@ -362,6 +362,49 @@ Solo si creaste los rulesets del paso 8. Sin rulesets, `prod` y `dev` aceptan pu
 
 Se comprueba en el siguiente release: **Actions → Release** termina en verde, aparecen los tags y los Releases del repo, y el `version` de cada `package.json` es el mismo en `dev` y en `prod`.
 
+## Parte F. App Android (hito 2)
+
+La app ([`apps/mobile`](../apps/mobile/CLAUDE.md), [contexto](contexto-hito-2.md)) muestra la web publicada y recibe los avisos por Firebase Cloud Messaging. Todo es gratis: Firebase en el plan Spark y el APK instalado a mano. Los pasos 20 a 22 se hacen una vez; el 23 en cada teléfono.
+
+### 20. Firebase y Google: un solo proyecto
+
+El cliente Android del login con Google tiene que estar en el **mismo** proyecto de Google Cloud que el cliente web que ya usa la web (`GOOGLE_CLIENT_ID`). Firebase se agrega encima de ese proyecto.
+
+- [ ] [console.firebase.google.com](https://console.firebase.google.com) → **Create a project** → elige el proyecto de Google Cloud existente (el del login con Google) → sin Google Analytics → plan **Spark**.
+- [ ] **Project settings → General → Your apps → Add app → Android**: package name `app.timecraft` → **Register app** → descarga **`google-services.json`**. No va al repo.
+- [ ] **Project settings → Service accounts → Generate new private key**: se descarga un JSON. Es un secreto: va solo a Vercel (paso 21) y después se borra de tu máquina.
+- [ ] [console.cloud.google.com](https://console.cloud.google.com) (mismo proyecto) → **APIs & Services → Credentials → Create credentials → OAuth client ID → Android**:
+  - *Package name*: `app.timecraft`.
+  - *SHA-1*: el de la llave de firma (`keytool -list -v -keystore ~/.config/time-craft/android/release.keystore`, o el que figura en la tarea de Notion).
+  - Crea otro igual con el SHA-1 de la llave de debug (`keytool -list -v -keystore ~/.android/debug.keystore -storepass android`) si vas a probar APKs de debug.
+  - El ID de estos clientes no se copia en ningún lado: la app usa el cliente web y Google solo comprueba que el APK coincida.
+
+### 21. Vercel y GitHub: secretos y variables
+
+- [ ] Proyecto **time-craft-api** → **Settings → Environment Variables**: `FCM_SERVICE_ACCOUNT` = el contenido completo del JSON de la cuenta de servicio, en una línea, *Sensitive*, en **Production** y **Preview**. La api lo lee al arrancar: llega con el siguiente deploy (en producción, con el release; para aplicarlo ya, el redeploy de la parte E).
+- [ ] La llave de firma ya existe en tu Mac: `~/.config/time-craft/android/release.keystore`, con su contraseña en `keystore.properties` de la misma carpeta. **Guarda los dos archivos en tu gestor de contraseñas**: sin esa llave no se puede publicar una actualización de la app (habría que desinstalarla en cada teléfono).
+- [ ] En el repo, **Settings → Secrets and variables → Actions → Secrets → New repository secret**:
+  - `ANDROID_KEYSTORE_BASE64`: `base64 -i ~/.config/time-craft/android/release.keystore | pbcopy` y pega.
+  - `ANDROID_KEYSTORE_PASSWORD` y `ANDROID_KEY_PASSWORD`: la contraseña de `keystore.properties` (es la misma).
+  - `ANDROID_KEY_ALIAS`: `timecraft`.
+  - `GOOGLE_SERVICES_JSON`: el contenido de `google-services.json`.
+- [ ] **Variables → New repository variable**: `TIMECRAFT_WEB_URL_PROD` (el dominio de producción de la web, `<WEB_PROD>`) y `TIMECRAFT_WEB_URL_DEV` (`<WEB_DEV>`).
+
+### 22. El primer APK
+
+- [ ] Con los pasos 20 y 21 hechos, fusiona en `dev` la rama del hito 2: el push a `dev` que toca `apps/mobile` corre **Actions → Android app** solo. Al terminar, en ese run descarga el artefacto `time-craft-dev-apk` (un `.zip` con el `.apk` que abre la web de `dev`). Si falló porque faltaba un secreto, agrégalo y **Re-run jobs**.
+- [ ] Más adelante, con `android.yml` ya en `prod` (la rama por defecto), también se puede correr a mano: **Run workflow** → *web* `dev` o `prod`.
+- [ ] Para producción no hace falta nada: el release que lleve la app a `prod` crea el tag `mobile-v1.0.0`, y `Android app` adjunta `time-craft-1.0.0.apk` a ese GitHub Release.
+
+### 23. Instalar y preparar cada teléfono
+
+- [ ] Pasa el `.apk` al teléfono (Drive, cable o el enlace del Release) y ábrelo. Android pide permitir **instalar apps desconocidas** para la app con la que lo abriste: permítelo solo para esa.
+- [ ] Abre Time Craft: entra con Google (padres) o con usuario y PIN (niño; la próxima vez, con la huella).
+- [ ] **Cuentas** (padres) o **Avisos** (niño) → **Activar avisos** → permite las notificaciones.
+- [ ] En la misma pantalla, la lista «Para que la alarma no se silencie»: **Permitir** en batería y en pantalla completa hasta que las dos tengan el check, y **Probar la alarma de fin** (suena, se repite y «Detener» la calla).
+- [ ] Samsung: además, **Ajustes → Batería → Límites de uso en segundo plano**: que Time Craft no esté en «Apps en suspensión». Xiaomi: **Ajustes → Apps → Time Craft → Ahorro de batería → Sin restricciones** y activa **Inicio automático**.
+- [ ] Una actualización del APK se instala encima (mismos pasos); los datos y la sesión se conservan.
+
 ## QStash y la protección de Vercel
 
 Vercel Authentication protege las previews: quien no tiene sesión en tu cuenta de Vercel recibe un 401. QStash no tiene esa sesión, y la reescritura de la web hacia la api tampoco, porque es de servidor a servidor.
