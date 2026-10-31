@@ -17,7 +17,8 @@ describe("/api/native-push-tokens", () => {
 			json: { token: "fcm-1", platform: "android", deviceLabel: "Pixel 8" },
 		});
 		expect(created.status).toBe(201);
-		expect((await created.json()).token.deviceLabel).toBe("Pixel 8");
+		const body = (await created.json()) as { token: { deviceLabel: string } };
+		expect(body.token.deviceLabel).toBe("Pixel 8");
 		expect(await t.db.select().from(nativePushTokens)).toHaveLength(1);
 
 		const removed = await t.request("DELETE", "/api/native-push-tokens", {
