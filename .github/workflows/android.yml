@@ -5,8 +5,10 @@ name: Android app
 # - On a mobile-v* tag (release.yml creates it on prod): the APK opens the
 #   production web and is attached to that tag's GitHub release, where the
 #   family downloads it.
-# - By hand (Actions › Android app › Run workflow): pick the web it opens,
-#   dev or prod; the APK is a downloadable artifact of the run.
+# - On a push to dev that touches the app: an APK for dev's web, kept as a
+#   downloadable artifact of the run, to test before a release.
+# - By hand (Actions › Android app › Run workflow, once this file is on the
+#   default branch): pick the web it opens, dev or prod; also an artifact.
 #
 # The repository's variables hold the webs it can open
 # (TIMECRAFT_WEB_URL_PROD, TIMECRAFT_WEB_URL_DEV) and its secrets the
@@ -19,6 +21,8 @@ name: Android app
 on:
   push:
     tags: ["mobile-v*"]
+    branches: [dev]
+    paths: ["apps/mobile/**", ".github/workflows/android.yml"]
   workflow_dispatch:
     inputs:
       web:
@@ -29,6 +33,10 @@ on:
 
 permissions:
   contents: write
+
+env:
+  # prod for a release tag or when picked by hand; dev otherwise.
+  WEB: ${{ (github.ref_type == 'tag' || inputs.web == 'prod') && 'prod' || 'dev' }}
 
 jobs:
   apk:
@@ -86,7 +94,7 @@ jobs:
 
       - name: Build the APK
         env:
-          TIMECRAFT_WEB_URL: ${{ (github.event_name == 'push' || inputs.web == 'prod') && vars.TIMECRAFT_WEB_URL_PROD || vars.TIMECRAFT_WEB_URL_DEV }}
+          TIMECRAFT_WEB_URL: ${{ (github.ref_type == 'tag' || inputs.web == 'prod') && vars.TIMECRAFT_WEB_URL_PROD || vars.TIMECRAFT_WEB_URL_DEV }}
         working-directory: apps/mobile
         run: bun run android:release
 
@@ -99,16 +107,16 @@ jobs:
           echo "file=$file" >> "$GITHUB_OUTPUT"
 
       - name: Attach it to the release
-        if: github.event_name == 'push'
+        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" "${{ steps.apk.outputs.file }}" --clobber
 
       - name: Keep it as an artifact
-        if: github.event_name == 'workflow_dispatch'
+        if: github.ref_type != 'tag'
         uses: actions/upload-artifact@v7
         with:
-          name: time-craft-${{ inputs.web }}-apk
+          name: time-craft-${{ env.WEB }}-apk
           path: ${{ steps.apk.outputs.file }}
           retention-days: 14
 

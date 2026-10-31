@@ -392,7 +392,8 @@ El cliente Android del login con Google tiene que estar en el **mismo** proyecto
 
 ### 22. El primer APK
 
-- [ ] Con la rama del hito 2 fusionada en `dev` (y `Migrate` en verde): **Actions → Android app → Run workflow** → rama `dev`, *web* `dev`. Al terminar, descarga el artefacto `time-craft-dev-apk` (un `.zip` con el `.apk`).
+- [ ] Con los pasos 20 y 21 hechos, fusiona en `dev` la rama del hito 2: el push a `dev` que toca `apps/mobile` corre **Actions → Android app** solo. Al terminar, en ese run descarga el artefacto `time-craft-dev-apk` (un `.zip` con el `.apk` que abre la web de `dev`). Si falló porque faltaba un secreto, agrégalo y **Re-run jobs**.
+- [ ] Más adelante, con `android.yml` ya en `prod` (la rama por defecto), también se puede correr a mano: **Run workflow** → *web* `dev` o `prod`.
 - [ ] Para producción no hace falta nada: el release que lleve la app a `prod` crea el tag `mobile-v1.0.0`, y `Android app` adjunta `time-craft-1.0.0.apk` a ese GitHub Release.
 
 ### 23. Instalar y preparar cada teléfono
