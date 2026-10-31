@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0](https://github.com/Freddyz5/time-craft/compare/web-v1.2.0...web-v1.3.0) (2026-10-31)
+
+### Features
+
+* **web:** stop the end alarm everywhere and ring the app with its own voice ([d44112f](https://github.com/Freddyz5/time-craft/commit/d44112f90063b4e37493425cc250fcf7e39b3bae))
+
 ## [1.2.0](https://github.com/Freddyz5/time-craft/compare/web-v1.1.0...web-v1.2.0) (2026-10-31)
 
 ### Features
