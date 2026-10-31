@@ -1,9 +1,11 @@
 // Inicio. Phone order: a forgotten pause first, then the child's pending
-// requests (they expire), what is happening now, the balance in bricks, the
+// requests (they expire), what is happening now (and while its alarm is due,
+// whether this tab can ring), the balance in bricks, the
 // tasks to review and, while this phone has none, the offer to turn on
 // notifications. On a laptop the balance moves to its own column.
 import { Lock, UserPlus } from "lucide-react";
 import { Link } from "wouter";
+import { TabAlarm } from "../components/TabAlarm";
 import { buttonClass, Callout, LoadingBricks, Notice } from "../components/ui";
 import { useServerNow } from "../lib/clock";
 import { errorMessage } from "../lib/errors";
@@ -99,13 +101,20 @@ export function Home() {
 		</section>
 	);
 
+	const status = live.data.live?.session.status;
 	const nowCard = (
-		<NowCard
-			live={live.data.live}
-			balances={balances}
-			policies={policies.data?.policies ?? []}
-			quiet={pending.length > 0}
-		/>
+		<>
+			<NowCard
+				live={live.data.live}
+				balances={balances}
+				policies={policies.data?.policies ?? []}
+				quiet={pending.length > 0}
+			/>
+			{/* The tab rings at the warning and the end still ahead. */}
+			{(status === "running" || status === "scheduled") && (
+				<TabAlarm audience="parents" />
+			)}
+		</>
 	);
 
 	return (

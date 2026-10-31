@@ -446,7 +446,7 @@ El número en una baldosa de tinta de 40 px (Baloo 2 800, 1.375rem, tabular, can
 Una fila de pernos sobre un ladrillo amarillo plano: vacíos en placa hundida con borde regla fuerte, se llenan en amarillo con un brillo a cada número; un PIN que no coincide sacude la fila una vez (360 ms). Teclado 3×4 de ladrillos secundarios de 64 px con cifras en Baloo 2 800 de 2rem, borrar sin ladrillo y «Entrar» como ladrillo primario.
 
 ### Toasts y diálogos
-Toasts de 10 px con sombra Lift y borde regla, abajo al centro en el teléfono (sobre las pestañas) y abajo a la derecha en escritorio; la alarma va en tinta con borde y canto rojos. Los diálogos son `<dialog>` nativos con forma de placa (26rem), «Volver» secundario y la acción en rojo o tinta; entran con un ascenso corto de 260 ms sobre un fondo negro al 55 %.
+Toasts de 10 px con sombra Lift y borde regla, abajo al centro en el teléfono (sobre las pestañas) y abajo a la derecha en escritorio; la alarma va en tinta con borde y canto rojos; lo que trae un push que no es alarma (una solicitud, una respuesta) va en placa con una campana en tinta y se queda hasta cerrarlo si llegó con la pestaña oculta. Los diálogos son `<dialog>` nativos con forma de placa (26rem), «Volver» secundario y la acción en rojo o tinta; entran con un ascenso corto de 260 ms sobre un fondo negro al 55 %.
 
 ### Marca
 El ladrillo amarillo 2×2 de frente con una aguja de reloj (brand/mark.svg y BrandMark), a 40 px en las barras y 56 px en grande, con «Time Craft» en Baloo 2 800. Es un dibujo fijo: no cambia con el tema.

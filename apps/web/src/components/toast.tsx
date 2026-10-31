@@ -1,7 +1,8 @@
-// Short confirmations after an action ("Sesión pausada"), and alerts the tab
-// raises on its own (the warning and the end). They sit above the tab bar
-// and announce themselves to screen readers.
-import { CircleAlert, CircleCheck, Clock, X } from "lucide-react";
+// Short confirmations after an action ("Sesión pausada"), alerts the tab
+// raises on its own (the warning and the end) and the news a push brought to
+// an open tab (a request, an answer). They sit above the tab bar and
+// announce themselves to screen readers.
+import { Bell, CircleAlert, CircleCheck, Clock, X } from "lucide-react";
 import {
 	createContext,
 	type ReactNode,
@@ -12,7 +13,7 @@ import {
 	useState,
 } from "react";
 
-type ToastTone = "success" | "error" | "alarm";
+type ToastTone = "success" | "error" | "alarm" | "notice";
 
 interface Toast {
 	id: number;
@@ -21,8 +22,18 @@ interface Toast {
 	body?: string | undefined;
 }
 
+interface ToastOptions {
+	// Stays until closed: it came while nobody was looking.
+	sticky?: boolean;
+}
+
 interface ToastApi {
-	show: (tone: ToastTone, title: string, body?: string) => void;
+	show: (
+		tone: ToastTone,
+		title: string,
+		body?: string,
+		options?: ToastOptions,
+	) => void;
 }
 
 const ToastContext = createContext<ToastApi>({ show: () => undefined });
@@ -37,6 +48,7 @@ const DURATION: Record<ToastTone, number> = {
 	// The tab's own alarm stays until dismissed: it may ring with nobody
 	// looking.
 	alarm: 0,
+	notice: 8000,
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -48,10 +60,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const show = useCallback(
-		(tone: ToastTone, title: string, body?: string) => {
+		(tone: ToastTone, title: string, body?: string, options?: ToastOptions) => {
 			const id = next.current++;
 			setToasts((current) => [...current.slice(-2), { id, tone, title, body }]);
-			if (DURATION[tone] > 0) {
+			if (DURATION[tone] > 0 && options?.sticky !== true) {
 				setTimeout(() => dismiss(id), DURATION[tone]);
 			}
 		},
@@ -70,7 +82,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 				{toasts.map((toast) => (
 					<div
 						key={toast.id}
-						role={toast.tone === "success" ? "status" : "alert"}
+						role={
+							toast.tone === "success" || toast.tone === "notice"
+								? "status"
+								: "alert"
+						}
 						className={`pointer-events-auto flex w-full max-w-sm motion-safe:animate-rise items-start gap-3 rounded-callout border-[1.5px] px-4 py-3 ${
 							toast.tone === "alarm"
 								? "border-stop bg-ink text-on-ink shadow-[0_4px_0_var(--color-stop),0_22px_40px_-16px_var(--color-shadow)]"
@@ -87,6 +103,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 						) : toast.tone === "error" ? (
 							<CircleAlert
 								className="mt-0.5 size-5 shrink-0 text-stop"
+								aria-hidden="true"
+							/>
+						) : toast.tone === "notice" ? (
+							<Bell
+								className="mt-0.5 size-5 shrink-0 text-ink"
 								aria-hidden="true"
 							/>
 						) : (

@@ -145,15 +145,18 @@ function LiveSession({
 	useSessionAlarm(
 		{ sessionId: session.id, endsAtMs: t.endsAtMs, warningMinutes },
 		(kind: AlarmKind) => {
-			toast.show(
-				"alarm",
+			const words =
 				kind === "warning"
-					? `Quedan ${warningMinutes} min`
-					: "Se acabó el tiempo",
-				kind === "warning"
-					? `${name} de ${child?.name ?? "el niño"} está por terminar.`
-					: `Terminó ${name} de ${child?.name ?? "el niño"}. Detén la sesión cuando apague.`,
-			);
+					? {
+							title: `Quedan ${warningMinutes} min`,
+							body: `${name} de ${child?.name ?? "el niño"} está por terminar.`,
+						}
+					: {
+							title: "Se acabó el tiempo",
+							body: `Terminó ${name} de ${child?.name ?? "el niño"}. Detén la sesión cuando apague.`,
+						};
+			toast.show("alarm", words.title, words.body);
+			return words;
 		},
 	);
 
