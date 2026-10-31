@@ -8,6 +8,7 @@
 // so there a tab left open rings even behind a game.
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { serverNow } from "./clock";
+import { isNativeApp } from "./native";
 import { pushState } from "./push";
 import {
 	type AlarmKind,
@@ -304,6 +305,11 @@ export async function testVoice(
 // browser gets push, the server's own push rings the tab instead (it is
 // only sent if the alarm still holds); without push, the timer rings anyway.
 export async function pushWillRing(): Promise<boolean> {
+	if (isNativeApp()) {
+		// In the Android app the phone's own notification rings, in front
+		// too, with the alarm stream and the lock screen.
+		return (await pushState()) === "on";
+	}
 	return document.visibilityState === "hidden" && (await pushState()) === "on";
 }
 

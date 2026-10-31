@@ -36,7 +36,12 @@ import {
 	listPolicyHistory,
 	setPolicy,
 } from "./policies";
-import { registerSubscription, removeSubscription } from "./push";
+import {
+	registerNativeToken,
+	registerSubscription,
+	removeNativeToken,
+	removeSubscription,
+} from "./push";
 import {
 	approveRequest,
 	cancelRequest,
@@ -134,6 +139,8 @@ export function createCore(deps: CoreDeps) {
 		// Push
 		registerSubscription: bind(deps, registerSubscription),
 		removeSubscription: bind(deps, removeSubscription),
+		registerNativeToken: bind(deps, registerNativeToken),
+		removeNativeToken: bind(deps, removeNativeToken),
 		// Scheduled jobs (QStash callback)
 		handleJob: (input: { alertId: string }) => handleJob(deps, input),
 	};

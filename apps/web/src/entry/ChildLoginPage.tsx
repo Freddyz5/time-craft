@@ -2,7 +2,10 @@
 // steps (username, PIN); this browser remembers the username, never the PIN,
 // so next time it opens straight on the keypad. Five wrong PINs in a row
 // lock the account for a while: the page says how long, and counts it down.
-import { Lock, Timer } from "lucide-react";
+// In the Android app, after a PIN sign-in the phone keeps the username and
+// PIN behind the fingerprint (Android's Keystore), and the keypad offers
+// "Entrar con huella".
+import { Fingerprint, Lock, Timer } from "lucide-react";
 import {
 	type SubmitEvent,
 	useCallback,
@@ -18,6 +21,15 @@ import { authClient } from "../lib/auth";
 import { useServerNow } from "../lib/clock";
 import { countdown } from "../lib/format";
 import { homeFor, safeNext } from "../lib/guard";
+import {
+	biometricAvailable,
+	childCredentialsSaved,
+	forgetChildCredentials,
+	isNativeApp,
+	readChildCredentials,
+	rememberArea,
+	saveChildCredentials,
+} from "../lib/native";
 import { PIN_MAX, PIN_MIN, PinPad, PinStuds } from "./PinPad";
 import { PublicFrame } from "./PublicFrame";
 
@@ -154,88 +166,135 @@ export default function ChildLoginPage() {
 		}
 	}, [wait, remainingMs]);
 
+	// The app keeps this child's PIN behind the fingerprint.
+	const [fingerprint, setFingerprint] = useState(false);
+	useEffect(() => {
+		void childCredentialsSaved().then(setFingerprint);
+	}, []);
+
+	const signIn = useCallback(
+		async (user: string, code: string, viaFingerprint: boolean) => {
+			setBusy(true);
+			setError(null);
+			setInfo(null);
+			let retryAfter: number | null = null;
+			let serverDate: number | null = null;
+			const result = await authClient.signIn.username(
+				{ username: user, password: code },
+				{
+					onError: (context) => {
+						const header = context.response.headers.get("X-Retry-After");
+						retryAfter = header === null ? null : Number(header);
+						const date = context.response.headers.get("date");
+						serverDate = date === null ? null : Date.parse(date);
+					},
+				},
+			);
+			if (result.error) {
+				const failure = result.error as SignInFailure;
+				setBusy(false);
+				setPin("");
+				const offsetMs =
+					serverDate === null || Number.isNaN(serverDate)
+						? 0
+						: serverDate - Date.now();
+				if (failure.code === "child_locked") {
+					const until = Date.parse(failure.lockedUntil ?? "");
+					setWait({
+						kind: "locked",
+						until: Number.isNaN(until) ? Date.now() + 15 * 60_000 : until,
+						offsetMs,
+					});
+				} else if (failure.status === 429) {
+					const seconds =
+						retryAfter !== null && Number.isFinite(retryAfter)
+							? retryAfter
+							: 60;
+					setWait({
+						kind: "rate",
+						until: Date.now() + seconds * 1000,
+						offsetMs: 0,
+					});
+				} else if (
+					failure.code === "INVALID_USERNAME_OR_PASSWORD" ||
+					failure.status === 401
+				) {
+					if (viaFingerprint) {
+						// The PIN changed since the phone saved it.
+						await forgetChildCredentials();
+						setFingerprint(false);
+						setError("Tu PIN cambió. Escríbelo una vez más.");
+					} else {
+						setError("No coinciden. Revisa tu PIN.");
+						setShake((count) => count + 1);
+					}
+				} else {
+					setError(
+						childErrorMessage(
+							new ApiError(
+								failure.status,
+								failure.code ?? `http_${failure.status}`,
+								failure.message ?? "",
+							),
+						),
+					);
+				}
+				return;
+			}
+			try {
+				const household = await call(api.me.$get());
+				if (household.me.kind === "child") {
+					remember({ username: user, name: household.me.name });
+					rememberArea("child");
+					if (!viaFingerprint && (await biometricAvailable())) {
+						await saveChildCredentials(user, code).catch(() => undefined);
+					}
+				}
+				window.location.assign(
+					household.me.kind === "child"
+						? safeNext(next, "child")
+						: homeFor(household.me.kind),
+				);
+			} catch (cause) {
+				if (cause instanceof ApiError && cause.code === "no_role") {
+					await authClient.signOut().catch(() => undefined);
+					setError("Esta cuenta no pertenece a ninguna familia de Time Craft.");
+					setBusy(false);
+				} else {
+					window.location.assign(homeFor("child"));
+				}
+			}
+		},
+		[next],
+	);
+
 	const submit = useCallback(async () => {
 		if (busy || waiting || pin.length < PIN_MIN) {
 			return;
 		}
-		setBusy(true);
-		setError(null);
-		setInfo(null);
-		let retryAfter: number | null = null;
-		let serverDate: number | null = null;
-		const result = await authClient.signIn.username(
-			{ username, password: pin },
-			{
-				onError: (context) => {
-					const header = context.response.headers.get("X-Retry-After");
-					retryAfter = header === null ? null : Number(header);
-					const date = context.response.headers.get("date");
-					serverDate = date === null ? null : Date.parse(date);
-				},
-			},
-		);
-		if (result.error) {
-			const failure = result.error as SignInFailure;
-			setBusy(false);
-			setPin("");
-			const offsetMs =
-				serverDate === null || Number.isNaN(serverDate)
-					? 0
-					: serverDate - Date.now();
-			if (failure.code === "child_locked") {
-				const until = Date.parse(failure.lockedUntil ?? "");
-				setWait({
-					kind: "locked",
-					until: Number.isNaN(until) ? Date.now() + 15 * 60_000 : until,
-					offsetMs,
-				});
-			} else if (failure.status === 429) {
-				const seconds =
-					retryAfter !== null && Number.isFinite(retryAfter) ? retryAfter : 60;
-				setWait({
-					kind: "rate",
-					until: Date.now() + seconds * 1000,
-					offsetMs: 0,
-				});
-			} else if (
-				failure.code === "INVALID_USERNAME_OR_PASSWORD" ||
-				failure.status === 401
-			) {
-				setError("No coinciden. Revisa tu PIN.");
-				setShake((count) => count + 1);
-			} else {
-				setError(
-					childErrorMessage(
-						new ApiError(
-							failure.status,
-							failure.code ?? `http_${failure.status}`,
-							failure.message ?? "",
-						),
-					),
-				);
-			}
+		await signIn(username, pin, false);
+	}, [busy, waiting, pin, username, signIn]);
+
+	const signInWithFingerprint = useCallback(async () => {
+		if (busy || waiting) {
 			return;
 		}
-		try {
-			const household = await call(api.me.$get());
-			if (household.me.kind === "child") {
-				remember({ username, name: household.me.name });
-			}
-			window.location.assign(
-				household.me.kind === "child"
-					? safeNext(next, "child")
-					: homeFor(household.me.kind),
-			);
-		} catch (cause) {
-			if (cause instanceof ApiError && cause.code === "no_role") {
-				await authClient.signOut().catch(() => undefined);
-				setError("Esta cuenta no pertenece a ninguna familia de Time Craft.");
-				setBusy(false);
-			} else {
-				window.location.assign(homeFor("child"));
-			}
+		setError(null);
+		const saved = await readChildCredentials();
+		if (saved !== null) {
+			setUsername(saved.username);
+			await signIn(saved.username, saved.pin, true);
 		}
-	}, [busy, waiting, pin, username, next]);
+	}, [busy, waiting, signIn]);
+
+	// The app opens straight on the fingerprint prompt.
+	const [offered, setOffered] = useState(false);
+	useEffect(() => {
+		if (fingerprint && !offered && step === "pin" && isNativeApp()) {
+			setOffered(true);
+			void signInWithFingerprint();
+		}
+	}, [fingerprint, offered, step, signInWithFingerprint]);
 
 	const typeDigit = useCallback((digit: string) => {
 		setError(null);
@@ -389,6 +448,16 @@ export default function ChildLoginPage() {
 							{error ?? info ?? ""}
 						</p>
 					</div>
+					{fingerprint && !waiting && (
+						<Button
+							variant="secondary"
+							icon={<Fingerprint className="size-5" aria-hidden="true" />}
+							busy={busy}
+							onClick={() => void signInWithFingerprint()}
+						>
+							Entrar con huella
+						</Button>
+					)}
 					<PinPad
 						onDigit={typeDigit}
 						onDelete={deleteDigit}

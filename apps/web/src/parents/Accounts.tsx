@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useId, useState } from "react";
 import { CopyCode } from "../components/CopyCode";
+import { NativeAlarmSetup } from "../components/NativeAlarmSetup";
 import { SoundSettings } from "../components/SoundSettings";
 import { ThemeSetting } from "../components/ThemeSetting";
 import { useToast } from "../components/toast";
@@ -718,6 +719,7 @@ export function Accounts() {
 					</p>
 				</div>
 				<PushToggle />
+				<NativeAlarmSetup audience="parents" />
 			</Callout>
 
 			<SoundSettings audience="parents" />

@@ -1,0 +1,33 @@
+# apps/mobile
+
+App Android (hito 2, [docs/contexto-hito-2.md](../../docs/contexto-hito-2.md)): Capacitor 8 alrededor de la web publicada. No tiene pantallas propias salvo la alarma de fin y la página «Sin conexión»: todo lo demás es `apps/web`, que detecta que corre aquí (`apps/web/src/lib/native.ts`).
+
+- `capacitor.config.ts`: `server.url` sale de `TIMECRAFT_WEB_URL` (obligatoria: sin ella `cap sync` falla). Producción para el APK del release; el dominio de `dev` o una web local (`http://10.0.2.2:<puerto>` desde el emulador, con la web escuchando en `127.0.0.1`) para probar. Los plugins de Capgo y los proveedores de login (solo Google).
+- `android/`: proyecto de Gradle que generó `cap add android`, con el código propio en `app/src/main/java/app/timecraft/`:
+  - `TimeCraftPlugin`: el puente con la web (token de FCM, permiso de avisos, sonidos elegidos, ajustes de batería y pantalla completa, `testAlert`). Eventos `push` y `token`.
+  - `TimeCraftMessagingService`: recibe los mensajes de datos de la api aunque la app esté cerrada.
+  - `Alerts`: arma cada notificación. Un canal por tipo de aviso y sonido (`tc-<tipo>-<sonido>`); aviso previo, fin y «ya puedes empezar» por el stream de alarma; el fin con `FLAG_INSISTENT` (si el teléfono eligió repetirlo), pantalla completa y «Detener».
+  - `AlarmActivity` (el fin sobre la pantalla bloqueada), `StopAlarmReceiver` («Detener») y `MainActivity` (abre la página del aviso tocado).
+- `android/app/src/main/res/raw/tc_<id>.wav`: los sonidos del catálogo de la web, generados con `bun run sounds` (`scripts/sounds.ts` y `scripts/synth.ts`, que imitan lo que hace `lib/alarm.ts` con Web Audio). Se commitean; vuelve a generarlos si cambia `apps/web/src/lib/sounds.ts`.
+- Iconos: `bun run icons` (`scripts/icons.ts`) desde `apps/web/brand` y `public/icons`. Se commitean.
+- Versión: la de este `package.json` (la escribe el release, `mobile-v…`); Gradle la lee para `versionName` y `versionCode` (1.2.3 → 10203).
+
+## Construir
+
+Java 21 y el SDK de Android (`ANDROID_HOME`; Android Studio lo instala).
+
+```sh
+TIMECRAFT_WEB_URL=https://<web> bun run android:debug     # android/app/build/outputs/apk/debug/
+TIMECRAFT_WEB_URL=https://<web> bun run android:release   # firmado si existe android/keystore.properties
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+- `android/app/google-services.json` (Firebase) y `android/keystore.properties` (la llave) nunca se commitean. Sin el primero la app funciona pero no recibe avisos; sin el segundo el APK release sale sin firmar. En CI los escribe `.github/workflows/android.yml` desde los secretos.
+- La llave de firma es una sola para siempre: con otra, el teléfono no actualiza la app instalada.
+- En un build debug, Chrome (`chrome://inspect`) se conecta al WebView.
+
+No debe:
+
+- Tener pantallas o lógica que ya están en la web: la app es la web.
+- Pedir permisos que no usa ni tomar datos del teléfono más allá de la marca y el modelo (para la etiqueta del dispositivo).
+- Guardar el PIN del niño fuera del Keystore (el plugin biométrico) ni la sesión fuera de las cookies del WebView.

@@ -3,6 +3,7 @@
 // route, so a reload or a link from a push lands on the right screen.
 import { useState } from "react";
 import { Link, Route, Router, Switch } from "wouter";
+import { AppLock } from "../components/AppLock";
 import { AppProviders } from "../components/providers";
 import { StandaloneFrame } from "../components/StandaloneFrame";
 import { Button, buttonClass, LoadingBricks } from "../components/ui";
@@ -75,17 +76,19 @@ function ParentsRoot() {
 
 	return (
 		<ParentsProvider household={guard.household}>
-			<Shell>
-				<Switch>
-					<Route path="/" component={Home} />
-					<Route path="/sesion" component={NewSession} />
-					<Route path="/historial" component={History} />
-					<Route path="/reglas" component={Rules} />
-					<Route path="/bonos" component={BonusTasks} />
-					<Route path="/cuentas" component={Accounts} />
-					<Route component={NotFound} />
-				</Switch>
-			</Shell>
+			<AppLock>
+				<Shell>
+					<Switch>
+						<Route path="/" component={Home} />
+						<Route path="/sesion" component={NewSession} />
+						<Route path="/historial" component={History} />
+						<Route path="/reglas" component={Rules} />
+						<Route path="/bonos" component={BonusTasks} />
+						<Route path="/cuentas" component={Accounts} />
+						<Route component={NotFound} />
+					</Switch>
+				</Shell>
+			</AppLock>
 		</ParentsProvider>
 	);
 }

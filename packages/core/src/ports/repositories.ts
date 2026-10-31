@@ -9,7 +9,7 @@ import type { BonusTask, TaskReport } from "../domain/bonus";
 import type { Period } from "../domain/calendar";
 import type { Activity, Child, Family, Parent } from "../domain/family";
 import type { QuotaPolicy } from "../domain/policy";
-import type { PushSubscription } from "../domain/push";
+import type { NativePushToken, PushSubscription } from "../domain/push";
 import type { ChildRequest, QuotaOverride } from "../domain/request";
 import type { Session, SessionStatus } from "../domain/session";
 
@@ -159,6 +159,14 @@ export interface PushSubscriptionRepository {
 	deleteByEndpoint(endpoint: string): Promise<void>;
 }
 
+export interface NativePushTokenRepository {
+	findByToken(token: string): Promise<NativePushToken | null>;
+	// Inserts, or replaces the row with the same token (the app now belongs to
+	// whoever signed in last).
+	upsertByToken(token: NativePushToken): Promise<void>;
+	deleteByToken(token: string): Promise<void>;
+}
+
 export interface Repositories {
 	families: FamilyRepository;
 	parents: ParentRepository;
@@ -172,4 +180,5 @@ export interface Repositories {
 	bonusTasks: BonusTaskRepository;
 	taskReports: TaskReportRepository;
 	pushSubscriptions: PushSubscriptionRepository;
+	nativePushTokens: NativePushTokenRepository;
 }

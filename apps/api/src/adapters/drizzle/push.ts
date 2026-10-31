@@ -1,6 +1,9 @@
 // Web Push subscriptions, one per browser (endpoint).
-import type { PushSubscriptionRepository } from "@time-craft/core";
-import { type Db, pushSubscriptions } from "@time-craft/db";
+import type {
+	NativePushTokenRepository,
+	PushSubscriptionRepository,
+} from "@time-craft/core";
+import { type Db, nativePushTokens, pushSubscriptions } from "@time-craft/db";
 import { eq } from "drizzle-orm";
 
 export function pushSubscriptionRepository(db: Db): PushSubscriptionRepository {
@@ -26,6 +29,31 @@ export function pushSubscriptionRepository(db: Db): PushSubscriptionRepository {
 			await db
 				.delete(pushSubscriptions)
 				.where(eq(pushSubscriptions.endpoint, endpoint));
+		},
+	};
+}
+
+// The Android app's push tokens, one per installed app.
+export function nativePushTokenRepository(db: Db): NativePushTokenRepository {
+	return {
+		async findByToken(token) {
+			const [row] = await db
+				.select()
+				.from(nativePushTokens)
+				.where(eq(nativePushTokens.token, token));
+			return row ?? null;
+		},
+		async upsertByToken(saved) {
+			const { id: _, token: __, ...changes } = saved;
+			await db
+				.insert(nativePushTokens)
+				.values(saved)
+				.onConflictDoUpdate({ target: nativePushTokens.token, set: changes });
+		},
+		async deleteByToken(token) {
+			await db
+				.delete(nativePushTokens)
+				.where(eq(nativePushTokens.token, token));
 		},
 	};
 }

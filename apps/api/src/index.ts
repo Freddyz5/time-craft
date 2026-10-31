@@ -2,6 +2,8 @@
 // fails right away if something is missing, and wires the real adapters.
 // Vercel's zero-config format: `export default app`.
 import { createDb } from "@time-craft/db";
+import { FcmNotifier } from "./adapters/fcm";
+import { FanOutNotifier } from "./adapters/notifiers";
 import { QStashJobScheduler, QStashSignatureVerifier } from "./adapters/qstash";
 import { systemClock } from "./adapters/system";
 import { WebPushNotifier } from "./adapters/web-push";
@@ -36,11 +38,16 @@ const { app } = createContainer({
 	},
 	clock: systemClock,
 	jobs: new QStashJobScheduler(qstash),
-	notifier: new WebPushNotifier(db, {
-		subject: env.VAPID_SUBJECT,
-		publicKey: env.VAPID_PUBLIC_KEY,
-		privateKey: env.VAPID_PRIVATE_KEY,
-	}),
+	notifier: new FanOutNotifier([
+		new WebPushNotifier(db, {
+			subject: env.VAPID_SUBJECT,
+			publicKey: env.VAPID_PUBLIC_KEY,
+			privateKey: env.VAPID_PRIVATE_KEY,
+		}),
+		...(env.FCM_SERVICE_ACCOUNT === undefined
+			? []
+			: [new FcmNotifier(db, env.FCM_SERVICE_ACCOUNT)]),
+	]),
 	jobSignatures: new QStashSignatureVerifier(qstash),
 });
 

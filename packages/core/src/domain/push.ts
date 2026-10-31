@@ -1,5 +1,6 @@
-// Web Push subscriptions (one per browser and person) and the messages sent
-// to them. Message texts are UI, so they are in Spanish.
+// Web Push subscriptions (one per browser and person), the Android app's push
+// tokens (one per installed app) and the messages sent to them. Message texts
+// are UI, so they are in Spanish.
 import { type CalendarSettings, formatTime } from "./calendar";
 import type { RequestType } from "./request";
 
@@ -13,6 +14,20 @@ export interface PushSubscription {
 	createdAt: Date;
 	lastUsedAt: Date | null;
 }
+
+// The Android app's Firebase Cloud Messaging token: the app's address, as a
+// Web Push endpoint is a browser's.
+export interface NativePushToken {
+	id: string;
+	authUserId: string;
+	token: string;
+	platform: NativePlatform;
+	deviceLabel: string | null;
+	createdAt: Date;
+	lastUsedAt: Date | null;
+}
+
+export type NativePlatform = "android";
 
 export type NotificationKind =
 	| "session_ready"

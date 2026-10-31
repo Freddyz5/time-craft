@@ -1,6 +1,11 @@
-// Web Push subscriptions of whoever is signed in (parent or child).
+// Web Push subscriptions and Android app tokens of whoever is signed in
+// (parent or child).
 import type { Actor } from "../domain/actor";
-import type { PushSubscription } from "../domain/push";
+import type {
+	NativePlatform,
+	NativePushToken,
+	PushSubscription,
+} from "../domain/push";
 import { optionalText, requiredText } from "../domain/values";
 import { DomainError, invalidInput } from "../errors";
 import { type CoreDeps, type Tx, transaction } from "./context";
@@ -78,6 +83,59 @@ export async function removeSubscription(
 		);
 		if (existing !== null && existing.authUserId === authUserId) {
 			await tx.repos.pushSubscriptions.deleteByEndpoint(existing.endpoint);
+		}
+	});
+}
+
+export interface RegisterNativeTokenInput {
+	token: string;
+	platform: NativePlatform;
+	deviceLabel?: string;
+}
+
+// Saves the Android app's push token for the actor. An app where someone else
+// was signed in (a phone passed around) now belongs to the actor.
+export async function registerNativeToken(
+	deps: CoreDeps,
+	actor: Actor,
+	input: RegisterNativeTokenInput,
+): Promise<NativePushToken> {
+	const token = requiredText(input.token, "token", 4096);
+	if (input.platform !== "android") {
+		throw invalidInput("platform", "must be android");
+	}
+	const deviceLabel = optionalText(input.deviceLabel, "deviceLabel", 100);
+	return transaction(deps, async (tx) => {
+		const authUserId = await actorAuthUserId(tx, actor);
+		const existing = await tx.repos.nativePushTokens.findByToken(token);
+		const saved: NativePushToken = {
+			id: existing?.id ?? tx.deps.ids.next(),
+			authUserId,
+			token,
+			platform: input.platform,
+			deviceLabel,
+			createdAt: existing?.createdAt ?? tx.now,
+			lastUsedAt: existing?.lastUsedAt ?? null,
+		};
+		await tx.repos.nativePushTokens.upsertByToken(saved);
+		return saved;
+	});
+}
+
+// Removes the actor's token for this app (on sign-out). Does nothing if it is
+// not theirs or no longer exists.
+export async function removeNativeToken(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { token: string },
+): Promise<void> {
+	return transaction(deps, async (tx) => {
+		const authUserId = await actorAuthUserId(tx, actor);
+		const existing = await tx.repos.nativePushTokens.findByToken(
+			input.token.trim(),
+		);
+		if (existing !== null && existing.authUserId === authUserId) {
+			await tx.repos.nativePushTokens.deleteByToken(existing.token);
 		}
 	});
 }

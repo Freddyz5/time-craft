@@ -22,6 +22,13 @@
       "when": 1792435346009,
       "tag": "0002_provider_message_id_text",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793422089624,
+      "tag": "0003_native_push_tokens",
+      "breakpoints": true
     }
   ]
 }

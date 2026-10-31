@@ -1,0 +1,30 @@
+{
+	"name": "@time-craft/mobile",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test",
+		"sync": "cap sync android",
+		"sounds": "bun scripts/sounds.ts",
+		"icons": "bun scripts/icons.ts",
+		"android:debug": "cap sync android && cd android && ./gradlew assembleDebug",
+		"android:release": "cap sync android && cd android && ./gradlew assembleRelease"
+	},
+	"dependencies": {
+		"@capacitor/android": "8.5.3",
+		"@capacitor/app": "8.1.2",
+		"@capacitor/core": "8.5.3",
+		"@capgo/capacitor-native-biometric": "8.8.3",
+		"@capgo/capacitor-social-login": "8.5.18"
+	},
+	"devDependencies": {
+		"@capacitor/cli": "8.5.3",
+		"@resvg/resvg-js": "^2.6.2",
+		"@time-craft/tsconfig": "workspace:*",
+		"@types/bun": "1.4.3",
+		"typescript": "^6.0.3"
+	}
+}
