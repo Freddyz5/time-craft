@@ -12,16 +12,21 @@ import {
 	TimerOff,
 } from "lucide-react";
 import { useState } from "react";
+import { NativeAlarmSetup } from "../components/NativeAlarmSetup";
 import { SoundSettings } from "../components/SoundSettings";
 import { ThemeSetting } from "../components/ThemeSetting";
 import { useToast } from "../components/toast";
 import { Button, Callout, Notice } from "../components/ui";
 import { ApiError } from "../lib/api";
+import { isNativeApp } from "../lib/native";
 import { disablePush, enablePush, usePushState } from "../lib/push";
 import { usePolicies } from "../lib/queries";
 import { signOut } from "../lib/session";
 import { useChild } from "./context";
 import { childErrorMessage } from "./errors";
+
+const appDeniedHelp =
+	"Los avisos están bloqueados para Time Craft. Pídele a mamá o papá que los permitan: Ajustes › Apps › Time Craft › Notificaciones.";
 
 const deniedHelp =
 	"Este navegador los tiene bloqueados. Pídele a mamá o papá que los permitan: en Chrome, el candado junto a la dirección › Permisos › Notificaciones › Permitir.";
@@ -193,11 +198,12 @@ export function Notifications() {
 						</span>
 					</Notice>
 				) : state === "denied" ? (
-					<Notice>{deniedHelp}</Notice>
+					<Notice>{isNativeApp() ? appDeniedHelp : deniedHelp}</Notice>
 				) : state === "unsupported" ? (
 					<Notice>
-						Este navegador no puede recibir avisos. En un teléfono Android,
-						ábrelo en Chrome.
+						{isNativeApp()
+							? "Esta versión de la app todavía no puede recibir avisos."
+							: "Este navegador no puede recibir avisos. En un teléfono Android, ábrelo en Chrome."}
 					</Notice>
 				) : (
 					<Button
@@ -211,6 +217,7 @@ export function Notifications() {
 						Activar avisos
 					</Button>
 				)}
+				<NativeAlarmSetup audience="child" />
 			</Callout>
 
 			<SoundSettings audience="child" />

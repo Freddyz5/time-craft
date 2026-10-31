@@ -1,10 +1,12 @@
 // Web Push on this browser: the service worker, the permission and the
 // subscription the api sends notifications to. On Android, Chrome delivers
-// them without installing the app.
+// them without installing the app. Inside the Android app (lib/native.ts)
+// the same switch registers the app's Firebase token instead.
 import { VAPID_PUBLIC_KEY } from "astro:env/client";
 import { useCallback, useEffect, useState } from "react";
 import { api, call } from "./api";
 import { labelFromUserAgent } from "./device";
+import { isNativeApp, timeCraft } from "./native";
 
 export type PushState =
 	| "unsupported" // no service worker or Push API (or no VAPID key configured)
@@ -13,6 +15,9 @@ export type PushState =
 	| "on";
 
 export function pushSupported(): boolean {
+	if (isNativeApp()) {
+		return true;
+	}
 	return (
 		typeof window !== "undefined" &&
 		"serviceWorker" in navigator &&
@@ -39,6 +44,9 @@ async function currentSubscription(): Promise<PushSubscription | null> {
 }
 
 export async function pushState(): Promise<PushState> {
+	if (isNativeApp()) {
+		return nativePushState();
+	}
 	if (!pushSupported()) {
 		return "unsupported";
 	}
@@ -70,6 +78,9 @@ export function deviceLabel(): string {
 // Asks for permission (it must follow a tap) and registers the subscription
 // with the api for whoever is signed in.
 export async function enablePush(): Promise<PushState> {
+	if (isNativeApp()) {
+		return enableNativePush();
+	}
 	if (!pushSupported() || VAPID_PUBLIC_KEY === undefined) {
 		return "unsupported";
 	}
@@ -103,6 +114,9 @@ export async function enablePush(): Promise<PushState> {
 }
 
 export async function disablePush(): Promise<PushState> {
+	if (isNativeApp()) {
+		return disableNativePush();
+	}
 	const subscription = await currentSubscription();
 	if (subscription !== null) {
 		// Tell the api first, while the session still exists.
@@ -114,6 +128,101 @@ export async function disablePush(): Promise<PushState> {
 		await subscription.unsubscribe();
 	}
 	return pushState();
+}
+
+// --- The Android app ------------------------------------------------------
+
+// The token this app registered with the api, so the switch knows it is on
+// and sign-out can remove it.
+const NATIVE_TOKEN = "timecraft:app-push-token";
+
+function storedNativeToken(): string | null {
+	try {
+		return window.localStorage.getItem(NATIVE_TOKEN);
+	} catch {
+		return null;
+	}
+}
+
+function storeNativeToken(token: string | null): void {
+	try {
+		if (token === null) {
+			window.localStorage.removeItem(NATIVE_TOKEN);
+		} else {
+			window.localStorage.setItem(NATIVE_TOKEN, token);
+		}
+	} catch {
+		// Blocked storage: the switch shows "off" next time.
+	}
+}
+
+async function nativePushState(): Promise<PushState> {
+	const status = await timeCraft.getStatus().catch(() => null);
+	if (status === null || !status.firebase) {
+		return "unsupported";
+	}
+	if (status.notifications === "denied") {
+		return "denied";
+	}
+	return status.notifications === "granted" && storedNativeToken() !== null
+		? "on"
+		: "off";
+}
+
+async function registerNativeToken(token: string): Promise<void> {
+	const status = await timeCraft.getStatus();
+	await call(
+		api["native-push-tokens"].$post({
+			json: {
+				token,
+				platform: "android",
+				deviceLabel: `App en ${status.device}`.slice(0, 100),
+			},
+		}),
+	);
+	storeNativeToken(token);
+}
+
+async function enableNativePush(): Promise<PushState> {
+	const status = await timeCraft.requestNotifications();
+	if (!status.firebase) {
+		return "unsupported";
+	}
+	if (status.notifications !== "granted") {
+		return status.notifications === "denied" ? "denied" : "off";
+	}
+	const { token } = await timeCraft.getToken();
+	await registerNativeToken(token);
+	return "on";
+}
+
+async function disableNativePush(): Promise<PushState> {
+	const token = storedNativeToken();
+	if (token !== null) {
+		// Tell the api first, while the session still exists.
+		await call(api["native-push-tokens"].$delete({ json: { token } })).catch(
+			() => undefined,
+		);
+		storeNativeToken(null);
+		await timeCraft.deleteToken().catch(() => undefined);
+	}
+	return nativePushState();
+}
+
+// On every start of the app: Firebase may have rotated the token since it
+// was registered. Does nothing in a browser or while the switch is off.
+export async function refreshNativeToken(): Promise<void> {
+	const stored = storedNativeToken();
+	if (!isNativeApp() || stored === null) {
+		return;
+	}
+	const { token } = await timeCraft.getToken();
+	if (token !== stored) {
+		await registerNativeToken(token);
+		await call(
+			api["native-push-tokens"].$delete({ json: { token: stored } }),
+		).catch(() => undefined);
+	}
 }
 
 // A push as the service worker forwards it to an open tab.

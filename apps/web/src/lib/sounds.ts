@@ -4,6 +4,7 @@
 // whether a voice reads the alarm out (voice.ts). Like the theme, the choice
 // lives in this browser only: each parent and the child pick their own.
 import { useEffect, useState } from "react";
+import { syncSoundSettings } from "./native";
 
 export type AlarmKind =
 	| "warning" // a few minutes left
@@ -487,6 +488,8 @@ export function readSoundSettings(): SoundSettings {
 }
 
 export function saveSoundSettings(settings: SoundSettings): void {
+	// The Android app's notifications ring with the same choice.
+	syncSoundSettings(settings);
 	try {
 		window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 	} catch {
