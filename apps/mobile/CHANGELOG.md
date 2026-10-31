@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/Freddyz5/time-craft/compare/mobile-v1.0.0...mobile-v1.1.0) (2026-10-31)
+
+### Features
+
+* **mobile:** ring alarms with sound and voice until stopped anywhere ([76bb5e5](https://github.com/Freddyz5/time-craft/commit/76bb5e5fedc57a56bee4c2c264c0b74406e3b22b))
+
 ## 1.0.0 (2026-10-31)
 
 ### Features
