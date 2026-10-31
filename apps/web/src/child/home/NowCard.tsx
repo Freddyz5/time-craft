@@ -112,7 +112,7 @@ function useReadyAlarm(session: Session, onReady: () => AlarmWords) {
 			if (await pushWillRing()) {
 				return;
 			}
-			ringOnce(sessionId, "ready", () => onReadyRef.current());
+			ringOnce(`session-${sessionId}`, "ready", () => onReadyRef.current());
 		};
 		const timer = setTimeout(() => void fire(), Math.max(0, delay));
 		return () => clearTimeout(timer);

@@ -20,12 +20,16 @@ self.addEventListener("push", (event) => {
 		message = { body: event.data ? event.data.text() : "" };
 	}
 	const title = message.title || "Time Craft";
+	// Another device stopped the end: its notification is replaced, quietly
+	// (a push must show one), and the tabs stop ringing.
+	const quiet = message.kind === "alarm_stopped";
 	const options = {
 		body: message.body || "",
 		tag: message.tag,
 		// A newer message with the same tag replaces the old one, and still
 		// sounds: a warning followed by the end must both be noticed.
-		renotify: Boolean(message.tag),
+		renotify: Boolean(message.tag) && !quiet,
+		silent: quiet,
 		icon: "/icons/icon-192.png",
 		badge: "/icons/badge-96.png",
 		data: { url: message.url || "/", kind: message.kind },
@@ -47,7 +51,7 @@ self.addEventListener("push", (event) => {
 							body: options.body,
 							tag: message.tag || "",
 							data: message.data || {},
-							ring: client === ringer,
+							ring: client === ringer && !quiet,
 						});
 					}
 				}),

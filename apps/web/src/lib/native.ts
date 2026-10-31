@@ -9,7 +9,8 @@ import {
 	type PluginListenerHandle,
 	registerPlugin,
 } from "@capacitor/core";
-import type { AlarmKind, SoundSettings } from "./sounds";
+import type { AlarmKind, SoundSettings, Volume } from "./sounds";
+import type { AlarmWords } from "./voice";
 
 export function isNativeApp(): boolean {
 	return Capacitor.isNativePlatform();
@@ -45,7 +46,18 @@ interface TimeCraftPlugin {
 	setSoundSettings(settings: {
 		sounds: Record<AlarmKind, string>;
 		repeatEnd: boolean;
+		speak: boolean;
+		volume: Volume;
 	}): Promise<void>;
+	ring(options: {
+		tag: string;
+		kind: AlarmKind;
+		title: string;
+		body: string;
+		url: string;
+	}): Promise<void>;
+	stopAlarm(options: { tag: string }): Promise<void>;
+	speak(options: { text: string; volume: Volume }): Promise<void>;
 	openSettings(options: {
 		which: "notifications" | "battery" | "fullScreen";
 	}): Promise<void>;
@@ -76,8 +88,41 @@ export function syncSoundSettings(settings: SoundSettings): void {
 		.setSoundSettings({
 			sounds: settings.sounds,
 			repeatEnd: settings.repeatEnd,
+			speak: settings.speak,
+			volume: settings.volume,
 		})
 		.catch(() => undefined);
+}
+
+// The phone rings an alarm the tab's timer reached (alarm.ts), under the
+// push's tag: when that push arrives seconds later, the phone does not ring
+// it again.
+export function ringNative(
+	tag: string,
+	kind: AlarmKind,
+	words: AlarmWords | undefined,
+): void {
+	void timeCraft
+		.ring({
+			tag,
+			kind,
+			title: words?.title ?? "Time Craft",
+			body: words?.body ?? "",
+			url: window.location.pathname.startsWith("/nino") ? "/nino" : "/padres",
+		})
+		.catch(() => undefined);
+}
+
+// Stops the phone's alarm with that tag; if it was the end, the app tells the
+// api, which quiets the family's other devices.
+export async function stopNativeAlarm(tag: string): Promise<void> {
+	await timeCraft.stopAlarm({ tag }).catch(() => undefined);
+}
+
+// The web view has no voices: the phone's own (Android's text to speech)
+// reads the alarm.
+export async function speakNative(text: string, volume: Volume): Promise<void> {
+	await timeCraft.speak({ text, volume }).catch(() => undefined);
 }
 
 // Pushes that reach the open app: the web refreshes at once. The phone

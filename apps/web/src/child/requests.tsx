@@ -76,7 +76,7 @@ export function useMyRequests() {
 			: `${who} dijo que no esta vez.`;
 		if (yes) {
 			// Once, whether the push or this poll brought it first.
-			ringOnce(answered.id, "answer", () => ({ title: text }));
+			ringOnce(`request-${answered.id}`, "answer", () => ({ title: text }));
 		}
 		setArrival({ requestId: answered.id, yes, text });
 	}, [requests, activities, parentName]);
