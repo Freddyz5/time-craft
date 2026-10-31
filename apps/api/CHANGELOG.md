@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0](https://github.com/Freddyz5/time-craft/compare/api-v1.1.0...api-v1.2.0) (2026-10-31)
+
+### Features
+
+* **api:** add the route that stops the end alarm everywhere ([afe5a4e](https://github.com/Freddyz5/time-craft/commit/afe5a4efb7c14e94e4850059a9047ef2340b3ece))
+* **core:** stop the end alarm on every device of the family ([da73e32](https://github.com/Freddyz5/time-craft/commit/da73e32a23ddc53b261b7881290bb6e766c377ea))
+
+### Bug Fixes
+
+* **api:** start without the app's push when the Firebase key is wrong ([4066625](https://github.com/Freddyz5/time-craft/commit/4066625f256a240b631ef08a3570a1696c648f77))
+
 ## [1.1.0](https://github.com/Freddyz5/time-craft/compare/api-v1.0.1...api-v1.1.0) (2026-10-31)
 
 ### Features
