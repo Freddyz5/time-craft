@@ -15,6 +15,20 @@ const postgresUrl = z.preprocess(
 	z.string().regex(/^postgres(ql)?:\/\//, "must be a postgres:// URL"),
 );
 
+// A URL that points at this machine (false if it is not a URL).
+function isLoopback(value: unknown): boolean {
+	if (typeof value !== "string" || !URL.canParse(value)) {
+		return false;
+	}
+	const { hostname } = new URL(value);
+	return (
+		hostname === "localhost" ||
+		hostname.endsWith(".localhost") ||
+		hostname.startsWith("127.") ||
+		hostname === "[::1]"
+	);
+}
+
 export const envSchema = z
 	.object({
 		// Neon, pooled connection string (runtime).
@@ -77,6 +91,17 @@ export const envSchema = z
 			message: "set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither",
 			path: ["GOOGLE_CLIENT_SECRET"],
 			// Report it together with any other problem.
+			when: () => true,
+		},
+	)
+	.refine(
+		// QStash refuses to call back a local address: every session would
+		// fail to schedule its alerts. Only its local server can.
+		(env) => !isLoopback(env.PUBLIC_API_URL) || isLoopback(env.QSTASH_URL),
+		{
+			message:
+				"must be the api's public URL; a local one works only with QStash's local server in QSTASH_URL",
+			path: ["PUBLIC_API_URL"],
 			when: () => true,
 		},
 	);
