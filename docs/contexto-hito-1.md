@@ -104,7 +104,7 @@ Por qué no un cron/tick por minuto: Vercel Hobby solo permite cron diario, y un
 
 **Push inmediatos (sin programar):** a los padres cuando el niño crea una solicitud o reporta una tarea; al niño cuando un padre la resuelve.
 
-**Complemento en el cliente:** con la app abierta, el teléfono suena o vibra al segundo exacto. No reemplaza al push, porque Android congela los timers de pestañas en segundo plano.
+**Complemento en el cliente:** con la app abierta, el teléfono suena o vibra al segundo exacto. No reemplaza al push, porque Android congela los timers de pestañas en segundo plano. Un push que llega con una pestaña abierta también la hace sonar (el service worker elige una sola), y cada alarma suena una vez aunque lleguen el temporizador y el push. En la computadora, una pestaña de fondo no se congela: sigue sonando detrás del juego. Cada dispositivo elige su sonido por tipo de aviso (suaves, alarmas o de videojuego, todos generados en el navegador), el volumen, si el fin se repite hasta que lo toquen y si una voz del dispositivo lee el aviso después del sonido (se guarda en el navegador, como el tema).
 
 **Push que fallan:** si el servicio de push responde 404 o 410, la suscripción ya no existe y se borra de `push_subscriptions`.
 

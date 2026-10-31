@@ -56,6 +56,24 @@ Con la app en primer plano, el teléfono suena y vibra al segundo exacto, ademá
 - [ ] A los 2 minutos, suenan y vibran otra vez: «Se acabó el tiempo».
 - [ ] Una sesión aprobada «más tarde»: a esa hora, con la app del niño abierta, suena «¡Ya puedes empezar!».
 - [ ] Con la pestaña en segundo plano (otra app delante), la alarma no suena, pero el push sí llega: es lo esperado (Android congela las pestañas de fondo).
+- [ ] Con la sesión en curso, Inicio muestra «La alarma está sin sonido» solo si la pestaña se abrió sin tocarla (por ejemplo, desde un aviso); «Activar sonido» suena una vez y la placa desaparece.
+- [ ] En **Cuentas › Sonido de este dispositivo** (padres) y en **Avisos › Sonidos** (niño), elegir un sonido lo hace sonar. Recarga la página: la elección sigue ahí. En otro teléfono, los sonidos siguen siendo los de siempre (se guardan por dispositivo).
+- [ ] La lista tiene tres grupos (Suaves, Alarmas, De videojuego). Con el volumen del teléfono al máximo, prueba cada alarma en Alto: se oyen fuerte y ninguna suena rota ni saturada.
+- [ ] A los 2 minutos, el fin («Alarma» por defecto) se repite cada 5 segundos hasta tocar la pantalla. Con «Repetir el fin…» apagado, suena una sola vez.
+- [ ] Activa «Decir el aviso en voz alta»: dice una frase de ejemplo en español. «Voz» lista las voces en español del teléfono y «Probar» dice la frase con la elegida.
+- [ ] Con la voz activada, cada alarma dice su aviso después del sonido («Te queda 1 minuto de Minecraft…»). El fin lo dice completo la primera vez y luego solo «Se acabó…» en cada repetición; tocar la pantalla calla el sonido y la voz.
+
+## 4b. Alarma en la computadora
+
+En la computadora, Chrome no congela una pestaña de fondo: Time Craft abierto detrás de otra ventana sigue sonando. Se prueba en la computadora donde juega el niño.
+
+- [ ] Con «Aviso antes del final» en 1 min, el niño entra en Chrome, activa los avisos en **Avisos** y deja **Inicio** abierto: la placa dice «La alarma suena aquí».
+- [ ] Empieza una sesión de 2 min y pon otra ventana a pantalla completa delante de Chrome (o el juego). Al minuto suena el aviso y a los 2 minutos el fin, que se repite hasta volver a la pestaña y tocarla.
+- [ ] Cada alarma suena una sola vez aunque lleguen el temporizador de la pestaña y el push.
+- [ ] Con la pestaña abierta en otra pantalla (Pedir, Tareas), el push también la hace sonar.
+- [ ] Un padre con Time Craft abierto en **Reglas** escucha el timbre cuando el niño pide tiempo, con el aviso «Nueva solicitud» abajo a la derecha.
+- [ ] Al cerrar la pestaña con la sesión en curso, Chrome pregunta antes de salir. «Salir» (cerrar sesión) no pregunta.
+- [ ] Con «Decir el aviso en voz alta» activado y la pestaña detrás del juego, la voz también se escucha al aviso y al fin. Si Windows no tiene voces en español, «Voz» muestra las de Google (necesitan internet).
 
 ## 5. Login con Google
 
