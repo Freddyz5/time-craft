@@ -16,7 +16,8 @@ const postgresUrl = z.preprocess(
 );
 
 // The Firebase service account's JSON key, pasted as one value. A wrong value
-// is reported with a fixed message, never echoed.
+// is `null`, not an error: only the Android app's notifications depend on it,
+// so the api starts without them and says so in its logs (never echoing it).
 const serviceAccountKey = z.object({
 	project_id: z.string().min(1),
 	client_email: z.string().min(1),
@@ -31,17 +32,13 @@ function parseJson(value: string): unknown {
 	}
 }
 
-const fcmServiceAccount = optional.transform((value, ctx) => {
+const fcmServiceAccount = optional.transform((value) => {
 	if (value === undefined) {
 		return undefined;
 	}
 	const key = serviceAccountKey.safeParse(parseJson(value));
 	if (!key.success) {
-		ctx.addIssue({
-			code: "custom",
-			message: "must be the service account's JSON key",
-		});
-		return z.NEVER;
+		return null;
 	}
 	return {
 		projectId: key.data.project_id,

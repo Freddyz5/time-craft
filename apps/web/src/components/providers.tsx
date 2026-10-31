@@ -3,7 +3,12 @@
 // that reaches an open tab and the theme following the system's.
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
-import { alarmForPush, ringOnce, unlockAudioOnTap } from "../lib/alarm";
+import {
+	alarmForPush,
+	ringOnce,
+	stopRingingFromPush,
+	unlockAudioOnTap,
+} from "../lib/alarm";
 import { onNativePush, syncSoundSettings } from "../lib/native";
 import {
 	onPushMessage,
@@ -54,16 +59,15 @@ function PushAlarm() {
 		() =>
 			onPushMessage((push) => {
 				void client.invalidateQueries();
+				if (push.kind === "alarm_stopped") {
+					stopRingingFromPush(push.tag);
+					return;
+				}
 				const kind = alarmForPush(push.kind);
 				if (!push.ring || kind === null) {
 					return;
 				}
-				const subject =
-					push.data.requestId ??
-					push.data.reportId ??
-					push.data.sessionId ??
-					push.tag;
-				ringOnce(subject, kind, () => {
+				ringOnce(push.tag, kind, () => {
 					toast.show(
 						kind === "notice" || kind === "answer" ? "notice" : "alarm",
 						push.title,
@@ -79,7 +83,9 @@ function PushAlarm() {
 }
 
 // In the Android app, a push reaches the web from the app's own messaging
-// service, which already rang it: refresh now and show its words, quietly.
+// service, which already rang it: refresh now and show its words, unless the
+// page's own timer already did (ringOnce; the phone ignores the repeat too).
+// A tap on the page then stops the phone's alarm, as in a tab.
 function NativePushNotice() {
 	const client = useQueryClient();
 	const toast = useToast();
@@ -91,11 +97,14 @@ function NativePushNotice() {
 				if (kind === null) {
 					return;
 				}
-				toast.show(
-					kind === "notice" || kind === "answer" ? "notice" : "alarm",
-					push.title,
-					push.body,
-				);
+				ringOnce(push.tag, kind, () => {
+					toast.show(
+						kind === "notice" || kind === "answer" ? "notice" : "alarm",
+						push.title,
+						push.body,
+					);
+					return { title: push.title, body: push.body };
+				});
 			}),
 		[client, toast],
 	);

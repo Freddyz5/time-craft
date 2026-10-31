@@ -237,6 +237,22 @@ describe("stopSession", () => {
 		expect(await available()).toBe(18);
 	});
 
+	test("past the end, the alarm stops on every device", async () => {
+		const session = await start(30);
+		kit.clock.advanceMinutes(31);
+		kit.notifier.clear();
+		await kit.core.stopSession(h.mom, { sessionId: session.id });
+		expect(kit.notifier.kinds()).toEqual(["alarm_stopped", "alarm_stopped"]);
+	});
+
+	test("before the end there is no alarm to stop", async () => {
+		const session = await start(30);
+		kit.clock.advanceMinutes(10);
+		kit.notifier.clear();
+		await kit.core.stopSession(h.mom, { sessionId: session.id });
+		expect(kit.notifier.sent).toHaveLength(0);
+	});
+
 	test("a paused session can be stopped; its pause is closed", async () => {
 		const session = await start(30);
 		kit.clock.advanceMinutes(5);
@@ -249,6 +265,33 @@ describe("stopSession", () => {
 		expect(stopped.pauses[0]?.resumedAt?.toISOString()).toBe(
 			stopped.endedAt?.toISOString(),
 		);
+	});
+});
+
+describe("stopAlarm", () => {
+	test("the child stops it: parents and child go quiet", async () => {
+		const session = await start(30);
+		kit.clock.advanceMinutes(31);
+		kit.notifier.clear();
+		await kit.core.stopAlarm(h.child, { sessionId: session.id });
+		expect(kit.notifier.sent).toMatchObject([
+			{
+				message: {
+					kind: "alarm_stopped",
+					tag: `session-${session.id}`,
+					url: "/padres",
+				},
+			},
+			{ message: { kind: "alarm_stopped", url: "/nino" } },
+		]);
+	});
+
+	test("another family's session is not found", async () => {
+		const session = await start(30);
+		const other = seedHousehold(kit, { prefix: "x-" });
+		await expect(
+			kit.core.stopAlarm(other.mom, { sessionId: session.id }),
+		).rejects.toMatchObject({ code: "session_not_found" });
 	});
 });
 

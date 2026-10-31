@@ -29,6 +29,12 @@ public class MainActivity extends BridgeActivity {
         }
         String path = intent.getStringExtra(Alerts.EXTRA_URL);
         intent.removeExtra(Alerts.EXTRA_URL);
+        // Opening the app from an alarm means someone noticed it.
+        String tag = intent.getStringExtra(Alerts.EXTRA_TAG);
+        intent.removeExtra(Alerts.EXTRA_TAG);
+        if (tag != null) {
+            Alerts.stopByUser(this, tag, () -> {});
+        }
         if (path == null || !path.startsWith("/") || path.startsWith("//")) {
             return;
         }

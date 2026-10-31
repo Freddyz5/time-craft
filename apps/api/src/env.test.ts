@@ -127,8 +127,14 @@ describe("parseEnv", () => {
 			clientEmail: "push@time-craft.iam.gserviceaccount.com",
 		});
 		expect(parseEnv(valid).FCM_SERVICE_ACCOUNT).toBeUndefined();
-		expect(() =>
-			parseEnv({ ...valid, FCM_SERVICE_ACCOUNT: "not json" }),
-		).toThrow("FCM_SERVICE_ACCOUNT: must be the service account's JSON key");
+		// A wrong key leaves the app without push, not the api down.
+		expect(
+			parseEnv({ ...valid, FCM_SERVICE_ACCOUNT: "not json" })
+				.FCM_SERVICE_ACCOUNT,
+		).toBeNull();
+		expect(
+			parseEnv({ ...valid, FCM_SERVICE_ACCOUNT: '{"project_id":"x"}' })
+				.FCM_SERVICE_ACCOUNT,
+		).toBeNull();
 	});
 });

@@ -35,6 +35,7 @@ export type NotificationKind =
 	| "session_ended"
 	| "session_auto_closed"
 	| "session_cancelled_no_time"
+	| "alarm_stopped"
 	| "request_created"
 	| "request_approved"
 	| "request_rejected"
@@ -112,6 +113,19 @@ export const messages = {
 			kind: "session_ended",
 			title: "Se acabó el tiempo",
 			body: `Terminó ${input.activityName} de ${input.childName}.`,
+			url: urlFor(input.audience),
+			tag: `session-${input.sessionId}`,
+			data: { sessionId: input.sessionId },
+		};
+	},
+
+	// Someone stopped the end alarm on one device: the others go quiet. Same
+	// tag as the alarm, so it replaces it without a sound.
+	alarmStopped(input: { audience: Audience; sessionId: string }): PushMessage {
+		return {
+			kind: "alarm_stopped",
+			title: "Alarma detenida",
+			body: "La detuvieron en otro dispositivo.",
 			url: urlFor(input.audience),
 			tag: `session-${input.sessionId}`,
 			data: { sessionId: input.sessionId },
