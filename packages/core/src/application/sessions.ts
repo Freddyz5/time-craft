@@ -310,12 +310,16 @@ export async function stopSession(
 ): Promise<Session> {
 	requireParent(actor, "stop a session");
 	return transaction(deps, async (tx) => {
-		const { session } = await loadSession(
+		const { session, child } = await loadSession(
 			tx,
 			actor,
 			input.sessionId,
 			"stop a session",
 		);
+		// Past its end the alarm may still be ringing somewhere.
+		if (remainingSeconds(session, tx.now) <= 0) {
+			await notifyAlarmStopped(tx, session.id, child);
+		}
 		const consumed = elapsedSeconds(session, tx.now);
 		const finished = markFinished(session, {
 			at: tx.now,
@@ -330,6 +334,40 @@ export async function stopSession(
 		]);
 		return finished;
 	});
+}
+
+// Someone noticed the end: every device of the family goes quiet, parents'
+// and child's alike, whoever stopped it.
+export async function stopAlarm(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { sessionId: string },
+): Promise<void> {
+	await transaction(deps, async (tx) => {
+		const { session, child } = await loadSession(
+			tx,
+			actor,
+			input.sessionId,
+			"stop an alarm",
+		);
+		await notifyAlarmStopped(tx, session.id, child);
+	});
+}
+
+async function notifyAlarmStopped(
+	tx: Tx,
+	sessionId: string,
+	child: Child,
+): Promise<void> {
+	const parents = await parentUserIds(tx, child.familyId);
+	tx.after.notify(
+		parents,
+		messages.alarmStopped({ sessionId, audience: "parents" }),
+	);
+	tx.after.notify(
+		[child.authUserId],
+		messages.alarmStopped({ sessionId, audience: "child" }),
+	);
 }
 
 // Job handler for `auto_close` (see handleJob): nobody stopped the session, so
