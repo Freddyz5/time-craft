@@ -73,6 +73,24 @@ describe("the child", () => {
 		expect(await errorCode(approve)).toEqual([403, "forbidden"]);
 	});
 
+	test("can stop the end alarm on every device", async () => {
+		const parent = await t.signInParent();
+		const session = (await (
+			await t.request("POST", "/api/sessions", {
+				cookie: parent,
+				json: { childId: t.ids.childId, activityId: t.ids.gameId, minutes: 10 },
+			})
+		).json()) as { session: { id: string } };
+		t.notifier.clear();
+		const response = await t.request(
+			"POST",
+			`/api/sessions/${session.session.id}/stop-alarm`,
+			{ cookie: child, json: {} },
+		);
+		expect(response.status).toBe(204);
+		expect(t.notifier.kinds()).toEqual(["alarm_stopped", "alarm_stopped"]);
+	});
+
 	test("reads their own balance, timer, limits, tasks and history", async () => {
 		for (const path of [
 			`/api/children/${t.ids.childId}/balance`,

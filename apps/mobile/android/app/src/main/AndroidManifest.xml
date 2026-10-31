@@ -38,6 +38,12 @@
             android:name=".StopAlarmReceiver"
             android:exported="false" />
 
+        <!-- Rings the alarms: sound, voice and the end's repeats. -->
+        <service
+            android:name=".AlarmService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <!-- The api's push messages, even with the app closed. -->
         <service
             android:name=".TimeCraftMessagingService"
@@ -63,6 +69,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- AlarmService: the end rings again and again, and the voice reads the
+         alarms, with the screen off and the app closed. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- The end alarm over the lock screen. -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- Asks Android not to delay alarms to save battery. -->

@@ -1,6 +1,9 @@
 package app.timecraft;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -14,11 +17,13 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 /**
  * The end of a session over the lock screen, like an alarm clock. The sound
- * comes from the notification (it repeats until the notification closes);
- * "Detener" closes it.
+ * comes from AlarmService (or the notification); "Detener" stops it here and
+ * on the family's other devices, and the screen closes by itself when the
+ * alarm is stopped elsewhere.
  */
 public class AlarmActivity extends AppCompatActivity {
 
@@ -26,9 +31,20 @@ public class AlarmActivity extends AppCompatActivity {
     private static final int FG = Color.parseColor("#F4EFE4");
     private static final int BRICK = Color.parseColor("#F2B705");
 
+    private final BroadcastReceiver closed = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String tag = intent.getStringExtra(Alerts.EXTRA_TAG);
+            if (tag != null && tag.equals(getIntent().getStringExtra(Alerts.EXTRA_TAG))) {
+                finish();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        ContextCompat.registerReceiver(this, closed, new IntentFilter(Alerts.ACTION_ALARM_CLOSED), ContextCompat.RECEIVER_NOT_EXPORTED);
         if (Build.VERSION.SDK_INT >= 27) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
@@ -37,6 +53,12 @@ public class AlarmActivity extends AppCompatActivity {
         }
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(layout(getIntent()));
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(closed);
+        super.onDestroy();
     }
 
     @Override
@@ -78,14 +100,14 @@ public class AlarmActivity extends AppCompatActivity {
 
         Button stop = button("Detener", true);
         stop.setOnClickListener((view) -> {
-            Alerts.stop(this, tag);
+            Alerts.stopByUser(this, tag, () -> {});
             finish();
         });
         root.addView(stop);
 
         Button open = button("Abrir Time Craft", false);
+        // The app stops the alarm as it opens (MainActivity).
         open.setOnClickListener((view) -> {
-            Alerts.stop(this, tag);
             startActivity(Alerts.openIntent(this, url == null ? "/" : url, tag));
             finish();
         });

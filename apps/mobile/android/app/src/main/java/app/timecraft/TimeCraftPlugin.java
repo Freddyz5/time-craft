@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
 import androidx.core.app.NotificationManagerCompat;
@@ -32,6 +34,8 @@ import java.util.Map;
     permissions = { @Permission(strings = { Manifest.permission.POST_NOTIFICATIONS }, alias = TimeCraftPlugin.NOTIFICATIONS) }
 )
 public class TimeCraftPlugin extends Plugin {
+
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
     static final String NOTIFICATIONS = "notifications";
 
@@ -150,7 +154,7 @@ public class TimeCraftPlugin extends Plugin {
     }
 
     // The web's sound settings (lib/sounds.ts): { sounds: { warning, end,
-    // ready, answer, notice }, repeatEnd }.
+    // ready, answer, notice }, repeatEnd, speak, volume }.
     @PluginMethod
     public void setSoundSettings(PluginCall call) {
         JSObject sounds = call.getObject("sounds", new JSObject());
@@ -162,8 +166,50 @@ public class TimeCraftPlugin extends Plugin {
             }
         }
         Boolean repeatEnd = call.getBoolean("repeatEnd", true);
-        Alerts.saveSettings(getContext(), chosen, repeatEnd == null || repeatEnd);
+        Boolean speak = call.getBoolean("speak", false);
+        Alerts.saveSettings(getContext(), chosen, repeatEnd == null || repeatEnd, Boolean.TRUE.equals(speak), call.getString("volume"));
         call.resolve();
+    }
+
+    // The web's timer reached an alarm (lib/alarm.ts): the phone rings it now,
+    // and ignores the api's push for it that follows. { tag, kind, title,
+    // body, url }, kind as the web's alarm kinds.
+    @PluginMethod
+    public void ring(PluginCall call) {
+        Map<String, String> data = new HashMap<>();
+        data.put("kind", apiKindFor(call.getString("kind", "notice")));
+        data.put("title", call.getString("title", "Time Craft"));
+        data.put("body", call.getString("body", ""));
+        data.put("url", call.getString("url", "/"));
+        data.put("tag", call.getString("tag", "timecraft"));
+        Alerts.show(getContext(), data);
+        call.resolve();
+    }
+
+    // Someone noticed the alarm in the app (a tap on the page). { tag }
+    @PluginMethod
+    public void stopAlarm(PluginCall call) {
+        String tag = call.getString("tag");
+        MAIN.post(() -> Alerts.stopByUser(getContext(), tag, () -> {}));
+        call.resolve();
+    }
+
+    // "Probar" for the voice: the phone's voice says it. { text, volume }
+    @PluginMethod
+    public void speak(PluginCall call) {
+        String text = call.getString("text", "");
+        float volume;
+        switch (call.getString("volume", "medium")) {
+            case "low":
+                volume = 0.5f;
+                break;
+            case "high":
+                volume = 1f;
+                break;
+            default:
+                volume = 0.8f;
+        }
+        MAIN.post(() -> Speaker.speak(getContext(), text, volume, call::resolve));
     }
 
     // which: "notifications" | "battery" | "fullScreen".

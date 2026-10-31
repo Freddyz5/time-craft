@@ -11,6 +11,11 @@ import { createContainer } from "./container";
 import { parseEnv } from "./env";
 
 const env = parseEnv(process.env);
+if (env.FCM_SERVICE_ACCOUNT === null) {
+	console.error(
+		"FCM_SERVICE_ACCOUNT is not the service account's JSON key: the Android app gets no notifications",
+	);
+}
 const db = createDb(env.DATABASE_URL);
 
 const qstash = {
@@ -44,9 +49,9 @@ const { app } = createContainer({
 			publicKey: env.VAPID_PUBLIC_KEY,
 			privateKey: env.VAPID_PRIVATE_KEY,
 		}),
-		...(env.FCM_SERVICE_ACCOUNT === undefined
-			? []
-			: [new FcmNotifier(db, env.FCM_SERVICE_ACCOUNT)]),
+		...(env.FCM_SERVICE_ACCOUNT
+			? [new FcmNotifier(db, env.FCM_SERVICE_ACCOUNT)]
+			: []),
 	]),
 	jobSignatures: new QStashSignatureVerifier(qstash),
 });

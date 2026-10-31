@@ -4,6 +4,7 @@
 // the sounds (sounds.ts). The browser lets it talk when it lets the tab ring:
 // after a tap, as with the sound.
 import { useSyncExternalStore } from "react";
+import { isNativeApp, speakNative } from "./native";
 import type { Volume } from "./sounds";
 
 // What an alarm says: the same words as its banner.
@@ -13,6 +14,10 @@ export interface AlarmWords {
 }
 
 function speech(): SpeechSynthesis | null {
+	// The Android app's web view has no voices: the phone speaks instead.
+	if (isNativeApp()) {
+		return null;
+	}
 	return typeof window !== "undefined" &&
 		"speechSynthesis" in window &&
 		typeof SpeechSynthesisUtterance !== "undefined"
@@ -21,7 +26,7 @@ function speech(): SpeechSynthesis | null {
 }
 
 export function canSpeak(): boolean {
-	return speech() !== null;
+	return speech() !== null || isNativeApp();
 }
 
 // Latin American Spanish first, then a voice that works without internet.
@@ -127,6 +132,9 @@ export function speak(
 	voiceUri: string | null,
 	volume: Volume,
 ): Promise<void> {
+	if (isNativeApp()) {
+		return speakNative(spokenText(words), volume);
+	}
 	const synth = speech();
 	if (synth === null) {
 		return Promise.resolve();

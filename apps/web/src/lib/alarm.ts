@@ -6,9 +6,14 @@
 // It complements push, which Android may delay; it does not replace it, since
 // Android freezes background tabs. A computer keeps a background tab running,
 // so there a tab left open rings even behind a game.
+// Inside the Android app the phone rings instead (ringNative in native.ts), at
+// the same moments, with the same sound and words.
+// Stopping the end here stops it on the family's other devices too (the api
+// pushes alarm_stopped to them).
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { api, call } from "./api";
 import { serverNow } from "./clock";
-import { isNativeApp } from "./native";
+import { isNativeApp, ringNative, stopNativeAlarm } from "./native";
 import { pushState } from "./push";
 import {
 	type AlarmKind,
@@ -188,19 +193,50 @@ const REPEAT_GAP_MS = 1_500;
 const REPEAT_FOR_MS = 5 * 60_000;
 
 let stopRepeating: (() => void) | null = null;
+// The push tag of the end that keeps ringing here, if one does.
+let repeatingTag: string | null = null;
 
-export function stopRinging(): void {
+function silence(): void {
 	ringing += 1;
 	stopSpeaking();
 	stopRepeating?.();
 	stopRepeating = null;
+	repeatingTag = null;
+}
+
+// Someone here noticed the end: quiet here and on the family's other devices.
+export function stopRinging(): void {
+	const tag = repeatingTag;
+	silence();
+	if (tag !== null) {
+		stopEverywhere(tag);
+	}
+}
+
+// Another device stopped this end (its alarm_stopped push): quiet here only.
+export function stopRingingFromPush(tag: string): void {
+	if (tag === repeatingTag) {
+		silence();
+	}
+}
+
+function stopEverywhere(tag: string): void {
+	const sessionId = /^session-(.+)$/.exec(tag)?.[1];
+	if (sessionId === undefined) {
+		return;
+	}
+	void call(
+		api.sessions[":sessionId"]["stop-alarm"].$post({ param: { sessionId } }),
+	).catch(() => undefined);
 }
 
 function keepRinging(
 	first: Promise<void>,
 	words: AlarmWords | undefined,
 	ticket: number,
+	tag: string,
 ): void {
+	repeatingTag = tag;
 	const until = Date.now() + REPEAT_FOR_MS;
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	const after = (started: number, done: Promise<void>) => {
@@ -220,7 +256,7 @@ function keepRinging(
 			return;
 		}
 		if (Date.now() >= until) {
-			stopRinging();
+			silence();
 			return;
 		}
 		// The voice only says the title again: "Se acabó el tiempo".
@@ -239,22 +275,50 @@ function keepRinging(
 	};
 }
 
-function ring(kind: AlarmKind, words: AlarmWords | undefined): void {
+function ring(
+	tag: string,
+	kind: AlarmKind,
+	words: AlarmWords | undefined,
+): void {
+	if (isNativeApp()) {
+		ringNative(tag, kind, words);
+		stopNativeOnTap(tag);
+		return;
+	}
 	const settings = readSoundSettings();
 	const repeat = kind === "end" && settings.repeatEnd;
 	if (repeat) {
-		stopRinging();
+		silence();
 	}
 	const ticket = ringing;
 	const done = sound(kind, words, settings, ticket);
 	if (repeat) {
-		keepRinging(done, words, ticket);
+		keepRinging(done, words, ticket, tag);
 	}
 }
 
-// What rang lately, by subject (a session, a request or a report) and kind:
-// the tab's own timer and the push that follows it seconds later ring once,
-// whichever comes first.
+// In the Android app the phone rings; a tap or a key here means someone
+// noticed, as in the tab.
+let nativeTap: (() => void) | null = null;
+
+function stopNativeOnTap(tag: string): void {
+	nativeTap?.();
+	const stop = () => {
+		nativeTap?.();
+		void stopNativeAlarm(tag);
+	};
+	window.addEventListener("pointerdown", stop, true);
+	window.addEventListener("keydown", stop, true);
+	nativeTap = () => {
+		window.removeEventListener("pointerdown", stop, true);
+		window.removeEventListener("keydown", stop, true);
+		nativeTap = null;
+	};
+}
+
+// What rang lately, by push tag (a session, a request or a report: the api's
+// `session-…`, `request-…`, `report-…`) and kind: the tab's own timer and the
+// push that follows it seconds later ring once, whichever comes first.
 const recent = new Map<string, number>();
 const SAME_ALARM_MS = 3 * 60_000;
 
@@ -262,18 +326,18 @@ const SAME_ALARM_MS = 3 * 60_000;
 // runs only if it rings: it shows the alarm on the page and returns the
 // words the voice says.
 export function ringOnce(
-	subject: string,
+	tag: string,
 	kind: AlarmKind,
 	onRing?: () => AlarmWords | undefined,
 ): boolean {
-	const key = `${subject}:${kind}`;
+	const key = `${tag}:${kind}`;
 	const now = Date.now();
 	const last = recent.get(key);
 	if (last !== undefined && now - last < SAME_ALARM_MS) {
 		return false;
 	}
 	recent.set(key, now);
-	ring(kind, onRing?.());
+	ring(tag, kind, onRing?.());
 	return true;
 }
 
@@ -306,9 +370,9 @@ export async function testVoice(
 // only sent if the alarm still holds); without push, the timer rings anyway.
 export async function pushWillRing(): Promise<boolean> {
 	if (isNativeApp()) {
-		// In the Android app the phone's own notification rings, in front
-		// too, with the alarm stream and the lock screen.
-		return (await pushState()) === "on";
+		// In the Android app the tab's timer rings the phone at the exact
+		// second, and the phone ignores the push that follows for it.
+		return false;
 	}
 	return document.visibilityState === "hidden" && (await pushState()) === "on";
 }
@@ -378,7 +442,7 @@ export function useSessionAlarm(
 				if (await pushWillRing()) {
 					return;
 				}
-				ringOnce(sessionId, kind, () => onRingRef.current(kind));
+				ringOnce(`session-${sessionId}`, kind, () => onRingRef.current(kind));
 			};
 			const delay = at - serverNow();
 			if (delay < -GRACE_MS) {

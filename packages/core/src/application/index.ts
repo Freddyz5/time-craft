@@ -56,6 +56,7 @@ import {
 	pauseSession,
 	resumeSession,
 	startDirectSession,
+	stopAlarm,
 	stopSession,
 } from "./sessions";
 
@@ -103,6 +104,7 @@ export function createCore(deps: CoreDeps) {
 		pauseSession: bind(deps, pauseSession),
 		resumeSession: bind(deps, resumeSession),
 		stopSession: bind(deps, stopSession),
+		stopAlarm: bind(deps, stopAlarm),
 		// Overrides and limits
 		grantOverride: bind(deps, grantOverride),
 		listCurrentPolicies: bind(deps, listCurrentPolicies),
