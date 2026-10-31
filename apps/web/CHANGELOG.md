@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/Freddyz5/time-craft/compare/web-v1.0.0...web-v1.1.0) (2026-10-31)
+
+### Features
+
+* **web:** ring alarms in the open tab with per-device sounds and voice ([9eb2db4](https://github.com/Freddyz5/time-craft/commit/9eb2db4fa67b68fa727a049049c82d1712d1f363))
+
 ## 1.0.0 (2026-10-28)
 
 ### Features
