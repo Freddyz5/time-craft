@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Freddyz5/time-craft/compare/api-v1.0.1...api-v1.1.0) (2026-10-31)
+
+### Features
+
+* **api:** send notifications to the Android app with Firebase Cloud Messaging ([c282421](https://github.com/Freddyz5/time-craft/commit/c2824211975e55523cb684420e0ae3ee58c7dbd6))
+* **mobile:** add the Android app, a Capacitor shell around the web ([d79ca55](https://github.com/Freddyz5/time-craft/commit/d79ca552f56afeb87a4e3516e62cac88067e007b))
+
 ## [1.0.1](https://github.com/Freddyz5/time-craft/compare/api-v1.0.0...api-v1.0.1) (2026-10-31)
 
 ### Bug Fixes
