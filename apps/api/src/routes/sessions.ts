@@ -24,79 +24,91 @@ export function sessionRoutes({ core, clock }: AppDeps) {
 		...body,
 	});
 
-	return new Hono<AppEnv>()
-		.get(
-			"/children/:childId/live-session",
-			validate("param", childParam),
-			async (c) => {
-				const view = await core.getLiveSession(
+	return (
+		new Hono<AppEnv>()
+			.get(
+				"/children/:childId/live-session",
+				validate("param", childParam),
+				async (c) => {
+					const view = await core.getLiveSession(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json(view, 200);
+				},
+			)
+			.post("/sessions", validate("json", startSessionBody), async (c) => {
+				const session = await core.startDirectSession(
 					actorOf(c),
-					c.req.valid("param"),
+					c.req.valid("json"),
 				);
-				return c.json(view, 200);
-			},
-		)
-		.post("/sessions", validate("json", startSessionBody), async (c) => {
-			const session = await core.startDirectSession(
-				actorOf(c),
-				c.req.valid("json"),
-			);
-			return c.json(withServerTime({ session }), 201);
-		})
-		.post(
-			"/sessions/:sessionId/start",
-			validate("param", sessionParam),
-			async (c) => {
-				const session = await core.advanceScheduledSession(
-					actorOf(c),
-					c.req.valid("param"),
-				);
-				return c.json(withServerTime({ session }), 200);
-			},
-		)
-		.post(
-			"/sessions/:sessionId/cancel",
-			validate("param", sessionParam),
-			async (c) => {
-				const session = await core.cancelScheduledSession(
-					actorOf(c),
-					c.req.valid("param"),
-				);
-				return c.json(withServerTime({ session }), 200);
-			},
-		)
-		.post(
-			"/sessions/:sessionId/pause",
-			validate("param", sessionParam),
-			validate("json", pauseBody),
-			async (c) => {
-				const session = await core.pauseSession(actorOf(c), {
-					...c.req.valid("param"),
-					...c.req.valid("json"),
-				});
-				return c.json(withServerTime({ session }), 200);
-			},
-		)
-		.post(
-			"/sessions/:sessionId/resume",
-			validate("param", sessionParam),
-			async (c) => {
-				const session = await core.resumeSession(
-					actorOf(c),
-					c.req.valid("param"),
-				);
-				return c.json(withServerTime({ session }), 200);
-			},
-		)
-		.post(
-			"/sessions/:sessionId/stop",
-			validate("param", sessionParam),
-			async (c) => {
-				const session = await core.stopSession(
-					actorOf(c),
-					c.req.valid("param"),
-				);
-				return c.json(withServerTime({ session }), 200);
-			},
-		);
+				return c.json(withServerTime({ session }), 201);
+			})
+			.post(
+				"/sessions/:sessionId/start",
+				validate("param", sessionParam),
+				async (c) => {
+					const session = await core.advanceScheduledSession(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json(withServerTime({ session }), 200);
+				},
+			)
+			.post(
+				"/sessions/:sessionId/cancel",
+				validate("param", sessionParam),
+				async (c) => {
+					const session = await core.cancelScheduledSession(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json(withServerTime({ session }), 200);
+				},
+			)
+			.post(
+				"/sessions/:sessionId/pause",
+				validate("param", sessionParam),
+				validate("json", pauseBody),
+				async (c) => {
+					const session = await core.pauseSession(actorOf(c), {
+						...c.req.valid("param"),
+						...c.req.valid("json"),
+					});
+					return c.json(withServerTime({ session }), 200);
+				},
+			)
+			.post(
+				"/sessions/:sessionId/resume",
+				validate("param", sessionParam),
+				async (c) => {
+					const session = await core.resumeSession(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json(withServerTime({ session }), 200);
+				},
+			)
+			.post(
+				"/sessions/:sessionId/stop",
+				validate("param", sessionParam),
+				async (c) => {
+					const session = await core.stopSession(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json(withServerTime({ session }), 200);
+				},
+			)
+			// Someone stopped the end alarm on one device: the family's other
+			// devices go quiet. Parents and the child alike.
+			.post(
+				"/sessions/:sessionId/stop-alarm",
+				validate("param", sessionParam),
+				async (c) => {
+					await core.stopAlarm(actorOf(c), c.req.valid("param"));
+					return c.body(null, 204);
+				},
+			)
+	);
 }
