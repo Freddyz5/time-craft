@@ -108,7 +108,7 @@ Si ya creaste el proyecto de la api en la fase 1, ábrelo y revisa cada punto en
   - **Deploy**. Igual que la api, este primer deployment sale de la fase 2 de `prod`.
 - [ ] **Settings → Environments → Production → Branch Tracking**: `prod`.
 - [ ] **Settings → Build and Deployment**: *Root Directory* `apps/web`, con **Include files outside the root directory in the Build Step** y **Skip deployments when there are no changes…** activados; *Node.js Version* `22.x`; *Ignored Build Step* sin tocar (lo trae `vercel.json`).
-- [ ] **Settings → Deployment Protection → Vercel Authentication**: déjalo en **Standard Protection** (el valor por defecto). Las previews y el dominio de dev solo los abre quien tiene sesión en tu cuenta de Vercel; producción es pública.
+- [ ] **Settings → Deployment Protection → Vercel Authentication**: **desactivado** → **Save**. La app Android de prueba abre la web de dev dentro de la app, y con la protección Vercel la manda a `vercel.com` a iniciar sesión: la app abre el navegador y queda en negro. La web no guarda datos: sin sesión de Time Craft solo se ven el login y la landing, y todo `/api/*` exige sesión.
 - [ ] **Settings → Domains**: anota el dominio de producción → es `<WEB_PROD>`.
 - [ ] Busca `<SCOPE>`: es el final de cualquier URL de deployment del proyecto (en **Deployments**, abre uno: `time-craft-web-abc123-<SCOPE>.vercel.app`). También aparece en la URL del panel: `vercel.com/<SCOPE>/time-craft-web`.
 
@@ -240,7 +240,7 @@ Las variables de la línea de comandos ganan a las del `.env`. El seed imprime e
 ### 11. Comprobar `dev`
 
 - [ ] `curl <API_DEV>/health` responde `{"ok":true,…}`.
-- [ ] Abre `<WEB_DEV>`. Vercel te pide tu sesión (es una preview protegida); después ves el login de Time Craft.
+- [ ] Abre `<WEB_DEV>`: ves el login de Time Craft.
 - [ ] Inicia sesión como padre con **Continuar con Google**. En las herramientas del navegador, las llamadas van a `<WEB_DEV>/api/…` (mismo origen) y la cookie `__Secure-better-auth.session_token` es de `<WEB_DEV>`.
 - [ ] Alarmas: activa las notificaciones y crea una sesión de 6 minutos. Con el aviso por defecto (5 minutos antes), al minuto llega el aviso y a los 6 el fin. En la consola de QStash (**Logs**) aparecen los mensajes entregados a `<API_DEV>/internal/jobs` con estado 200.
 - [ ] En el SQL Editor de Neon (rama `dev`): `select ip_address, user_agent from auth_session order by created_at desc limit 3;`. La IP debe ser la tuya. Si es una IP de Vercel, la reescritura no pasa la IP del cliente y los límites por IP (5 inicios de sesión por minuto) los comparten todos: avísalo para ajustar `advanced.ipAddress` en `apps/api/src/auth/index.ts`.
@@ -290,7 +290,7 @@ Para correr el e2e en tu máquina contra una base local, márcala igual.
 
 ### 15. Vercel: bypass de la protección para el e2e
 
-La web de dev y sus previews tienen Vercel Authentication. El e2e entra con un secreto de automatización.
+El workflow del e2e exige un secreto de automatización de Vercel. Con Vercel Authentication desactivado en la web (paso 4) no hace falta para entrar, pero el e2e lo manda igual: si algún día vuelves a proteger la web, sigue funcionando.
 
 - [ ] Proyecto **time-craft-web** → **Settings → Deployment Protection → Protection Bypass for Automation → Add Secret** (nombre, p. ej., `e2e`) → copia el secreto.
 - [ ] Sirve en todos los deployments del proyecto, también en los que ya existen, hasta que lo revoques. No hace falta redeploy.
@@ -381,7 +381,7 @@ El cliente Android del login con Google tiene que estar en el **mismo** proyecto
 
 ### 21. Vercel y GitHub: secretos y variables
 
-- [ ] Proyecto **time-craft-api** → **Settings → Environment Variables**: `FCM_SERVICE_ACCOUNT` = el contenido completo del JSON de la cuenta de servicio, en una línea, *Sensitive*, en **Production** y **Preview**. La api lo lee al arrancar: llega con el siguiente deploy (en producción, con el release; para aplicarlo ya, el redeploy de la parte E).
+- [ ] Proyecto **time-craft-api** → **Settings → Environment Variables**: `FCM_SERVICE_ACCOUNT` = el contenido completo del JSON de la cuenta de servicio, *Sensitive*, en **Production** y **Preview**. Es el `.json` de **Generar nueva clave privada** del mismo proyecto de Firebase que el `google-services.json`, no este último. La api lo lee al arrancar: llega con el siguiente deploy (en producción, con el release; para aplicarlo ya, el redeploy de la parte E). Si el valor no es esa clave, la api arranca igual, sin los avisos de la app, y su log dice `FCM_SERVICE_ACCOUNT is not the service account's JSON key`.
 - [ ] La llave de firma ya existe en tu Mac: `~/.config/time-craft/android/release.keystore`, con su contraseña en `keystore.properties` de la misma carpeta. **Guarda los dos archivos en tu gestor de contraseñas**: sin esa llave no se puede publicar una actualización de la app (habría que desinstalarla en cada teléfono).
 - [ ] En el repo, **Settings → Secrets and variables → Actions → Secrets → New repository secret**:
   - `ANDROID_KEYSTORE_BASE64`: `base64 -i ~/.config/time-craft/android/release.keystore | pbcopy` y pega.
@@ -409,11 +409,11 @@ El cliente Android del login con Google tiene que estar en el **mismo** proyecto
 
 Vercel Authentication protege las previews: quien no tiene sesión en tu cuenta de Vercel recibe un 401. QStash no tiene esa sesión, y la reescritura de la web hacia la api tampoco, porque es de servidor a servidor.
 
-**Cómo está configurado:** la api no tiene Vercel Authentication (paso 3) y la web sí. Así:
+**Cómo está configurado:** ni la api (paso 3) ni la web (paso 4) tienen Vercel Authentication. Así:
 
 - QStash llega a la api en dev y en producción sin nada más. Las alarmas se prueban en **dev**.
 - Una preview de PR de la api (si alguien la usa directamente) programa sus alarmas contra `PUBLIC_API_URL`, que en Preview es `<API_DEV>`: las procesa la api de dev, sobre la misma base Neon `dev`.
-- La web de dev y de las previews sigue protegida: solo tú la abres.
+- La web de dev y de las previews es pública, como producción: sin sesión de Time Craft no muestra nada de la familia, y la app Android de prueba la puede abrir.
 
 **Si quisieras proteger también la api**, Vercel ofrece *Protection Bypass for Automation*: en el proyecto de la api, **Settings → Deployment Protection → Protection Bypass for Automation → Add Secret**. Vercel expone ese secreto en los deployments de la api como `VERCEL_AUTOMATION_BYPASS_SECRET`, y quien lo envíe en la cabecera `x-vercel-protection-bypass` (o como `?x-vercel-protection-bypass=…` en la URL) pasa la protección. Harían falta dos cambios de código que hoy **no están hechos**:
 
@@ -430,6 +430,8 @@ Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o
 | Un deployment queda *Canceled* con `Skip: …` en el log | Es el paso de ignorar: el commit no afecta a esa app. En producción, `Skip: production deploys only … release commits` es lo normal para el merge de `dev`: el deploy llega con el commit del release. Para construir igual, Redeploy sin *Use project's Ignore Build Step*. |
 | Producción no se actualiza aunque `Release` publicó la versión | Hay un Instant Rollback activo: **Undo Rollback** en el tile de producción (parte E). |
 | La api responde 500 y el log de la función dice `Invalid environment variables` | El mensaje nombra la variable que falta o es inválida en ese ambiente (paso 7). |
+| La app Android abre el navegador al arrancar y queda en negro | La web de ese ambiente tiene Vercel Authentication (paso 4): desactívalo. No hace falta otro APK. |
+| En la app, **Activar avisos** dice «No se pudo completar» | La api publicada no tiene la ruta de los tokens (`/health` muestra una versión vieja: revisa el release de la api y su `Migrate`), o la sesión venció. |
 | Iniciar sesión da 403 `Invalid origin` | En dev o producción: `BETTER_AUTH_URL` no es exactamente el dominio de la web (`https://`, sin `/` final). En una preview de PR: revisa `<SCOPE>` en `BETTER_AUTH_TRUSTED_ORIGINS`. |
 | Google responde `redirect_uri_mismatch` | Falta `<dominio de la web>/api/auth/callback/google` en el cliente OAuth (paso 6). |
 | En QStash los mensajes fallan con 401 | La api tiene Vercel Authentication activado (paso 3), o las claves de firma son de otra región. Con 404, `PUBLIC_API_URL` no apunta a la api. |
