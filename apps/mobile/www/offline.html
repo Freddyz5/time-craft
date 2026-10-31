@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Time Craft</title>
+		<style>
+			:root {
+				color-scheme: light dark;
+				--bg: #f4efe4;
+				--fg: #1b1e24;
+				--brick: #f2b705;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #1b1e24;
+					--fg: #f4efe4;
+				}
+			}
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: grid;
+				place-items: center;
+				background: var(--bg);
+				color: var(--fg);
+				font-family: system-ui, sans-serif;
+				text-align: center;
+				padding: 0 16px;
+			}
+			button {
+				margin-top: 16px;
+				padding: 12px 24px;
+				border: 0;
+				border-radius: 8px;
+				background: var(--brick);
+				color: #1b1e24;
+				font-size: 1rem;
+				font-weight: 700;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>Sin conexión</h1>
+			<p>Time Craft necesita internet. Revisa el wifi o los datos y vuelve a intentar.</p>
+			<button type="button" onclick="location.replace(location.origin)">Reintentar</button>
+		</main>
+	</body>
+</html>
