@@ -401,7 +401,7 @@ El cliente Android del login con Google tiene que estar en el **mismo** proyecto
 - [ ] Pasa el `.apk` al teléfono (Drive, cable o el enlace del Release) y ábrelo. Android pide permitir **instalar apps desconocidas** para la app con la que lo abriste: permítelo solo para esa.
 - [ ] Abre Time Craft: entra con Google (padres) o con usuario y PIN (niño; la próxima vez, con la huella).
 - [ ] **Cuentas** (padres) o **Avisos** (niño) → **Activar avisos** → permite las notificaciones.
-- [ ] En la misma pantalla, la lista «Para que la alarma no se silencie»: **Permitir** en batería y en pantalla completa hasta que las dos tengan el check, y **Probar la alarma de fin** (suena, se repite y «Detener» la calla).
+- [ ] En la misma pantalla, la lista «Para que la alarma no se silencie»: **Permitir** en batería y en pantalla completa hasta que las dos tengan el check, y **Probar la alarma de fin** (suena, se repite y «Silenciar» la calla).
 - [ ] Samsung: además, **Ajustes → Batería → Límites de uso en segundo plano**: que Time Craft no esté en «Apps en suspensión». Xiaomi: **Ajustes → Apps → Time Craft → Ahorro de batería → Sin restricciones** y activa **Inicio automático**.
 - [ ] Una actualización del APK se instala encima (mismos pasos); los datos y la sesión se conservan.
 
