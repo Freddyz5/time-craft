@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1](https://github.com/Freddyz5/time-craft/compare/mobile-v1.1.0...mobile-v1.1.1) (2026-11-01)
+
+### Bug Fixes
+
+* **mobile:** end the session from the alarm and unlock before opening the app ([d7f368f](https://github.com/Freddyz5/time-craft/commit/d7f368fa23dc5743a4a478387aa8444d386ac64b))
+
 ## [1.1.0](https://github.com/Freddyz5/time-craft/compare/mobile-v1.0.0...mobile-v1.1.0) (2026-10-31)
 
 ### Features
