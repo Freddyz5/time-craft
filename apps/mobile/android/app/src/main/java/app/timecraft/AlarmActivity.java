@@ -1,5 +1,6 @@
 package app.timecraft;
 
+import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,9 +22,10 @@ import androidx.core.content.ContextCompat;
 
 /**
  * The end of a session over the lock screen, like an alarm clock. The sound
- * comes from AlarmService (or the notification); "Detener" stops it here and
- * on the family's other devices, and the screen closes by itself when the
- * alarm is stopped elsewhere.
+ * comes from AlarmService (or the notification). Its button ends the session
+ * (parents) or silences it (the child), here and on the family's other
+ * devices; "Abrir Time Craft" unlocks the phone and opens the app. The screen
+ * closes by itself when the alarm is stopped elsewhere.
  */
 public class AlarmActivity extends AppCompatActivity {
 
@@ -98,21 +100,40 @@ public class AlarmActivity extends AppCompatActivity {
         body.setPadding(0, dp(12), 0, dp(32));
         root.addView(body);
 
-        Button stop = button("Detener", true);
+        Button stop = button(Alerts.stopLabel(tag, url), true);
         stop.setOnClickListener((view) -> {
-            Alerts.stopByUser(this, tag, () -> {});
+            Alerts.stopFromAlarm(this, tag, url, () -> {});
             finish();
         });
         root.addView(stop);
 
         Button open = button("Abrir Time Craft", false);
         // The app stops the alarm as it opens (MainActivity).
-        open.setOnClickListener((view) -> {
+        open.setOnClickListener((view) -> whenUnlocked(() -> {
             startActivity(Alerts.openIntent(this, url == null ? "/" : url, tag));
             finish();
-        });
+        }));
         root.addView(open);
         return root;
+    }
+
+    // The app does not show over the lock screen: without unlocking first
+    // (fingerprint, PIN or a swipe) it would open behind it.
+    private void whenUnlocked(Runnable then) {
+        KeyguardManager keyguard = getSystemService(KeyguardManager.class);
+        if (!keyguard.isKeyguardLocked()) {
+            then.run();
+            return;
+        }
+        keyguard.requestDismissKeyguard(
+            this,
+            new KeyguardManager.KeyguardDismissCallback() {
+                @Override
+                public void onDismissSucceeded() {
+                    then.run();
+                }
+            }
+        );
     }
 
     private Button button(String text, boolean primary) {

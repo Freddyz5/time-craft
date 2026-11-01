@@ -12,6 +12,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
+import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
 import java.util.HashMap;
 import java.util.Map;
@@ -341,12 +342,12 @@ final class Alerts {
 
         boolean end = alarmKind.equals("end");
         if (end) {
-            Intent stop = new Intent(context, StopAlarmReceiver.class).putExtra(EXTRA_TAG, tag);
+            Intent stop = new Intent(context, StopAlarmReceiver.class).putExtra(EXTRA_TAG, tag).putExtra(EXTRA_URL, url);
             builder
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setOngoing(true)
                 .setTimeoutAfter(END_TIMEOUT_MS)
-                .addAction(0, "Detener", PendingIntent.getBroadcast(context, requestCode(tag, 1), stop, flags));
+                .addAction(0, stopLabel(tag, url), PendingIntent.getBroadcast(context, requestCode(tag, 1), stop, flags));
             if (canUseFullScreen(context)) {
                 Intent alarm = new Intent(context, AlarmActivity.class)
                     .putExtra(EXTRA_TAG, tag)
@@ -374,8 +375,8 @@ final class Alerts {
         closeAlarmScreen(context, tag);
     }
 
-    // Someone on this phone noticed the alarm ("Detener", the alarm screen, a
-    // tap in the app, or opening it from the notification): quiet here and,
+    // Someone on this phone noticed the alarm ("Silenciar", a tap in the app,
+    // or opening it from the notification or the alarm screen): quiet here and,
     // if it was the end, on the family's other devices. Main thread; `then`
     // runs when the api heard it (or could not).
     static void stopByUser(Context context, String tag, Runnable then) {
@@ -386,6 +387,33 @@ final class Alerts {
         } else {
             then.run();
         }
+    }
+
+    // A parent ends the session from its alarm, as with the web's «Detener»;
+    // the child, who cannot end it, silences it.
+    private static boolean endsSession(String tag, String url) {
+        return StopSync.isSession(tag) && url != null && url.startsWith("/padres");
+    }
+
+    static String stopLabel(String tag, String url) {
+        return endsSession(tag, url) ? "Terminar sesión" : "Silenciar";
+    }
+
+    // The alarm's button (stopLabel): quiet here at once and, through the
+    // api, on the family's other devices. Main thread; `then` runs when the
+    // api answered (or could not).
+    static void stopFromAlarm(Context context, String tag, String url, Runnable then) {
+        if (!endsSession(tag, url)) {
+            stopByUser(context, tag, then);
+            return;
+        }
+        stop(context, tag);
+        StopSync.endSession(context, tag, (ended) -> {
+            if (!ended) {
+                Toast.makeText(context.getApplicationContext(), "No se pudo terminar la sesión: termínala en Time Craft.", Toast.LENGTH_LONG).show();
+            }
+            then.run();
+        });
     }
 
     private static boolean hasEndNotification(Context context, String tag) {
