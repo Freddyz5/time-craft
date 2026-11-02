@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/Freddyz5/time-craft/compare/api-v1.2.0...api-v1.3.0) (2026-11-02)
+
+### Features
+
+* **api:** allowed days, grace and custom rules routes ([f248272](https://github.com/Freddyz5/time-craft/commit/f2482727ad4c170eba5e5f84d13d7e4601b2d018))
+* **core:** allowed days, grace after the end and custom rules ([ef636f3](https://github.com/Freddyz5/time-craft/commit/ef636f3ac6b2977fad11dde69ec4d30b87555db7))
+* **db:** add allowed days, grace and custom rules ([71343e9](https://github.com/Freddyz5/time-craft/commit/71343e95fb15dd70427d5885d4688e6df5ff4a75))
+
 ## [1.2.0](https://github.com/Freddyz5/time-craft/compare/api-v1.1.0...api-v1.2.0) (2026-10-31)
 
 ### Features
