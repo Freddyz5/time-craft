@@ -91,6 +91,51 @@ export function rechargeText(
 		: `el ${weekdayText(value, timeZone)}`;
 }
 
+// 0 = Sunday ... 6 = Saturday, as the api sends them.
+const WEEKDAY_NAMES = [
+	"domingo",
+	"lunes",
+	"martes",
+	"miércoles",
+	"jueves",
+	"viernes",
+	"sábado",
+];
+
+export function weekdayName(day: number): string {
+	return WEEKDAY_NAMES[day] ?? "";
+}
+
+// The seven days in the family's week order (from its first day).
+export function weekOrder(weekStartDay: number): number[] {
+	return Array.from({ length: 7 }, (_, index) => (weekStartDay + index) % 7);
+}
+
+// "todos los días", "de lunes a viernes", "sábado y domingo" or "lunes,
+// miércoles y viernes", in the family's week order.
+export function weekDaysText(
+	days: readonly number[],
+	weekStartDay: number,
+): string {
+	const ordered = weekOrder(weekStartDay).filter((day) => days.includes(day));
+	if (ordered.length === 7) {
+		return "todos los días";
+	}
+	const order = weekOrder(weekStartDay);
+	const first = ordered[0] ?? 0;
+	const last = ordered[ordered.length - 1] ?? 0;
+	const run =
+		ordered.length >= 3 &&
+		order.indexOf(last) - order.indexOf(first) === ordered.length - 1;
+	if (run) {
+		return `de ${weekdayName(first)} a ${weekdayName(last)}`;
+	}
+	const names = ordered.map(weekdayName);
+	return names.length <= 1
+		? (names[0] ?? "")
+		: `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
+}
+
 // "19 oct. 2026, 18:30"
 export function dateTimeText(value: DateLike, timeZone: string): string {
 	return formatter(timeZone, {

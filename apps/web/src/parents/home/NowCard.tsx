@@ -30,6 +30,7 @@ import {
 	minutesText,
 	secondsText,
 	timeText,
+	rechargeText as whenText,
 } from "../../lib/format";
 import { pausedSince, timing } from "../../lib/timer";
 import type { Balance, LiveView, Policy, Session } from "../../lib/types";
@@ -74,6 +75,11 @@ function sessionBricks(
 	const plannedMinutes = session.plannedDurationSeconds / 60;
 	const unit = brickUnit(plannedMinutes, 12);
 	const remainingMinutes = remainingMs / 60_000;
+	// The grace is not overrun: it never counts.
+	const overrunMinutes = Math.max(
+		0,
+		-remainingMinutes - session.graceSeconds / 60,
+	);
 	const bricks = [
 		...bricksFor(
 			Math.max(0, remainingMinutes),
@@ -82,7 +88,7 @@ function sessionBricks(
 			color,
 			outline,
 		),
-		...overrunBricks(-Math.min(0, remainingMinutes), unit),
+		...overrunBricks(overrunMinutes, unit),
 	];
 	return { bricks, unit };
 }
@@ -141,6 +147,7 @@ function LiveSession({
 	const t = timing(session, now);
 	const warningMinutes =
 		bagFor(policies, session.activityId)?.warningMinutes ?? 0;
+	const graceMinutes = Math.floor(session.graceSeconds / 60);
 
 	useSessionAlarm(
 		{ sessionId: session.id, endsAtMs: t.endsAtMs, warningMinutes },
@@ -153,7 +160,10 @@ function LiveSession({
 						}
 					: {
 							title: "Se acabó el tiempo",
-							body: `Terminó ${name} de ${child?.name ?? "el niño"}. Detén la sesión cuando apague.`,
+							body:
+								graceMinutes > 0
+									? `Terminó ${name} de ${child?.name ?? "el niño"}. Si la detienes en ${minutesText(graceMinutes)}, lo que se pase no cuenta.`
+									: `Terminó ${name} de ${child?.name ?? "el niño"}. Detén la sesión cuando apague.`,
 						};
 			toast.show("alarm", words.title, words.body);
 			return words;
@@ -163,6 +173,11 @@ function LiveSession({
 	const paused = session.status === "paused";
 	const scheduled = session.status === "scheduled";
 	const over = !scheduled && t.remainingMs < 0;
+	// While the grace lasts, what goes past the end does not count yet.
+	const graceLeftMs = over
+		? Math.max(0, session.graceSeconds * 1000 + t.remainingMs)
+		: 0;
+	const inGrace = graceLeftMs > 0;
 	const pauseStart = pausedSince(session);
 	const pausedMinutes =
 		pauseStart === null ? 0 : Math.floor((now - pauseStart) / 60_000);
@@ -191,8 +206,13 @@ function LiveSession({
 			pauseStart === null
 				? "En pausa"
 				: `En pausa desde las ${timeText(pauseStart, timeZone)} · hace ${minutesText(pausedMinutes)}`;
+	} else if (inGrace) {
+		status = `Gracia: si la detienes en ${countdown(graceLeftMs)}, lo que se pasó no cuenta`;
 	} else if (over) {
-		status = "Se pasó del tiempo: todo lo que siga corriendo cuenta";
+		status =
+			session.graceSeconds > 0
+				? "Se pasó del tiempo y de la gracia: lo que siga corriendo cuenta"
+				: "Se pasó del tiempo: todo lo que siga corriendo cuenta";
 	} else {
 		status = `Termina a las ${timeText(t.endsAtMs ?? now, timeZone)}`;
 	}
@@ -237,7 +257,13 @@ function LiveSession({
 				>
 					<p
 						className={`tabular pt-1 font-display text-[4.5rem] leading-none font-extrabold tracking-[-0.02em] ${
-							running ? "text-white" : over ? "text-stop" : "text-ink-soft"
+							running
+								? "text-white"
+								: over && !inGrace
+									? "text-stop"
+									: over
+										? "text-ink"
+										: "text-ink-soft"
 						}`}
 						aria-hidden="true"
 					>
@@ -257,7 +283,17 @@ function LiveSession({
 							? `Se pasó ${minutesText(Math.ceil(-t.remainingMs / 60_000))}`
 							: `Quedan ${minutesText(Math.ceil(t.remainingMs / 60_000))}`}
 				</p>
-				<p className={over ? "font-semibold text-stop" : soft}>{status}</p>
+				<p
+					className={
+						inGrace
+							? "tabular font-semibold"
+							: over
+								? "font-semibold text-stop"
+								: soft
+					}
+				>
+					{status}
+				</p>
 				<p className={`text-[0.9375rem] ${soft}`}>
 					{scheduled
 						? `La programó ${startedBy}`
@@ -363,11 +399,14 @@ function LiveSession({
 	);
 }
 
-function rechargeText(balance: Balance, timeZone: string): string {
+// When the time comes back: the week's recharge, or the bag's next day
+// (tomorrow, or its next allowed day).
+function rechargeText(balance: Balance, now: number, timeZone: string): string {
 	if (balance.weeklyRemainingSeconds === 0) {
 		return `Se acabó la semana: se recarga el ${dayText(balance.nextWeeklyRechargeAt, timeZone)}.`;
 	}
-	return `Mañana vuelve a tener ${secondsText(balance.dailyLimitSeconds)}.`;
+	const when = whenText(balance.nextDailyRechargeAt, now, timeZone);
+	return `${when.charAt(0).toUpperCase()}${when.slice(1)} vuelve a tener ${secondsText(balance.dailyLimitSeconds)}.`;
 }
 
 function NothingRunning({
@@ -379,6 +418,7 @@ function NothingRunning({
 	quiet: boolean;
 }) {
 	const { child, timeZone, activeActivities } = useParents();
+	const now = useServerNow(60_000);
 	const name = child?.name ?? "El niño";
 	// What each activity can still use (its own bag, or the general one).
 	const perActivity = activeActivities.map((activity) => ({
@@ -394,6 +434,8 @@ function NothingRunning({
 	);
 	const several = balances.length > 1;
 	const exhausted = best !== undefined && best.availableSeconds === 0;
+	const restDay =
+		balances.length > 0 && balances.every((balance) => !balance.dayAllowed);
 	return (
 		<Callout
 			className="flex flex-col gap-4 p-4 sm:p-5"
@@ -405,16 +447,18 @@ function NothingRunning({
 			<p className="text-ink-soft">
 				{best === undefined
 					? "Todavía no hay reglas de tiempo. Define los límites para empezar."
-					: exhausted
-						? `${name} ya usó todo su tiempo de hoy. ${rechargeText(best, timeZone)}`
-						: several
-							? `No hay nada corriendo. Hoy le quedan: ${perActivity
-									.map(
-										({ activity, seconds }) =>
-											`${activity.name} ${secondsText(seconds)}`,
-									)
-									.join(" · ")}.`
-							: `No hay nada corriendo. ${name} puede usar ${secondsText(best.availableSeconds)} más hoy.`}
+					: restDay
+						? `Hoy no le toca a ${name}. ${rechargeText(best, now, timeZone)}`
+						: exhausted
+							? `${name} ya usó todo su tiempo de hoy. ${rechargeText(best, now, timeZone)}`
+							: several
+								? `No hay nada corriendo. Hoy le quedan: ${perActivity
+										.map(
+											({ activity, seconds }) =>
+												`${activity.name} ${secondsText(seconds)}`,
+										)
+										.join(" · ")}.`
+								: `No hay nada corriendo. ${name} puede usar ${secondsText(best.availableSeconds)} más hoy.`}
 			</p>
 			{best === undefined ? (
 				<Link href="/reglas" className={buttonClass("primary")}>

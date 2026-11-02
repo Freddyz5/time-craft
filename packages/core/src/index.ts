@@ -8,6 +8,7 @@ export * from "./domain/balance";
 export * from "./domain/bonus";
 export * from "./domain/calendar";
 export * from "./domain/credentials";
+export * from "./domain/custom-rule";
 export * from "./domain/family";
 export * from "./domain/policy";
 export * from "./domain/push";

@@ -59,6 +59,9 @@ export const sessions = pgTable(
 		}),
 		// Actual time (excess included), set on close.
 		consumedSeconds: integer("consumed_seconds"),
+		// The policy's grace when it started: that much of the excess never
+		// counts toward the quota.
+		graceSeconds: integer("grace_seconds").notNull().default(0),
 		startedByParentId: uuid("started_by_parent_id").notNull(),
 		// Who stopped or cancelled it; NULL only if auto_closed.
 		endedByParentId: uuid("ended_by_parent_id"),
@@ -77,6 +80,7 @@ export const sessions = pgTable(
 			sql`${t.endReason} IS NULL OR ${t.endReason} IN ('completed', 'stopped_early', 'auto_closed')`,
 		),
 		check("chk_sessions_planned", sql`${t.plannedDurationSeconds} > 0`),
+		check("chk_sessions_grace", sql`${t.graceSeconds} >= 0`),
 		check(
 			"chk_sessions_start",
 			sql`(${t.status} = 'scheduled' AND ${t.scheduledStartAt} IS NOT NULL AND ${t.startedAt} IS NULL)

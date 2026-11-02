@@ -7,6 +7,7 @@
 import type { SessionAlert } from "../domain/alerts";
 import type { BonusTask, TaskReport } from "../domain/bonus";
 import type { Period } from "../domain/calendar";
+import type { CustomRule } from "../domain/custom-rule";
 import type { Activity, Child, Family, Parent } from "../domain/family";
 import type { QuotaPolicy } from "../domain/policy";
 import type { NativePushToken, PushSubscription } from "../domain/push";
@@ -59,6 +60,15 @@ export interface QuotaPolicyRepository {
 		validTo: Date,
 	): Promise<void>;
 	insert(policy: QuotaPolicy): Promise<void>;
+}
+
+export interface CustomRuleRepository {
+	findById(id: string): Promise<CustomRule | null>;
+	// Both lists of the child, any order.
+	listByChild(childId: string): Promise<CustomRule[]>;
+	insert(rule: CustomRule): Promise<void>;
+	update(rule: CustomRule): Promise<void>;
+	delete(id: string): Promise<void>;
 }
 
 export interface ChildRequestRepository {
@@ -173,6 +183,7 @@ export interface Repositories {
 	children: ChildRepository;
 	activities: ActivityRepository;
 	policies: QuotaPolicyRepository;
+	customRules: CustomRuleRepository;
 	requests: ChildRequestRepository;
 	overrides: QuotaOverrideRepository;
 	sessions: SessionRepository;

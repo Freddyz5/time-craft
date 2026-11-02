@@ -1,5 +1,5 @@
-// Full schema: the 18 tables of docs/timecraft_hito_1.sql, grouped by its
-// sections, plus their relations. drizzle-kit reads this file.
+// Full schema: the 19 tables of docs/timecraft_hito_1.sql plus milestone 2's
+// native_push_tokens, grouped by its sections, and their relations. drizzle-kit reads this file.
 export * from "./auth";
 export * from "./bonuses";
 export * from "./family";

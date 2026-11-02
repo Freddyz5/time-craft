@@ -7,7 +7,7 @@ import { bonusTasks, taskReports } from "./bonuses";
 import { activities, children, families, parents } from "./family";
 import { nativePushTokens, pushSubscriptions } from "./notifications";
 import { childRequests, quotaOverrides } from "./requests";
-import { quotaPolicies } from "./rules";
+import { customRules, quotaPolicies } from "./rules";
 import { sessionAlerts, sessionPauses, sessions } from "./timer";
 
 export const authUserRelations = relations(authUser, ({ one, many }) => ({
@@ -50,6 +50,7 @@ export const parentsRelations = relations(parents, ({ one, many }) => ({
 		references: [authUser.id],
 	}),
 	createdQuotaPolicies: many(quotaPolicies),
+	createdCustomRules: many(customRules),
 	resolvedRequests: many(childRequests),
 	grantedOverrides: many(quotaOverrides),
 	startedSessions: many(sessions, { relationName: "sessionStartedBy" }),
@@ -70,6 +71,7 @@ export const childrenRelations = relations(children, ({ one, many }) => ({
 		references: [authUser.id],
 	}),
 	quotaPolicies: many(quotaPolicies),
+	customRules: many(customRules),
 	requests: many(childRequests),
 	overrides: many(quotaOverrides),
 	sessions: many(sessions),
@@ -97,6 +99,17 @@ export const quotaPoliciesRelations = relations(quotaPolicies, ({ one }) => ({
 	}),
 	createdBy: one(parents, {
 		fields: [quotaPolicies.createdByParentId],
+		references: [parents.id],
+	}),
+}));
+
+export const customRulesRelations = relations(customRules, ({ one }) => ({
+	child: one(children, {
+		fields: [customRules.childId],
+		references: [children.id],
+	}),
+	createdBy: one(parents, {
+		fields: [customRules.createdByParentId],
 		references: [parents.id],
 	}),
 }));

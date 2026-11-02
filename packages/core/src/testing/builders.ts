@@ -21,6 +21,8 @@ export function policy(overrides: Partial<QuotaPolicy> = {}): QuotaPolicy {
 		weeklyBonusCapMinutes: 60,
 		carryOverExcess: false,
 		warningMinutes: 5,
+		allowedDays: [0, 1, 2, 3, 4, 5, 6],
+		graceMinutes: 0,
 		validFrom: new Date("2026-01-01T00:00:00Z"),
 		validTo: null,
 		createdByParentId: "parent",
@@ -32,6 +34,7 @@ export function policy(overrides: Partial<QuotaPolicy> = {}): QuotaPolicy {
 interface SessionOptions {
 	activityId?: string;
 	plannedMinutes?: number;
+	graceMinutes?: number;
 	pauses?: { from: string; to: string | null }[];
 }
 
@@ -59,6 +62,7 @@ function base(start: string, options: SessionOptions): Session {
 		endedAt: null,
 		endReason: null,
 		consumedSeconds: null,
+		graceSeconds: minutes(options.graceMinutes ?? 0),
 		startedByParentId: "parent",
 		endedByParentId: null,
 		createdAt: new Date(start),

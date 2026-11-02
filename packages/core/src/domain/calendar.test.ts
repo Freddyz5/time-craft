@@ -3,7 +3,9 @@ import {
 	dayPeriod,
 	formatTime,
 	isWithin,
+	nextDayStart,
 	previousDayPeriod,
+	weekDayOf,
 	weekPeriod,
 } from "./calendar";
 
@@ -99,4 +101,37 @@ test("formatTime uses the family's wall clock", () => {
 			weekStartDay: 1,
 		}),
 	).toBe("17:30");
+});
+
+describe("weekDayOf", () => {
+	test("is the family's local weekday, not the UTC one", () => {
+		// Thursday 01:00Z is still Wednesday night in Guayaquil.
+		const at = new Date("2026-10-22T01:00:00Z");
+		expect(weekDayOf(at, { timezone: guayaquil, weekStartDay: 1 })).toBe(3);
+		expect(weekDayOf(at, { timezone: "UTC", weekStartDay: 1 })).toBe(4);
+	});
+});
+
+describe("nextDayStart", () => {
+	const calendar = { timezone: guayaquil, weekStartDay: 1 } as const;
+	// Wednesday 21 Oct 2026, 15:00 local.
+	const wednesday = new Date("2026-10-21T20:00:00Z");
+
+	test("is tomorrow when every day is in the list", () => {
+		expect(
+			nextDayStart(wednesday, calendar, [0, 1, 2, 3, 4, 5, 6]).toISOString(),
+		).toBe("2026-10-22T05:00:00.000Z");
+	});
+
+	test("skips the days that are not in the list", () => {
+		expect(nextDayStart(wednesday, calendar, [1, 6]).toISOString()).toBe(
+			"2026-10-24T05:00:00.000Z",
+		);
+	});
+
+	test("comes back to the same weekday a week later", () => {
+		expect(nextDayStart(wednesday, calendar, [3]).toISOString()).toBe(
+			"2026-10-28T05:00:00.000Z",
+		);
+	});
 });

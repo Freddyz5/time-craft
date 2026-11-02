@@ -1,6 +1,6 @@
-// The child's daily and weekly limits. Changing them creates a new policy
-// (the old one is closed, so the history stays); it applies to the whole
-// current week.
+// The child's daily and weekly limits, the days they can be used and the
+// grace after the end. Changing them creates a new policy (the old one is
+// closed, so the history stays); it applies to the whole current week.
 import { Hono } from "hono";
 import * as z from "zod";
 import { type AppDeps, type AppEnv, actorOf } from "../http/context";
@@ -15,6 +15,9 @@ const setPolicyBody = z.object({
 	weeklyBonusCapMinutes: minutes.optional(),
 	carryOverExcess: z.boolean().optional(),
 	warningMinutes: minutes.optional(),
+	// 0 = Sunday ... 6 = Saturday.
+	allowedDays: z.array(z.int()).max(7).optional(),
+	graceMinutes: minutes.optional(),
 });
 
 export function policyRoutes({ core }: AppDeps) {

@@ -5,13 +5,14 @@
 // would replace `attributeSession` without touching the schema; since the
 // balance is always computed, the history would be recomputed too.
 import { isWithin, type Period } from "./calendar";
-import { consumedSeconds, type Session } from "./session";
+import { chargedSeconds, type Session } from "./session";
 
 export interface PeriodUsage {
-	// Seconds of the session that count toward the period.
+	// Seconds of the session that count toward the period (its grace never
+	// counts).
 	consumedSeconds: number;
-	// Part of those seconds past the planned duration (the overrun). Only used
-	// when the policy carries the excess over to the next day.
+	// Part of those seconds past the planned duration (the overrun beyond the
+	// grace). Only used when the policy carries the excess over to the next day.
 	overrunSeconds: number;
 }
 
@@ -31,7 +32,7 @@ export const attributeToStartDay: AttributionStrategy = (
 	if (session.startedAt === null || !isWithin(session.startedAt, period)) {
 		return none;
 	}
-	const consumed = consumedSeconds(session, now);
+	const consumed = chargedSeconds(session, now);
 	return {
 		consumedSeconds: consumed,
 		overrunSeconds: Math.max(0, consumed - session.plannedDurationSeconds),

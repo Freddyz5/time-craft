@@ -18,6 +18,7 @@ import { countdown, minutesText, timeText } from "../../lib/format";
 import type { Balance, ChildRequest } from "../../lib/types";
 import { useCommand } from "../../lib/useCommand";
 import { useParents } from "../context";
+import { Reminders } from "../rules/Reminders";
 import {
 	defaultLater,
 	laterIsValid,
@@ -169,6 +170,8 @@ export function RequestCard({
 						: "Ya no le queda tiempo: no se puede aprobar. Recházala o dale tiempo extra desde Nueva sesión."}
 				</p>
 			)}
+
+			<Reminders childId={request.childId} />
 
 			{mode === "idle" && (
 				<div className="grid grid-cols-2 gap-2 sm:grid-cols-[1.4fr_1fr_1fr]">

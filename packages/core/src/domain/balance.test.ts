@@ -242,3 +242,109 @@ describe("carry_over_excess", () => {
 		expect(min(result.consumedWeekSeconds)).toBe(45);
 	});
 });
+
+describe("allowed days", () => {
+	// NOW is a Wednesday (3) in Guayaquil.
+	const weekend = { allowedDays: [0, 6] as QuotaPolicy["allowedDays"] };
+
+	test("a day the policy does not allow has nothing left", () => {
+		const result = balance([], { policy: weekend });
+		expect(result.dayAllowed).toBe(false);
+		expect(result.dailyRemainingSeconds).toBe(0);
+		expect(result.availableSeconds).toBe(0);
+		// The week keeps its own remainder for the days that are allowed.
+		expect(min(result.weeklyRemainingSeconds)).toBe(300);
+	});
+
+	test("the day recharges on the next allowed day", () => {
+		const result = balance([], { policy: weekend });
+		// Saturday 24 Oct, 00:00 local.
+		expect(result.nextDailyRechargeAt.toISOString()).toBe(
+			"2026-10-24T05:00:00.000Z",
+		);
+	});
+
+	test("an allowed day works as always, and recharges on the next one", () => {
+		const result = balance([finishedSession("2026-10-21T14:00:00Z", 20)], {
+			policy: { allowedDays: [1, 3, 5] },
+		});
+		expect(result.dayAllowed).toBe(true);
+		expect(min(result.availableSeconds)).toBe(40);
+		// Friday 23 Oct.
+		expect(result.nextDailyRechargeAt.toISOString()).toBe(
+			"2026-10-23T05:00:00.000Z",
+		);
+	});
+
+	test("with only today allowed, it recharges a week later", () => {
+		const result = balance([], { policy: { allowedDays: [3] } });
+		expect(result.nextDailyRechargeAt.toISOString()).toBe(
+			"2026-10-28T05:00:00.000Z",
+		);
+	});
+
+	test("time a parent gave on a day off still counts toward the week", () => {
+		const result = balance([finishedSession("2026-10-21T14:00:00Z", 30)], {
+			policy: weekend,
+		});
+		expect(min(result.consumedWeekSeconds)).toBe(30);
+		expect(min(result.weeklyRemainingSeconds)).toBe(270);
+	});
+});
+
+describe("grace", () => {
+	test("an overrun within the grace does not count", () => {
+		const result = balance([
+			finishedSession("2026-10-21T14:00:00Z", 31, {
+				plannedMinutes: 30,
+				graceMinutes: 2,
+			}),
+		]);
+		expect(min(result.consumedTodaySeconds)).toBe(30);
+		expect(min(result.availableSeconds)).toBe(30);
+	});
+
+	test("past the grace, only what goes beyond it counts", () => {
+		const result = balance([
+			finishedSession("2026-10-21T14:00:00Z", 35, {
+				plannedMinutes: 30,
+				graceMinutes: 2,
+			}),
+		]);
+		expect(min(result.consumedTodaySeconds)).toBe(33);
+	});
+
+	test("a session stopped early is not affected", () => {
+		const result = balance([
+			finishedSession("2026-10-21T14:00:00Z", 20, {
+				plannedMinutes: 30,
+				graceMinutes: 2,
+			}),
+		]);
+		expect(min(result.consumedTodaySeconds)).toBe(20);
+	});
+
+	test("the open session in its grace does not take more", () => {
+		// Planned 15, started 16 min ago, 1 min of grace.
+		const result = balance([
+			runningSession("2026-10-21T19:44:00Z", {
+				plannedMinutes: 15,
+				graceMinutes: 1,
+			}),
+		]);
+		expect(min(result.consumedTodaySeconds)).toBe(15);
+	});
+
+	test("the excess carried to the next day leaves the grace out", () => {
+		const result = balance(
+			[
+				finishedSession("2026-10-20T15:00:00Z", 45, {
+					plannedMinutes: 30,
+					graceMinutes: 5,
+				}),
+			],
+			{ policy: { carryOverExcess: true } },
+		);
+		expect(min(result.carriedExcessSeconds)).toBe(10);
+	});
+});

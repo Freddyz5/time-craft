@@ -20,10 +20,10 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 type FamilyRow = typeof families.$inferSelect;
 type ParentRow = typeof parents.$inferSelect;
 
-function toWeekDay(value: number): WeekDay {
+export function toWeekDay(value: number): WeekDay {
 	if (!Number.isInteger(value) || value < 0 || value > 6) {
-		// The CHECK constraint makes this unreachable.
-		throw new Error(`Invalid week_start_day ${value}`);
+		// The CHECK constraints make this unreachable.
+		throw new Error(`Invalid day of the week ${value}`);
 	}
 	return value as WeekDay;
 }

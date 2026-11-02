@@ -1,20 +1,25 @@
 // The balance is never stored: it is computed from the sessions.
-//   consumed     = closed sessions' consumed_seconds + elapsed of the open one
+//   consumed     = closed sessions' consumed_seconds + elapsed of the open one,
+//                  less each session's grace (see `chargedSeconds`)
 //   bonus        = min(Σ bonus minutes approved this week, weekly_bonus_cap)
 //   available    = min(daily_limit − consumed_today,
 //                      weekly_limit + bonus − consumed_week)
-// The override's extra minutes are added on top, only for the session that
-// uses it (see `sessionCapSeconds`).
+// On a day the policy does not allow, the day has nothing left. The
+// override's extra minutes are added on top, only for the session that uses
+// it (see `sessionCapSeconds`).
 import { DomainError } from "../errors";
 import { type AttributionStrategy, attributeSession } from "./attribution";
 import {
 	type CalendarSettings,
 	dayPeriod,
+	nextDayStart,
 	type Period,
 	previousDayPeriod,
+	weekDayOf,
 	weekPeriod,
 } from "./calendar";
-import type { QuotaPolicy } from "./policy";
+import type { WeekDay } from "./family";
+import { isDayAllowed, type QuotaPolicy } from "./policy";
 import type { Session } from "./session";
 import { minutesToSeconds } from "./values";
 
@@ -24,6 +29,11 @@ export interface Balance {
 	activityId: string | null;
 	today: Period;
 	week: Period;
+	// Whether today is one of the policy's allowed days. When it is not, the
+	// day has nothing left (only a parent's extra time).
+	dayAllowed: boolean;
+	allowedDays: WeekDay[];
+	// The limit of an allowed day.
 	dailyLimitSeconds: number;
 	weeklyLimitSeconds: number;
 	consumedTodaySeconds: number;
@@ -38,6 +48,7 @@ export interface Balance {
 	// Includes the capped bonus.
 	weeklyRemainingSeconds: number;
 	availableSeconds: number;
+	// The start of the next allowed day.
 	nextDailyRechargeAt: Date;
 	nextWeeklyRechargeAt: Date;
 }
@@ -90,8 +101,11 @@ export function computeBalance(input: BalanceInput): Balance {
 	const bonusCap = minutesToSeconds(policy.weeklyBonusCapMinutes);
 	const bonus = Math.min(bonusEarned, bonusCap);
 	const carried = policy.carryOverExcess ? overrunYesterday : 0;
+	const dayAllowed = isDayAllowed(policy, weekDayOf(now, calendar));
 
-	const dailyRemaining = Math.max(0, dailyLimit - carried - consumedToday);
+	const dailyRemaining = dayAllowed
+		? Math.max(0, dailyLimit - carried - consumedToday)
+		: 0;
 	const weeklyRemaining = Math.max(0, weeklyLimit + bonus - consumedWeek);
 
 	return {
@@ -99,6 +113,8 @@ export function computeBalance(input: BalanceInput): Balance {
 		activityId: policy.activityId,
 		today,
 		week,
+		dayAllowed,
+		allowedDays: [...policy.allowedDays],
 		dailyLimitSeconds: dailyLimit,
 		weeklyLimitSeconds: weeklyLimit,
 		consumedTodaySeconds: consumedToday,
@@ -110,7 +126,7 @@ export function computeBalance(input: BalanceInput): Balance {
 		dailyRemainingSeconds: dailyRemaining,
 		weeklyRemainingSeconds: weeklyRemaining,
 		availableSeconds: Math.min(dailyRemaining, weeklyRemaining),
-		nextDailyRechargeAt: today.end,
+		nextDailyRechargeAt: nextDayStart(now, calendar, policy.allowedDays),
 		nextWeeklyRechargeAt: week.end,
 	};
 }
@@ -122,6 +138,16 @@ export function sessionCapSeconds(
 	overrideExtraMinutes = 0,
 ): number {
 	return balance.availableSeconds + minutesToSeconds(overrideExtraMinutes);
+}
+
+// Not a day the policy allows: only a parent's extra time can be used.
+export function assertDayAllowed(balance: Balance): void {
+	if (!balance.dayAllowed) {
+		throw new DomainError("day_not_allowed", "Today is not an allowed day", {
+			activityId: balance.activityId,
+			nextAllowedAt: balance.nextDailyRechargeAt.toISOString(),
+		});
+	}
 }
 
 export function quotaExhausted(): DomainError {

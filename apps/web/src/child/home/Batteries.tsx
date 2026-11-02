@@ -1,6 +1,7 @@
 // The child's balance as batteries made of bricks: today in one row, the week
 // as a wall (its unused bonus in yellow), the bonuses earned against the
-// weekly cap, and when each one recharges. Both batteries use the same brick
+// weekly cap, and when each one recharges. On a day that is not one of the
+// bag's days, today has no battery: it is a day of rest. Both batteries use the same brick
 // size, so the day's is the shorter one. The numbers are the api's; this
 // only decides how many bricks to draw and how to say it to a 9-year-old.
 // Minutes round down, as in the countdown, so the figures always add up.
@@ -19,7 +20,12 @@ import {
 import { Callout } from "../../components/ui";
 import { activityById, activityLook } from "../../lib/activity";
 import { useServerNow } from "../../lib/clock";
-import { minutesText, rechargeText, secondsText } from "../../lib/format";
+import {
+	minutesText,
+	rechargeText,
+	secondsText,
+	weekDaysText,
+} from "../../lib/format";
 import { timing } from "../../lib/timer";
 import type { Activity, Balance, Session } from "../../lib/types";
 import { useChild } from "../context";
@@ -309,9 +315,10 @@ function BagBatteries({
 	main: boolean;
 	action?: ReactNode;
 }) {
-	const { timeZone, activities } = useChild();
+	const { timeZone, activities, household } = useChild();
 	const now = useServerNow(60_000);
 	const available = balance.availableSeconds;
+	const dayOff = !balance.dayAllowed;
 	const dayIsOut = balance.dailyRemainingSeconds === 0;
 	const weekIsOut = balance.weeklyRemainingSeconds === 0;
 
@@ -368,6 +375,8 @@ function BagBatteries({
 		available > 0 &&
 		balance.weeklyRemainingSeconds < balance.dailyRemainingSeconds;
 	const weekDay = rechargeText(balance.nextWeeklyRechargeAt, now, timeZone);
+	const nextDay = rechargeText(balance.nextDailyRechargeAt, now, timeZone);
+	const nextDayCap = `${nextDay.charAt(0).toUpperCase()}${nextDay.slice(1)}`;
 	const Heading = main ? "h2" : "h3";
 	// Out of time, what to do next comes first, not under the batteries.
 	const actionsFirst = available === 0 && main;
@@ -383,22 +392,31 @@ function BagBatteries({
 				>
 					{headline(
 						title,
-						available === 0
-							? weekIsOut
-								? "se acabó tu tiempo de esta semana"
-								: "se acabó tu tiempo de hoy"
-							: running
-								? after >= 60
-									? `después de esta sesión te quedan ${secondsText(after)} hoy`
-									: "después de esta sesión se acaba tu tiempo de hoy"
-								: `te quedan ${secondsText(available)} hoy`,
+						dayOff
+							? "hoy es día de descanso"
+							: available === 0
+								? weekIsOut
+									? "se acabó tu tiempo de esta semana"
+									: "se acabó tu tiempo de hoy"
+								: running
+									? after >= 60
+										? `después de esta sesión te quedan ${secondsText(after)} hoy`
+										: "después de esta sesión se acaba tu tiempo de hoy"
+									: `te quedan ${secondsText(available)} hoy`,
 					)}
 				</Heading>
-				{available === 0 ? (
+				{dayOff ? (
+					<p className="text-ink-soft">
+						Tus días son{" "}
+						{weekDaysText(balance.allowedDays, household.family.weekStartDay)}.{" "}
+						{nextDayCap} vuelves a tener{" "}
+						{secondsText(balance.dailyLimitSeconds)}.
+					</p>
+				) : available === 0 ? (
 					<p className="text-ink-soft">
 						{weekIsOut
 							? `Tu semana se recarga ${weekDay}.`
-							: `Mañana vuelves a tener ${secondsText(balance.dailyLimitSeconds)}.`}
+							: `${nextDayCap} vuelves a tener ${secondsText(balance.dailyLimitSeconds)}.`}
 					</p>
 				) : weekLimits ? (
 					<p className="text-ink-soft">
@@ -424,26 +442,34 @@ function BagBatteries({
 			<section className="flex flex-col gap-2" aria-label="Hoy">
 				<RowHead
 					title="Hoy"
-					figure={`${secondsText(balance.dailyRemainingSeconds)} de ${secondsText(balance.dailyLimitSeconds)}`}
+					figure={
+						dayOff
+							? "descanso"
+							: `${secondsText(balance.dailyRemainingSeconds)} de ${secondsText(balance.dailyLimitSeconds)}`
+					}
 				/>
-				<Battery
-					bricks={dayBricks}
-					columns={dayBricks.length}
-					basis={dayUnit === weekUnit ? columns : dayBricks.length}
-					label={`Hoy: te quedan ${secondsText(balance.dailyRemainingSeconds)} de ${secondsText(balance.dailyLimitSeconds)}`}
-					gap={dayUnit === weekUnit ? "tight" : "normal"}
-				/>
+				{!dayOff && (
+					<Battery
+						bricks={dayBricks}
+						columns={dayBricks.length}
+						basis={dayUnit === weekUnit ? columns : dayBricks.length}
+						label={`Hoy: te quedan ${secondsText(balance.dailyRemainingSeconds)} de ${secondsText(balance.dailyLimitSeconds)}`}
+						gap={dayUnit === weekUnit ? "tight" : "normal"}
+					/>
+				)}
 				<Recharge>
-					Se recarga mañana
-					{dayUnit !== BRICK_MINUTES && ` · 1 ladrillo = ${dayUnit} min`}
+					Se recarga {nextDay}
+					{!dayOff &&
+						dayUnit !== BRICK_MINUTES &&
+						` · 1 ladrillo = ${dayUnit} min`}
 				</Recharge>
-				{balance.carriedExcessSeconds > 0 && (
+				{!dayOff && balance.carriedExcessSeconds > 0 && (
 					<p className="text-[0.9375rem] text-ink-soft">
 						Hoy se descontaron {secondsText(balance.carriedExcessSeconds, true)}{" "}
 						que te pasaste ayer.
 					</p>
 				)}
-				{dayOver > 0 && (
+				{!dayOff && dayOver > 0 && (
 					<p className="text-[0.9375rem] text-ink-soft">
 						Hoy te pasaste {secondsText(dayOver, true)}: se restan de tu semana.
 					</p>
