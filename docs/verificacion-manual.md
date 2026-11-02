@@ -63,6 +63,17 @@ Con la app en primer plano, el teléfono suena y vibra al segundo exacto, ademá
 - [ ] Activa «Decir el aviso en voz alta»: dice una frase de ejemplo en español. «Voz» lista las voces en español del teléfono y «Probar» dice la frase con la elegida.
 - [ ] Con la voz activada, cada alarma dice su aviso después del sonido («Te queda 1 minuto de Minecraft…»). El fin lo dice completo la primera vez y luego solo «Se acabó…» en cada repetición; tocar la pantalla calla el sonido y la voz.
 
+## 4a. Gracia, días con tiempo y reglas escritas
+
+- [ ] En **Reglas**, pon «Gracia al terminar» en **1 min** (y el aviso en 1 min) y guarda. Empieza una sesión de 2 min.
+- [ ] Al fin, el push del padre dice «… Si la detienes en 1 min, lo que se pase no cuenta.» y el del niño «… Tienes 1 min para avisar a mamá o papá que lo detengan.».
+- [ ] Durante ese minuto, «Ahora» del niño cuenta lo que le queda para avisar, sin ladrillo rojo, y el del padre dice «Gracia: si la detienes en …» sin rojo. Detén la sesión dentro del minuto: en Inicio el saldo baja solo los 2 min.
+- [ ] Repite y detenla pasado el minuto: el rojo vuelve y solo cuenta lo que pasó de la gracia.
+- [ ] En **Reglas › Cuota general › Días con tiempo**, deja solo un día que no sea hoy y guarda. Inicio del niño dice «Hoy es día de descanso», sin «Pedir tiempo», y en **Pedir** aparece «Hoy no toca …». Inicio del padre dice «Hoy no le toca» y **Nueva sesión** solo ofrece tiempo extra (con motivo), que sí empieza.
+- [ ] Ponle a TV límites propios con hoy entre sus días: el niño puede pedir TV, pero no Juego.
+- [ ] Escribe una regla en «Reglas para …» y otra en «Solo para mamá y papá». «Así lo ve …» y el Inicio del niño (en «Tus reglas») muestran solo la primera; la segunda sale en **Nueva sesión** y en cada pedido como «Para no olvidar».
+- [ ] Vuelve a dejar todos los días, la gracia en 0 y el aviso en 5 min.
+
 ## 4b. Alarma en la computadora
 
 En la computadora, Chrome no congela una pestaña de fondo: Time Craft abierto detrás de otra ventana sigue sonando. Se prueba en la computadora donde juega el niño.
