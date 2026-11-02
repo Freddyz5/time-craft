@@ -184,8 +184,12 @@ function SessionRow({ session, now }: { session: Session; now: number }) {
 			: session.status === "running" || session.status === "paused"
 				? Math.floor(timing(session, now).elapsedMs / 1000)
 				: 0;
-	const over =
-		session.status === "finished" && consumed > session.plannedDurationSeconds;
+	const excess =
+		session.status === "finished"
+			? Math.max(0, consumed - session.plannedDurationSeconds)
+			: 0;
+	// The grace never counts: only what goes beyond it is shown in red.
+	const forgiven = Math.min(excess, session.graceSeconds);
 	const range =
 		session.endedAt !== null && session.startedAt !== null
 			? `${timeText(session.startedAt, timeZone)}–${timeText(session.endedAt, timeZone)}`
@@ -224,12 +228,18 @@ function SessionRow({ session, now }: { session: Session; now: number }) {
 					{session.status === "cancelled" || session.status === "scheduled"
 						? `${minutesText(session.plannedDurationSeconds / 60)} planeados`
 						: `Usó ${secondsText(consumed)} de ${minutesText(session.plannedDurationSeconds / 60)}`}
-					{over && (
-						<span className="font-medium text-stop">
-							{" "}
-							· se pasó{" "}
-							{secondsText(consumed - session.plannedDurationSeconds, true)}
-						</span>
+					{excess > forgiven ? (
+						<>
+							<span className="font-medium text-stop">
+								{" "}
+								· se pasó {secondsText(excess, true)}
+							</span>
+							{forgiven > 0 &&
+								` (${secondsText(forgiven, true)} de gracia no cuentan)`}
+						</>
+					) : (
+						excess > 0 &&
+						` · se pasó ${secondsText(excess, true)}, en la gracia`
 					)}
 					{session.pauses.length > 0 &&
 						` · ${session.pauses.length} ${session.pauses.length === 1 ? "pausa" : "pausas"}`}

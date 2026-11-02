@@ -9,7 +9,12 @@ import { Hand } from "lucide-react";
 import { Link } from "wouter";
 import { TabAlarm } from "../components/TabAlarm";
 import { buttonClass, LoadingBricks, Notice } from "../components/ui";
-import { useBalance, useLiveSession, usePolicies } from "../lib/queries";
+import {
+	useBalance,
+	useCustomRules,
+	useLiveSession,
+	usePolicies,
+} from "../lib/queries";
 import { useChild } from "./context";
 import { childErrorMessage } from "./errors";
 import { Batteries } from "./home/Batteries";
@@ -28,6 +33,7 @@ export function Home() {
 	const live = useLiveSession(childId);
 	const balance = useBalance(childId);
 	const policies = usePolicies(childId);
+	const customRules = useCustomRules(childId);
 	const requests = useMyRequests();
 	const { arrival } = requests;
 
@@ -49,6 +55,8 @@ export function Home() {
 		session?.status === "running" || session?.status === "scheduled";
 	const exhausted =
 		balances.length > 0 && balances.every((b) => b.availableSeconds === 0);
+	// On a day of rest for every bag there is nothing to ask for.
+	const restDay = balances.length > 0 && balances.every((b) => !b.dayAllowed);
 	const strip = requests.pending ? (
 		<PendingStrip request={requests.pending} />
 	) : requests.freshAnswer ? (
@@ -81,6 +89,7 @@ export function Home() {
 			live={session}
 			action={
 				balances.length > 0 &&
+				!restDay &&
 				session === null &&
 				requests.pending === null && (
 					<Link
@@ -96,7 +105,10 @@ export function Home() {
 	);
 	const extras = (
 		<>
-			<Rules policies={policies.data?.policies ?? []} />
+			<Rules
+				policies={policies.data?.policies ?? []}
+				customRules={customRules.data?.rules ?? []}
+			/>
 			<PushOffer />
 		</>
 	);

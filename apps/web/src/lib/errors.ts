@@ -51,6 +51,11 @@ const messages: Record<string, string> = {
 	quota_not_exhausted:
 		"Todavía le queda tiempo: inicia una sesión normal en lugar de dar tiempo extra.",
 	weekly_task_limit_reached: "Esa tarea ya llegó a su máximo de esta semana.",
+	day_not_allowed:
+		"Hoy no es uno de sus días: solo puedes darle tiempo extra, con un motivo.",
+	custom_rule_not_found: "Esa regla ya no existe.",
+	custom_rule_limit_reached:
+		"Ya hay muchas reglas escritas. Borra alguna antes de agregar otra.",
 
 	// Better Auth
 	INVALID_EMAIL_OR_PASSWORD: "El correo o la contraseña no son correctos.",
@@ -71,6 +76,10 @@ const fieldMessages: Record<string, string> = {
 	dailyLimitMinutes: "El límite diario tiene que ser de 1 a 1.440 minutos.",
 	weeklyBonusCapMinutes: "El tope de bonos tiene que ser 0 o más minutos.",
 	warningMinutes: "El aviso previo tiene que ser de 0 a 1.440 minutos.",
+	graceMinutes: "La gracia tiene que ser de 0 a 15 minutos.",
+	allowedDays: "Elige al menos un día.",
+	text: "Escribe la regla (hasta 200 caracteres).",
+	ruleIds: "El orden cambió mientras tanto. Vuelve a intentarlo.",
 	minutes: "Los minutos tienen que ser un número entero mayor que 0.",
 	approvedMinutes: "Los minutos tienen que ser un número entero mayor que 0.",
 	extraMinutes:

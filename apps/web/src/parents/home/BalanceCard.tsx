@@ -1,7 +1,8 @@
 // The balance as the api computes it, one block per bag (the general quota
 // and any activity with limits of its own): today and the week in bricks,
-// and when each recharges. Nothing is computed here but how many bricks to
-// draw and how to say it. Minutes are rounded down everywhere, as in the
+// and when each recharges. On a day that is not one of the bag's days, today
+// has no bricks: it says so and when it comes back. Nothing is computed here
+// but how many bricks to draw and how to say it. Minutes are rounded down everywhere, as in the
 // countdown, so numbers on screen always add up.
 import {
 	Brick,
@@ -14,7 +15,13 @@ import {
 import { Callout } from "../../components/ui";
 import { activityById, activityLook } from "../../lib/activity";
 import { useServerNow } from "../../lib/clock";
-import { dayText, minutesText, secondsText } from "../../lib/format";
+import {
+	dayText,
+	minutesText,
+	rechargeText,
+	secondsText,
+	weekDaysText,
+} from "../../lib/format";
 import { timing } from "../../lib/timer";
 import type { Activity, Balance, Session } from "../../lib/types";
 import { useParents } from "../context";
@@ -110,10 +117,15 @@ function BagBlock({
 	single: boolean;
 	headingId: string;
 }) {
-	const { timeZone, child } = useParents();
+	const { timeZone, child, household } = useParents();
+	const now = useServerNow(60_000);
 	const toMin = (seconds: number) => seconds / 60;
 	const name = child?.name ?? "El niño";
 	const Heading = single ? "h2" : "h3";
+	const dayOff = !balance.dayAllowed;
+	const someDays = balance.allowedDays.length < 7;
+	const days = weekDaysText(balance.allowedDays, household.family.weekStartDay);
+	const nextDay = rechargeText(balance.nextDailyRechargeAt, now, timeZone);
 
 	const dayLimit = toMin(balance.dailyLimitSeconds);
 	const dayUnit = brickUnit(dayLimit, DAY_BRICKS);
@@ -153,56 +165,84 @@ function BagBlock({
 				>
 					{label === null && <span className="sr-only">Saldo: </span>}
 					{label === null
-						? available > 0
-							? `Le quedan ${secondsText(available)} hoy`
-							: "No le queda tiempo hoy"
-						: available > 0
-							? `${label.names}: le quedan ${secondsText(available)} hoy`
-							: `${label.names}: no le queda tiempo hoy`}
+						? dayOff
+							? "Hoy no le toca"
+							: available > 0
+								? `Le quedan ${secondsText(available)} hoy`
+								: "No le queda tiempo hoy"
+						: dayOff
+							? `${label.names}: hoy no le toca`
+							: available > 0
+								? `${label.names}: le quedan ${secondsText(available)} hoy`
+								: `${label.names}: no le queda tiempo hoy`}
 				</Heading>
 				{label && <p className="text-ink-soft">{label.scope}</p>}
-				{available === 0 ? (
+				{dayOff ? (
+					<p className="text-ink-soft">
+						Sus días son {days}. Vuelve a tener{" "}
+						{secondsText(balance.dailyLimitSeconds)} {nextDay}. Hoy solo puedes
+						darle tiempo extra.
+					</p>
+				) : available === 0 ? (
 					<p className="text-ink-soft">
 						{balance.weeklyRemainingSeconds === 0
 							? `${name} usó toda la semana. Se recarga el ${dayText(balance.nextWeeklyRechargeAt, timeZone)}.`
-							: `${name} usó todo lo de hoy. Mañana vuelve a tener ${secondsText(balance.dailyLimitSeconds)}.`}
+							: `${name} usó todo lo de hoy. Vuelve a tener ${secondsText(balance.dailyLimitSeconds)} ${nextDay}.`}
 					</p>
 				) : weekLimits ? (
 					<p className="text-ink-soft">Lo limita lo que queda de la semana.</p>
 				) : null}
+				{!dayOff && someDays && (
+					<p className="text-ink-soft">Sus días son {days}.</p>
+				)}
 				{live && <LiveNote live={live} />}
 			</div>
 
 			<Legend bonus={bonusLeft > 0} />
 
-			<div className="flex flex-col gap-2">
-				<div className="flex items-baseline justify-between gap-3 whitespace-nowrap">
-					<p className="font-display text-lg leading-tight font-bold">Hoy</p>
-					<p className="tabular text-ink-soft">
-						{secondsText(balance.dailyRemainingSeconds)} de{" "}
-						{secondsText(balance.dailyLimitSeconds)}
-					</p>
+			{dayOff ? (
+				<div className="flex flex-col gap-2">
+					<div className="flex items-baseline justify-between gap-3 whitespace-nowrap">
+						<p className="font-display text-lg leading-tight font-bold">Hoy</p>
+						<p className="text-ink-soft">no le toca</p>
+					</div>
+					{balance.consumedTodaySeconds > 0 && (
+						<p className="text-[0.9375rem] text-ink-soft">
+							Hoy usó {secondsText(balance.consumedTodaySeconds)} con tiempo
+							extra.
+						</p>
+					)}
 				</div>
-				<BrickRow
-					bricks={dayBricks}
-					perRow={Math.max(6, Math.min(DAY_BRICKS, dayBricks.length))}
-					label={`Hoy: ${secondsText(balance.dailyRemainingSeconds)} por usar de ${secondsText(balance.dailyLimitSeconds)}`}
-				/>
-				<p className="text-[0.8125rem] text-ink-soft">
-					1 ladrillo = {dayUnit} min
-				</p>
-				{balance.carriedExcessSeconds > 0 && (
-					<p className="text-[0.9375rem] text-ink-soft">
-						Se descontaron {secondsText(balance.carriedExcessSeconds, true)} que
-						se pasó ayer.
+			) : (
+				<div className="flex flex-col gap-2">
+					<div className="flex items-baseline justify-between gap-3 whitespace-nowrap">
+						<p className="font-display text-lg leading-tight font-bold">Hoy</p>
+						<p className="tabular text-ink-soft">
+							{secondsText(balance.dailyRemainingSeconds)} de{" "}
+							{secondsText(balance.dailyLimitSeconds)}
+						</p>
+					</div>
+					<BrickRow
+						bricks={dayBricks}
+						perRow={Math.max(6, Math.min(DAY_BRICKS, dayBricks.length))}
+						label={`Hoy: ${secondsText(balance.dailyRemainingSeconds)} por usar de ${secondsText(balance.dailyLimitSeconds)}`}
+					/>
+					<p className="text-[0.8125rem] text-ink-soft">
+						1 ladrillo = {dayUnit} min
 					</p>
-				)}
-				{dayOver > 0 && (
-					<p className="text-[0.9375rem] font-medium text-stop">
-						Se pasó {secondsText(dayOver * 60, true)} del límite de hoy.
-					</p>
-				)}
-			</div>
+					{balance.carriedExcessSeconds > 0 && (
+						<p className="text-[0.9375rem] text-ink-soft">
+							Se descontaron {secondsText(balance.carriedExcessSeconds, true)}{" "}
+							que se pasó ayer.
+						</p>
+					)}
+					{dayOver > 0 && (
+						<p className="text-[0.9375rem] font-medium text-stop">
+							Se pasó {secondsText(dayOver * 60, true)} del límite de hoy.
+						</p>
+					)}
+				</div>
+			)}
 
 			<div className="flex flex-col gap-2">
 				<div className="flex items-baseline justify-between gap-3">

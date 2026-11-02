@@ -3,8 +3,9 @@
 // the time is used up, 3 why (extra time always carries a reason). While a
 // request waits, it shows here with the way to cancel it; while a session is
 // open, nothing can be asked. After a "no" the form waits folded behind
-// "Pedir otra cosa", so a new request is a choice, not a reflex. Below,
-// today's requests and their answers.
+// "Pedir otra cosa", so a new request is a choice, not a reflex. On a day
+// that is not one of the activity's days nothing can be asked: it says when
+// it comes back. Below, today's requests and their answers.
 import { Check, CircleHelp, Plus, Send } from "lucide-react";
 import { type ReactNode, useEffect, useId, useState } from "react";
 import { Link } from "wouter";
@@ -19,7 +20,13 @@ import {
 } from "../components/ui";
 import { activityLook, bagFor } from "../lib/activity";
 import { api, call } from "../lib/api";
-import { minutesText, secondsText } from "../lib/format";
+import { useServerNow } from "../lib/clock";
+import {
+	minutesText,
+	rechargeText,
+	secondsText,
+	weekDaysText,
+} from "../lib/format";
 import { useBalance, useLiveSession } from "../lib/queries";
 import { useCommand } from "../lib/useCommand";
 import { BrickPicker } from "./ask/BrickPicker";
@@ -99,8 +106,9 @@ function Header() {
 }
 
 function AskForm() {
-	const { childId, activities } = useChild();
+	const { childId, activities, household, timeZone } = useChild();
 	const balance = useBalance(childId);
+	const now = useServerNow(60_000);
 	const ids = { activity: useId(), minutes: useId(), reason: useId() };
 	const [activityId, setActivityId] = useState<string | null>(null);
 	const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
@@ -122,7 +130,8 @@ function AskForm() {
 	const look = activityLook(chosen?.code);
 	const bag = chosenId === null ? undefined : bagFor(balances, chosenId);
 	const available = Math.floor((bag?.availableSeconds ?? 0) / 60);
-	const extra = bag !== undefined && bag.availableSeconds === 0;
+	const dayOff = bag !== undefined && !bag.dayAllowed;
+	const extra = bag !== undefined && bag.availableSeconds === 0 && !dayOff;
 	const { options, unit } = extra
 		? { options: EXTRA_OPTIONS, unit: 10 }
 		: startOptions(available);
@@ -200,9 +209,8 @@ function AskForm() {
 					<legend className="sr-only">Actividad</legend>
 					{activities.map((activity) => {
 						const itemLook = activityLook(activity.code);
-						const left = Math.floor(
-							(bagFor(balances, activity.id)?.availableSeconds ?? 0) / 60,
-						);
+						const itemBag = bagFor(balances, activity.id);
+						const left = Math.floor((itemBag?.availableSeconds ?? 0) / 60);
 						return (
 							<label
 								key={activity.id}
@@ -231,9 +239,11 @@ function AskForm() {
 								</span>
 								<span className="text-lg font-semibold">{activity.name}</span>
 								<span className="text-[0.9375rem] text-ink-soft">
-									{left > 0
-										? `Te quedan ${minutesText(left)}`
-										: "Se acabó por hoy"}
+									{itemBag?.dayAllowed === false
+										? "Hoy descansas"
+										: left > 0
+											? `Te quedan ${minutesText(left)}`
+											: "Se acabó por hoy"}
 								</span>
 							</label>
 						);
@@ -241,41 +251,57 @@ function AskForm() {
 				</fieldset>
 			</Callout>
 
-			<Callout
-				className="flex flex-col gap-4 p-4 sm:p-5"
-				aria-labelledby={ids.minutes}
-			>
-				<StepTitle
-					number={2}
-					id={ids.minutes}
-					hint={
-						extra
-							? `Se acabó tu tiempo de ${chosen?.name ?? "hoy"}. Puedes pedir tiempo extra: mamá o papá pueden darte menos.`
-							: `Toca un ladrillo: cada uno vale ${unit} min. Te quedan ${secondsText(bag?.availableSeconds ?? 0)}.`
-					}
+			{dayOff && bag !== undefined && (
+				<Callout className="flex flex-col gap-1 p-4 sm:p-5">
+					<h2 className="text-[1.375rem] leading-tight font-bold">
+						Hoy no toca {chosen?.name ?? "pantalla"}
+					</h2>
+					<p className="text-ink-soft">
+						Tus días son{" "}
+						{weekDaysText(bag.allowedDays, household.family.weekStartDay)}.
+						Vuelves a tener tiempo{" "}
+						{rechargeText(bag.nextDailyRechargeAt, now, timeZone)}.
+					</p>
+				</Callout>
+			)}
+
+			{!dayOff && (
+				<Callout
+					className="flex flex-col gap-4 p-4 sm:p-5"
+					aria-labelledby={ids.minutes}
 				>
-					{extra ? "¿Cuánto tiempo extra?" : "¿Cuánto tiempo?"}
-				</StepTitle>
-				<div className="max-w-md">
-					<BrickPicker
-						options={options}
-						value={value}
-						onChange={setMinutes}
-						unit={unit}
-						color={look.color}
-						restColor={extra ? look.tint : "var(--color-balance)"}
-						label={extra ? "Minutos extra" : "Minutos"}
-					/>
-				</div>
-				<p className="flex flex-wrap items-baseline gap-x-2">
-					<span className="tabular font-display text-[2.25rem] leading-none font-extrabold tracking-[-0.02em]">
-						{minutesText(value)}
-					</span>
-					<span className="text-lg text-ink-soft">
-						{extra ? "extra " : ""}de {chosen?.name ?? "pantalla"}
-					</span>
-				</p>
-			</Callout>
+					<StepTitle
+						number={2}
+						id={ids.minutes}
+						hint={
+							extra
+								? `Se acabó tu tiempo de ${chosen?.name ?? "hoy"}. Puedes pedir tiempo extra: mamá o papá pueden darte menos.`
+								: `Toca un ladrillo: cada uno vale ${unit} min. Te quedan ${secondsText(bag?.availableSeconds ?? 0)}.`
+						}
+					>
+						{extra ? "¿Cuánto tiempo extra?" : "¿Cuánto tiempo?"}
+					</StepTitle>
+					<div className="max-w-md">
+						<BrickPicker
+							options={options}
+							value={value}
+							onChange={setMinutes}
+							unit={unit}
+							color={look.color}
+							restColor={extra ? look.tint : "var(--color-balance)"}
+							label={extra ? "Minutos extra" : "Minutos"}
+						/>
+					</div>
+					<p className="flex flex-wrap items-baseline gap-x-2">
+						<span className="tabular font-display text-[2.25rem] leading-none font-extrabold tracking-[-0.02em]">
+							{minutesText(value)}
+						</span>
+						<span className="text-lg text-ink-soft">
+							{extra ? "extra " : ""}de {chosen?.name ?? "pantalla"}
+						</span>
+					</p>
+				</Callout>
+			)}
 
 			{extra && (
 				<Callout
@@ -332,17 +358,19 @@ function AskForm() {
 				</Callout>
 			)}
 
-			<Button
-				type="submit"
-				variant="primary"
-				block
-				className="min-h-14 text-lg"
-				icon={<Send className="size-5" aria-hidden="true" />}
-				busy={ask.isPending}
-				disabled={chosenId === null || options.length === 0}
-			>
-				Pedir {what}
-			</Button>
+			{!dayOff && (
+				<Button
+					type="submit"
+					variant="primary"
+					block
+					className="min-h-14 text-lg"
+					icon={<Send className="size-5" aria-hidden="true" />}
+					busy={ask.isPending}
+					disabled={chosenId === null || options.length === 0}
+				>
+					Pedir {what}
+				</Button>
+			)}
 		</form>
 	);
 }
