@@ -36,6 +36,11 @@ export type Policy = InferResponseType<
 	200
 >["policies"][number];
 
+export type CustomRule = InferResponseType<
+	Child["custom-rules"]["$get"],
+	200
+>["rules"][number];
+
 export type History = InferResponseType<Child["history"]["$get"], 200>;
 
 export type LoginSession = InferResponseType<

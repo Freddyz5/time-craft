@@ -48,9 +48,12 @@ packages/
 - **Disponible** = mín(restante del día, restante de la semana). Si se agota la semana, no puede empezar aunque le quede tiempo en el día.
 - **La sesión propuesta nunca supera el disponible** (más el override si lo hay). Lo valida `core`.
 - **Bonos:** los minutos aprobados por tareas se suman a la bolsa semanal, hasta un tope semanal. No suben el límite diario.
-- **El exceso cuenta:** si la sesión se pasa del tiempo, se descuenta el tiempo real consumido.
+- **El exceso cuenta:** si la sesión se pasa del tiempo, se descuenta el tiempo real consumido, menos la gracia.
+- **Gracia al terminar:** cada cuota define `grace_minutes` (0 por defecto, hasta 15): los primeros minutos después del fin nunca se descuentan, para que el niño avise y un padre la detenga. Si la detienen después, solo cuenta lo que pasó de la gracia. La sesión copia la gracia de su cuota al arrancar (`sessions.grace_seconds`), así un cambio posterior no reescribe sesiones pasadas. `consumed_seconds` sigue siendo el tiempo real; el saldo y el historial descuentan la gracia.
+- **Días con tiempo:** cada cuota define en `allowed_days` qué días de la semana se puede usar (la general vale para todas las actividades sin cuota propia; una cuota por actividad tiene sus propios días). Un día que no está, esa bolsa no tiene tiempo: el niño no puede pedir empezar ni tiempo extra (`day_not_allowed`) y un padre no puede iniciar una sesión normal, pero sí dar tiempo extra con motivo. Ese tiempo extra cuenta para la semana. La recarga diaria (`nextDailyRechargeAt`) es el inicio del siguiente día permitido.
+- **Reglas escritas por los padres:** texto libre por niño (`custom_rules`), en dos listas: las que el niño lee en «Tus reglas» y las de solo padres (`parents_only`), recordatorios que el niño nunca recibe. Ninguna cambia el saldo ni los permisos.
 - **Cierre automático:** si nadie detiene la sesión, el servidor la cierra en `fin + families.auto_close_after_minutes` (30 por defecto) con `end_reason = auto_closed`, y avisa a los padres. Evita que una sesión olvidada consuma toda la semana.
-- **Override:** con la cuota agotada, solo un padre puede dar minutos extra, siempre con un motivo. Se usa en una sesión nueva, no extiende la que está corriendo.
+- **Override:** con la cuota agotada (o en un día sin tiempo), solo un padre puede dar minutos extra, siempre con un motivo. Se usa en una sesión nueva, no extiende la que está corriendo.
 - **Cambio de límites a mitad de semana:** la política vigente al momento de calcular aplica a toda la semana (decidido).
 - **Sesión que cruza la medianoche o el cambio de semana:** se imputa entera al día (y semana) de inicio (decidido, opción A). La regla vive en una sola función de `core` (estrategia de imputación) para poder pasar a repartirla por tramos (opción B) sin cambiar el schema. Como el saldo se calcula, el cambio también recalcula el historial.
 - **Empezar ahora o más tarde:** al aprobar (o al crear una sesión directa) el padre elige empezar ya o programar la hora de inicio, como máximo hasta el final del día. Mientras está programada no consume. Al arrancar, la duración se recorta al disponible de ese momento; si es 0, se cancela y se avisa. Un padre puede adelantarla o cancelarla.
@@ -114,7 +117,7 @@ Por qué no un cron/tick por minuto: Vercel Hobby solo permite cron diario, y un
 
 ## Flujo en 8 pasos
 1. **Configurar el hogar** (padres, una vez): seed con familia y padres; los padres crean la cuenta del niño (usuario + PIN), las actividades (Juego, TV) y activan notificaciones en sus teléfonos.
-2. **Definir reglas** (padres): límites diario y semanal, tope de bonos, aviso previo y catálogo de tareas de bono.
+2. **Definir reglas** (padres): límites diario y semanal, días con tiempo, tope de bonos, aviso previo, gracia al terminar, reglas escritas (para el niño o solo para los padres) y catálogo de tareas de bono. Reglas muestra «Tus reglas» tal como las ve el niño.
 3. **Pedir** (niño): solicitud para empezar o para tiempo extra. Solo una pendiente a la vez; expira a los 15 min sin respuesta; puede cancelarla. Push inmediato a los padres.
 4. **Aprobar o rechazar** (padres): se pueden aprobar menos minutos de los pedidos. Al aprobar se elige **empezar ahora** o **empezar más tarde** (hora elegida, como máximo hasta el final del día). La sesión (y el override si era tiempo extra) se crea en una sola transacción. Push al niño.
 5. **Correr el cronómetro** (servidor + padres): una sesión programada arranca sola a su hora (o antes, si un padre la adelanta) y puede cancelarse. Luego: inicio y duración, pausas, y cierre con el tiempo real consumido (o cierre automático).
@@ -122,7 +125,7 @@ Por qué no un cron/tick por minuto: Vercel Hobby solo permite cron diario, y un
 7. **Ganar bonos** (el niño reporta, push a los padres, el padre valida con los minutos ganados). Un solo reporte pendiente por niño y tarea.
 8. **Consultar** (todos, solo lectura): saldo, cronómetro en vivo, historial y desglose por actividad, overrides y solicitudes rechazadas.
 
-## Base de datos (PostgreSQL, 18 tablas)
+## Base de datos (PostgreSQL, 20 tablas)
 Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, incluidos los índices parciales y los CHECK).
 
 **Identidad (Better Auth, ids TEXT):**
@@ -137,15 +140,17 @@ Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, in
 - **parents**: family_id, auth_user_id (unique), name
 - **children**: family_id, auth_user_id (unique), name, avatar, failed_pin_attempts, locked_until
 - **activities**: family_id, code, name, is_active (unique family_id + code)
-- **quota_policies**: child_id, activity_id (null = cuota global), daily_limit_minutes, weekly_limit_minutes, weekly_bonus_cap_minutes (60), carry_over_excess, warning_minutes (5), valid_from, valid_to (null = vigente), created_by_parent_id. Cambiar un límite cierra la política vigente y crea otra, así queda historial.
+- **quota_policies**: child_id, activity_id (null = cuota global), daily_limit_minutes, weekly_limit_minutes, weekly_bonus_cap_minutes (60), carry_over_excess, warning_minutes (5), allowed_days (smallint[], 0 = domingo … 6 = sábado; todos por defecto, al menos uno), grace_minutes (0), valid_from, valid_to (null = vigente), created_by_parent_id. Cambiar un límite cierra la política vigente y crea otra, así queda historial.
+- **custom_rules**: child_id, text (hasta 200), parents_only (false), position, created_by_parent_id, created_at, updated_at. Reglas escritas por los padres; el niño solo recibe las que no son `parents_only`.
 - **bonus_tasks**: family_id, name, description, reward_minutes, max_per_week, is_active, created_by_parent_id
 - **child_requests**: child_id, request_type (start | extra_time), activity_id, requested_minutes, reason (obligatorio en extra_time), status (pending | approved | rejected | expired | cancelled), approved_minutes, response_note, expires_at, resolved_by_parent_id, resolved_at
 - **quota_overrides**: child_id, request_id (null, unique → child_requests), granted_by_parent_id, extra_minutes, reason
-- **sessions**: child_id, activity_id, request_id (null, unique), override_id (null), status (scheduled | running | paused | finished | cancelled), scheduled_start_at (solo si se programó), started_at (null mientras está programada o si se canceló), planned_duration_seconds, ended_at, end_reason (completed | stopped_early | auto_closed), consumed_seconds, started_by_parent_id, ended_by_parent_id (quien la detuvo o canceló; null solo si auto_closed). CHECKs: `scheduled` sin started_at; `running`/`paused`/`finished` con started_at; `finished` con ended_at, end_reason y consumed_seconds; `cancelled` con ended_at y quién canceló.
+- **sessions**: child_id, activity_id, request_id (null, unique), override_id (null), status (scheduled | running | paused | finished | cancelled), scheduled_start_at (solo si se programó), started_at (null mientras está programada o si se canceló), planned_duration_seconds, ended_at, end_reason (completed | stopped_early | auto_closed), consumed_seconds, grace_seconds (la gracia de su cuota al arrancar, 0 por defecto), started_by_parent_id, ended_by_parent_id (quien la detuvo o canceló; null solo si auto_closed). CHECKs: `scheduled` sin started_at; `running`/`paused`/`finished` con started_at; `finished` con ended_at, end_reason y consumed_seconds; `cancelled` con ended_at y quién canceló.
 - **session_pauses**: session_id, paused_at, resumed_at (null = en curso), paused_by_parent_id, resumed_by_parent_id, reason
 - **session_alerts**: session_id, alert_type (warning | end | auto_close), scheduled_at, provider_message_id (QStash), sent_at, cancelled_at
 - **task_reports**: child_id, bonus_task_id, note, status (pending | approved | rejected), awarded_minutes (solo si approved), review_note, reviewed_by_parent_id, reviewed_at
 - **push_subscriptions**: auth_user_id, endpoint (unique), p256dh_key, auth_key, device_label
+- **native_push_tokens** (hito 2): auth_user_id, token (unique), platform, device_label
 
 **Para no tener FK circulares:** la sesión y el override apuntan a la solicitud con `request_id`; la solicitud no apunta a ellos.
 
@@ -160,11 +165,11 @@ Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, in
 
 ## Cálculos (no se guardan)
 - Solo consumen sesiones que arrancaron (con `started_at`); las programadas o canceladas no cuentan.
-- `consumido = Σ consumed_seconds de sesiones cerradas + transcurrido de la sesión activa` (si hay una corriendo, su tiempo ya cuenta para el saldo que se muestra).
+- `consumido = Σ consumed_seconds de sesiones cerradas + transcurrido de la sesión activa` (si hay una corriendo, su tiempo ya cuenta para el saldo que se muestra), menos en cada sesión `mín(exceso, grace_seconds)`.
 - `transcurrido = ahora − started_at − Σ pausas` (una pausa en curso cuenta hasta `ahora`).
 - `restante en vivo = planned_duration_seconds − transcurrido`
 - `bonos_semana = mín(Σ task_reports.awarded_minutes aprobados en la semana, weekly_bonus_cap_minutes)`
-- `disponible = mín(daily_limit − consumido_hoy, weekly_limit + bonos_semana − consumido_semana)`. A esto se suman los extra_minutes del override, solo para la sesión que lo usa.
+- `disponible = mín(daily_limit − consumido_hoy, weekly_limit + bonos_semana − consumido_semana)`; en un día que no está en `allowed_days`, el restante del día es 0. A esto se suman los extra_minutes del override, solo para la sesión que lo usa.
 - "Hoy" y "esta semana" se calculan con `families.timezone` y `week_start_day`. `core` recibe un puerto `Clock`.
 
 ## Reglas por decidir (configuración o default, sin cambiar el esquema)

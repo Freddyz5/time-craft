@@ -1,5 +1,5 @@
 -- =====================================================================
--- Time Craft · Hito 1 (MVP) · schema v4
+-- Time Craft · Hito 1 (MVP) · schema v5
 -- Cronómetro compartido, cuotas diaria/semanal, alarma, dashboard
 -- + el niño entra con usuario + PIN desde cualquier navegador, ve su
 --   saldo y cronómetro, solicita empezar, pide tiempo extra y reporta
@@ -26,6 +26,14 @@
 --     'scheduled' con scheduled_start_at; QStash la arranca a esa hora
 --     (session_alerts.alert_type = 'start'). Un padre puede adelantarla
 --     o cancelarla (status 'cancelled').
+-- Cambios v5
+--   - Días con tiempo por cuota: quota_policies.allowed_days. Un día que
+--     no está, esa bolsa no tiene tiempo (solo el tiempo extra de un padre).
+--   - Gracia al terminar: quota_policies.grace_minutes; la sesión copia
+--     la suya al arrancar (sessions.grace_seconds) y esa parte del
+--     exceso nunca se descuenta.
+--   - custom_rules: reglas escritas por los padres, para el niño o solo
+--     para los padres (parents_only). No cambian ningún cálculo.
 -- =====================================================================
 -- Regla de permisos
 --   El niño solo LEE o PIDE. Todo lo que da tiempo o inicia una sesión
@@ -39,6 +47,8 @@
 --                      weekly_limit_minutes + bonos_semana - consumido_semana)
 --   (+ extra_minutes del override, solo para la sesión que lo usa)
 --   Solo cuentan sesiones con started_at (las programadas o canceladas no consumen).
+--   En un día que no está en allowed_days, consumido_hoy no importa: el
+--   día queda en 0. A cada sesión se le resta mín(exceso, grace_seconds).
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -195,6 +205,8 @@ CREATE TABLE quota_policies (
     weekly_bonus_cap_minutes  INTEGER     NOT NULL DEFAULT 60,    -- tope de bonos ganados por semana
     carry_over_excess         BOOLEAN     NOT NULL DEFAULT false, -- el exceso se descuenta del día siguiente
     warning_minutes           INTEGER     NOT NULL DEFAULT 5,     -- aviso previo
+    allowed_days              SMALLINT[]  NOT NULL DEFAULT '{0,1,2,3,4,5,6}', -- días con tiempo (0 = domingo)
+    grace_minutes             INTEGER     NOT NULL DEFAULT 0,     -- minutos tras el fin que no cuentan
     valid_from                TIMESTAMPTZ NOT NULL DEFAULT now(),
     valid_to                  TIMESTAMPTZ,                        -- NULL = vigente
     created_by_parent_id      UUID        NOT NULL,
@@ -202,9 +214,29 @@ CREATE TABLE quota_policies (
     CONSTRAINT chk_quota_limits CHECK (daily_limit_minutes > 0 AND weekly_limit_minutes >= daily_limit_minutes),
     CONSTRAINT chk_quota_bonus_cap CHECK (weekly_bonus_cap_minutes >= 0),
     CONSTRAINT chk_quota_warning CHECK (warning_minutes >= 0),
+    CONSTRAINT chk_quota_allowed_days CHECK (cardinality(allowed_days) BETWEEN 1 AND 7 AND allowed_days <@ '{0,1,2,3,4,5,6}'::smallint[]),
+    CONSTRAINT chk_quota_grace CHECK (grace_minutes >= 0),
     CONSTRAINT fk_quota_child FOREIGN KEY (child_id) REFERENCES children (id),
     CONSTRAINT fk_quota_activity FOREIGN KEY (activity_id) REFERENCES activities (id),
     CONSTRAINT fk_quota_created_by FOREIGN KEY (created_by_parent_id) REFERENCES parents (id)
+);
+
+-- Reglas escritas por los padres. parents_only = recordatorio que solo
+-- ven los padres ("Solo después de comer"); las demás las lee el niño.
+-- Ninguna cambia el saldo ni los permisos.
+CREATE TABLE custom_rules (
+    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    child_id              UUID         NOT NULL,
+    text                  VARCHAR(200) NOT NULL,
+    parents_only          BOOLEAN      NOT NULL DEFAULT false,
+    position              INTEGER      NOT NULL,              -- orden dentro de su lista
+    created_by_parent_id  UUID         NOT NULL,
+    created_at            TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at            TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    CONSTRAINT chk_custom_rules_text CHECK (length(trim(text)) > 0),
+    CONSTRAINT chk_custom_rules_position CHECK (position >= 0),
+    CONSTRAINT fk_custom_rules_child FOREIGN KEY (child_id) REFERENCES children (id),
+    CONSTRAINT fk_custom_rules_created_by FOREIGN KEY (created_by_parent_id) REFERENCES parents (id)
 );
 
 -- ---------------------------------------------------------------------
@@ -298,6 +330,7 @@ CREATE TABLE sessions (
     ended_at                  TIMESTAMPTZ,
     end_reason                VARCHAR(20),                 -- completed | stopped_early | auto_closed
     consumed_seconds          INTEGER,                     -- tiempo real (incluye exceso), se fija al cerrar
+    grace_seconds             INTEGER     NOT NULL DEFAULT 0, -- gracia de su cuota al arrancar: esa parte del exceso no cuenta
     started_by_parent_id      UUID        NOT NULL,
     ended_by_parent_id        UUID,                        -- quien la detuvo o canceló; NULL solo si auto_closed
     created_at                TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -305,6 +338,7 @@ CREATE TABLE sessions (
     CONSTRAINT chk_sessions_status CHECK (status IN ('scheduled', 'running', 'paused', 'finished', 'cancelled')),
     CONSTRAINT chk_sessions_end_reason CHECK (end_reason IS NULL OR end_reason IN ('completed', 'stopped_early', 'auto_closed')),
     CONSTRAINT chk_sessions_planned CHECK (planned_duration_seconds > 0),
+    CONSTRAINT chk_sessions_grace CHECK (grace_seconds >= 0),
     CONSTRAINT chk_sessions_start CHECK (
         (status = 'scheduled' AND scheduled_start_at IS NOT NULL AND started_at IS NULL)
         OR (status IN ('running', 'paused', 'finished') AND started_at IS NOT NULL)
@@ -440,6 +474,7 @@ CREATE INDEX idx_sessions_status ON sessions (status);
 CREATE INDEX idx_pauses_session ON session_pauses (session_id);
 CREATE INDEX idx_alerts_session ON session_alerts (session_id);
 CREATE INDEX idx_quota_child ON quota_policies (child_id, valid_from);
+CREATE INDEX idx_custom_rules_child ON custom_rules (child_id, position);
 CREATE INDEX idx_overrides_child ON quota_overrides (child_id, created_at);
 CREATE INDEX idx_requests_child_status ON child_requests (child_id, status);
 CREATE INDEX idx_reports_child_reported ON task_reports (child_id, reported_at);

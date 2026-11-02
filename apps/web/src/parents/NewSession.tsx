@@ -1,7 +1,8 @@
 // Nueva sesión: a parent starts one without a request, now or later today.
 // Three numbered steps: activity, minutes (never more than its bag has left),
-// when. With the bag empty the flow becomes extra time (an override), which
-// always needs a reason and is kept in the history.
+// when. With the bag empty, or on a day that is not one of its days, the flow
+// becomes extra time (an override), which always needs a reason and is kept
+// in the history. The parents' own reminders sit on top.
 import { ArrowLeft, CalendarClock, Play } from "lucide-react";
 import { useId, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -19,7 +20,7 @@ import {
 import { activityLook } from "../lib/activity";
 import { api, call } from "../lib/api";
 import { errorMessage } from "../lib/errors";
-import { minutesText, secondsText } from "../lib/format";
+import { minutesText, secondsText, weekDaysText } from "../lib/format";
 import { useBalance, useLiveSession } from "../lib/queries";
 import type { Balance } from "../lib/types";
 import { useCommand } from "../lib/useCommand";
@@ -31,6 +32,7 @@ import {
 	type When,
 	WhenPicker,
 } from "./home/WhenPicker";
+import { Reminders } from "./rules/Reminders";
 
 const PRESETS = [15, 30, 45, 60];
 const MAX_EXTRA_MINUTES = 240;
@@ -46,7 +48,7 @@ function bagOf(
 }
 
 export function NewSession() {
-	const { child, activeActivities, timeZone } = useParents();
+	const { child, activeActivities, timeZone, household } = useParents();
 	const [, navigate] = useLocation();
 	const childId = child?.id;
 	const live = useLiveSession(childId);
@@ -201,6 +203,7 @@ export function NewSession() {
 	return (
 		<div className="mx-auto flex max-w-2xl flex-col gap-5">
 			{header}
+			<Reminders childId={child.id} />
 
 			<form
 				className="flex flex-col gap-5"
@@ -222,9 +225,8 @@ export function NewSession() {
 						<legend className="sr-only">Actividad</legend>
 						{activeActivities.map((activity) => {
 							const activityLookItem = activityLook(activity.code);
-							const left = Math.floor(
-								(bagOf(balances, activity.id)?.availableSeconds ?? 0) / 60,
-							);
+							const itemBag = bagOf(balances, activity.id);
+							const left = Math.floor((itemBag?.availableSeconds ?? 0) / 60);
 							return (
 								<label
 									key={activity.id}
@@ -247,9 +249,11 @@ export function NewSession() {
 									</span>
 									<span className="font-semibold">{activity.name}</span>
 									<span className="text-[0.9375rem] text-ink-soft">
-										{left > 0
-											? `${minutesText(left)} por usar`
-											: "Sin tiempo hoy"}
+										{itemBag?.dayAllowed === false
+											? "Hoy no le toca"
+											: left > 0
+												? `${minutesText(left)} por usar`
+												: "Sin tiempo hoy"}
 									</span>
 								</label>
 							);
@@ -266,7 +270,9 @@ export function NewSession() {
 						id={ids.minutes}
 						hint={
 							extra
-								? `No le queda tiempo de ${chosen?.name ?? "pantalla"}. Puedes darle tiempo extra: queda registrado con su motivo.`
+								? bag?.dayAllowed === false
+									? `Hoy no le toca ${chosen?.name ?? "pantalla"}: sus días son ${weekDaysText(bag.allowedDays, household.family.weekStartDay)}. Puedes darle tiempo extra: queda registrado con su motivo.`
+									: `No le queda tiempo de ${chosen?.name ?? "pantalla"}. Puedes darle tiempo extra: queda registrado con su motivo.`
 								: `Le quedan ${secondsText(bag?.availableSeconds ?? 0)} hoy. Cuando se le acabe, aquí mismo podrás darle tiempo extra.`
 						}
 					>

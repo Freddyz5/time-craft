@@ -26,6 +26,13 @@ import {
 	updateBonusTask,
 } from "./bonuses";
 import type { CoreDeps } from "./context";
+import {
+	addCustomRule,
+	deleteCustomRule,
+	listCustomRules,
+	reorderCustomRules,
+	updateCustomRule,
+} from "./custom-rules";
 import { getChildHistory } from "./history";
 import { getHousehold } from "./household";
 import { handleJob } from "./jobs";
@@ -64,6 +71,7 @@ export * from "./accounts";
 export * from "./balance";
 export * from "./bonuses";
 export type { CoreDeps, Tx } from "./context";
+export * from "./custom-rules";
 export * from "./history";
 export * from "./household";
 export * from "./jobs";
@@ -111,6 +119,11 @@ export function createCore(deps: CoreDeps) {
 		listPolicyHistory: bind(deps, listPolicyHistory),
 		setPolicy: bind(deps, setPolicy),
 		clearActivityPolicy: bind(deps, clearActivityPolicy),
+		listCustomRules: bind(deps, listCustomRules),
+		addCustomRule: bind(deps, addCustomRule),
+		updateCustomRule: bind(deps, updateCustomRule),
+		deleteCustomRule: bind(deps, deleteCustomRule),
+		reorderCustomRules: bind(deps, reorderCustomRules),
 		// Bonuses
 		listBonusTasks: (actor: Actor) => listBonusTasks(deps, actor),
 		listPendingTaskReports: (actor: Actor) =>

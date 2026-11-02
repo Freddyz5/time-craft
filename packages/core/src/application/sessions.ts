@@ -3,6 +3,7 @@
 import { type Actor, requireParent } from "../domain/actor";
 import { RUNNING_ALERT_TYPES } from "../domain/alerts";
 import {
+	assertDayAllowed,
 	assertFitsCap,
 	quotaExhausted,
 	sessionCapSeconds,
@@ -79,6 +80,7 @@ export async function startDirectSession(
 			child.id,
 			input.activityId,
 		);
+		assertDayAllowed(balance);
 		const plannedSeconds = minutesToSeconds(minutes);
 		assertFitsCap(plannedSeconds, sessionCapSeconds(balance));
 		return openSession(tx, {
@@ -91,6 +93,7 @@ export async function startDirectSession(
 			scheduledStartAt,
 			parentId: actor.parentId,
 			warningMinutes: policy.warningMinutes,
+			graceMinutes: policy.graceMinutes,
 		});
 	});
 }
@@ -99,6 +102,7 @@ interface StartPlan {
 	// Planned duration trimmed to what is available now (0: nothing left).
 	plannedSeconds: number;
 	warningMinutes: number;
+	graceSeconds: number;
 }
 
 // When a scheduled session starts, its duration shrinks to what is available
@@ -116,7 +120,7 @@ async function planScheduledStart(
 	);
 	if (entry === null) {
 		// Without limits there is nothing to draw from.
-		return { plannedSeconds: 0, warningMinutes: 0 };
+		return { plannedSeconds: 0, warningMinutes: 0, graceSeconds: 0 };
 	}
 	const override =
 		session.overrideId === null
@@ -126,6 +130,7 @@ async function planScheduledStart(
 	return {
 		plannedSeconds: Math.max(0, Math.min(session.plannedDurationSeconds, cap)),
 		warningMinutes: entry.policy.warningMinutes,
+		graceSeconds: minutesToSeconds(entry.policy.graceMinutes),
 	};
 }
 
@@ -137,7 +142,12 @@ async function beginScheduled(
 	child: Child,
 	activity: Activity,
 ): Promise<Session> {
-	const started = markStarted(session, tx.now, plan.plannedSeconds);
+	const started = markStarted(
+		session,
+		tx.now,
+		plan.plannedSeconds,
+		plan.graceSeconds,
+	);
 	await saveTransition(tx, started, "scheduled");
 	await cancelPendingAlerts(tx, session.id, ["start"]);
 	await scheduleRunningAlerts(tx, started, {

@@ -19,6 +19,9 @@ export interface SetPolicyInput {
 	weeklyBonusCapMinutes?: number;
 	carryOverExcess?: boolean;
 	warningMinutes?: number;
+	// 0 = Sunday ... 6 = Saturday.
+	allowedDays?: readonly number[];
+	graceMinutes?: number;
 }
 
 export async function setPolicy(
@@ -59,6 +62,12 @@ export async function setPolicy(
 				input.warningMinutes ??
 				current?.warningMinutes ??
 				policyDefaults.warningMinutes,
+			allowedDays:
+				input.allowedDays ?? current?.allowedDays ?? policyDefaults.allowedDays,
+			graceMinutes:
+				input.graceMinutes ??
+				current?.graceMinutes ??
+				policyDefaults.graceMinutes,
 		});
 		await tx.repos.policies.closeCurrent(child.id, activityId, tx.now);
 		const policy: QuotaPolicy = {

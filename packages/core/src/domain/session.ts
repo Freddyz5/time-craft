@@ -45,6 +45,9 @@ export interface Session {
 	endedAt: Date | null;
 	endReason: EndReason | null;
 	consumedSeconds: number | null;
+	// The policy's grace when it started: that much of the excess never
+	// counts toward the quota (see `chargedSeconds`).
+	graceSeconds: number;
 	startedByParentId: string;
 	endedByParentId: string | null;
 	createdAt: Date;
@@ -84,6 +87,7 @@ interface NewSession {
 	requestId: string | null;
 	overrideId: string | null;
 	plannedDurationSeconds: number;
+	graceSeconds: number;
 	startedByParentId: string;
 	now: Date;
 }
@@ -113,6 +117,7 @@ export function createRunningSession(input: NewSession): Session {
 		endedAt: null,
 		endReason: null,
 		consumedSeconds: null,
+		graceSeconds: input.graceSeconds,
 		startedByParentId: input.startedByParentId,
 		endedByParentId: null,
 		createdAt: input.now,
@@ -132,11 +137,13 @@ export function createScheduledSession(
 	};
 }
 
-// scheduled → running, now. The duration may shrink to what is available.
+// scheduled → running, now. The duration may shrink to what is available,
+// and the grace is the policy's at that moment.
 export function markStarted(
 	session: Session,
 	at: Date,
 	plannedDurationSeconds: number,
+	graceSeconds: number,
 ): Session {
 	assertTransition(session, "running");
 	assertPlanned(plannedDurationSeconds);
@@ -145,6 +152,7 @@ export function markStarted(
 		status: "running",
 		startedAt: at,
 		plannedDurationSeconds,
+		graceSeconds,
 	};
 }
 
@@ -271,6 +279,14 @@ export function consumedSeconds(session: Session, now: Date): number {
 		return elapsedSeconds(session, now);
 	}
 	return 0;
+}
+
+// What the session takes from the quota: the consumed time less its grace,
+// the first part of the excess, which never counts.
+export function chargedSeconds(session: Session, now: Date): number {
+	const consumed = consumedSeconds(session, now);
+	const overrun = Math.max(0, consumed - session.plannedDurationSeconds);
+	return consumed - Math.min(overrun, session.graceSeconds);
 }
 
 export function stopReason(session: Session, consumed: number): EndReason {

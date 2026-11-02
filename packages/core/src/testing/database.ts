@@ -5,6 +5,7 @@
 import type { SessionAlert } from "../domain/alerts";
 import type { BonusTask, TaskReport } from "../domain/bonus";
 import type { Period } from "../domain/calendar";
+import type { CustomRule } from "../domain/custom-rule";
 import type { Activity, Child, Family, Parent } from "../domain/family";
 import type { QuotaPolicy } from "../domain/policy";
 import type { NativePushToken, PushSubscription } from "../domain/push";
@@ -19,6 +20,7 @@ export interface Tables {
 	children: Map<string, Child>;
 	activities: Map<string, Activity>;
 	policies: Map<string, QuotaPolicy>;
+	customRules: Map<string, CustomRule>;
 	requests: Map<string, ChildRequest>;
 	overrides: Map<string, QuotaOverride>;
 	sessions: Map<string, Session>;
@@ -39,6 +41,7 @@ function emptyTables(): Tables {
 		children: new Map(),
 		activities: new Map(),
 		policies: new Map(),
+		customRules: new Map(),
 		requests: new Map(),
 		overrides: new Map(),
 		sessions: new Map(),
@@ -265,6 +268,23 @@ function createRepositories(t: () => Tables): Repositories {
 					throw uniqueViolation("uq_quota_current");
 				}
 				t().policies.set(policy.id, copy(policy));
+			},
+		},
+
+		customRules: {
+			findById: async (id) => find(t().customRules, id),
+			listByChild: async (childId) =>
+				values("customRules")
+					.filter((rule) => rule.childId === childId)
+					.map(copy),
+			insert: async (rule) => {
+				t().customRules.set(rule.id, copy(rule));
+			},
+			update: async (rule) => {
+				t().customRules.set(rule.id, copy(rule));
+			},
+			delete: async (id) => {
+				t().customRules.delete(id);
 			},
 		},
 

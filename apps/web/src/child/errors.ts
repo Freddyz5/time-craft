@@ -11,6 +11,8 @@ const messages: Record<string, string> = {
 		"Todavía no hay reglas de tiempo. Pídele a mamá o papá que las pongan.",
 	activity_inactive: "Esa actividad ya no está disponible.",
 	quota_exhausted: "Ya no te queda tiempo hoy. Puedes pedir tiempo extra.",
+	day_not_allowed:
+		"Hoy no es uno de tus días: mira en Inicio cuándo vuelves a tener tiempo.",
 	quota_not_exhausted:
 		"Todavía te queda tiempo: pide para empezar, no tiempo extra.",
 	request_already_pending: "Ya tienes un pedido esperando respuesta.",

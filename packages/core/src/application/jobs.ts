@@ -100,13 +100,18 @@ export async function handleJob(
 						}),
 					);
 				} else {
+					const graceMinutes = Math.floor(session.graceSeconds / 60);
 					tx.after.notify(
 						parents,
-						messages.sessionEnded({ ...text, audience: "parents" }),
+						messages.sessionEnded({
+							...text,
+							graceMinutes,
+							audience: "parents",
+						}),
 					);
 					tx.after.notify(
 						[child.authUserId],
-						messages.sessionEnded({ ...text, audience: "child" }),
+						messages.sessionEnded({ ...text, graceMinutes, audience: "child" }),
 					);
 				}
 				break;

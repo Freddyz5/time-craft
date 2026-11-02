@@ -1,12 +1,24 @@
-// Rules: quota policies, with history (valid_to null = current).
-import type { QuotaPolicyRepository } from "@time-craft/core";
-import { type Db, quotaPolicies } from "@time-craft/db";
+// Rules: quota policies, with history (valid_to null = current), and the
+// rules the parents write.
+import type {
+	CustomRuleRepository,
+	QuotaPolicy,
+	QuotaPolicyRepository,
+} from "@time-craft/core";
+import { customRules, type Db, quotaPolicies } from "@time-craft/db";
 import { and, desc, eq, isNull } from "drizzle-orm";
+import { toWeekDay } from "./family";
+
+type QuotaPolicyRow = typeof quotaPolicies.$inferSelect;
+
+function toPolicy(row: QuotaPolicyRow): QuotaPolicy {
+	return { ...row, allowedDays: row.allowedDays.map(toWeekDay) };
+}
 
 export function quotaPolicyRepository(db: Db): QuotaPolicyRepository {
 	return {
 		async listCurrent(childId) {
-			return db
+			const rows = await db
 				.select()
 				.from(quotaPolicies)
 				.where(
@@ -15,13 +27,15 @@ export function quotaPolicyRepository(db: Db): QuotaPolicyRepository {
 						isNull(quotaPolicies.validTo),
 					),
 				);
+			return rows.map(toPolicy);
 		},
 		async listByChild(childId) {
-			return db
+			const rows = await db
 				.select()
 				.from(quotaPolicies)
 				.where(eq(quotaPolicies.childId, childId))
 				.orderBy(desc(quotaPolicies.validFrom));
+			return rows.map(toPolicy);
 		},
 		async closeCurrent(childId, activityId, validTo) {
 			await db
@@ -39,6 +53,29 @@ export function quotaPolicyRepository(db: Db): QuotaPolicyRepository {
 		},
 		async insert(policy) {
 			await db.insert(quotaPolicies).values(policy);
+		},
+	};
+}
+
+export function customRuleRepository(db: Db): CustomRuleRepository {
+	return {
+		async findById(id) {
+			const [row] = await db
+				.select()
+				.from(customRules)
+				.where(eq(customRules.id, id));
+			return row ?? null;
+		},
+		listByChild: (childId) =>
+			db.select().from(customRules).where(eq(customRules.childId, childId)),
+		async insert(rule) {
+			await db.insert(customRules).values(rule);
+		},
+		async update(rule) {
+			await db.update(customRules).set(rule).where(eq(customRules.id, rule.id));
+		},
+		async delete(id) {
+			await db.delete(customRules).where(eq(customRules.id, id));
 		},
 	};
 }

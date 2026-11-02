@@ -1,7 +1,9 @@
 // "Ahora" on the child's side: the session a parent started, read-only. A
 // big countdown and the session's bricks draining while it runs; frozen while
 // paused; past its end, a fixed "¡Se acabó!" (no growing number to beat),
-// the overrun brick and a calm word to switch off. A session scheduled for
+// the overrun brick and a calm word to switch off. With a grace, it first
+// counts down the time left to tell a parent to stop it, which never counts
+// (so no overrun brick until it is over). A session scheduled for
 // later counts down to "¡Ya puedes empezar!", and the tab rings then, at the
 // warning and at the end. When it arrives with a parent's yes, its bricks
 // snap in. While it runs, the plate takes the activity's colour and the
@@ -71,6 +73,11 @@ function sessionBricks(
 	const plannedMinutes = session.plannedDurationSeconds / 60;
 	const unit = brickUnit(plannedMinutes, 12);
 	const remainingMinutes = remainingMs / 60_000;
+	// The grace is not overrun: it never counts.
+	const overrunMinutes = Math.max(
+		0,
+		-remainingMinutes - session.graceSeconds / 60,
+	);
 	const bricks = [
 		...bricksFor(
 			Math.max(0, remainingMinutes),
@@ -79,7 +86,7 @@ function sessionBricks(
 			color,
 			outline,
 		),
-		...overrunBricks(-Math.min(0, remainingMinutes), unit),
+		...overrunBricks(overrunMinutes, unit),
 	];
 	return { bricks, unit };
 }
@@ -209,6 +216,10 @@ function Running({
 	const t = timing(session, now);
 	const paused = session.status === "paused";
 	const over = t.remainingMs < 0;
+	// What is left of the grace once it is over (0 without one).
+	const graceLeftMs = over
+		? Math.max(0, session.graceSeconds * 1000 + t.remainingMs)
+		: 0;
 	const pauseStart = pausedSince(session);
 	const plannedMinutes = session.plannedDurationSeconds / 60;
 	// Running on time: the plate is the activity's, its bricks white plastic.
@@ -297,15 +308,31 @@ function Running({
 				<p
 					className={`text-lg ${paused ? "text-pause-ink" : running ? "text-white" : ""}`}
 				>
-					{paused
-						? pauseStart === null
-							? "Tu tiempo no corre mientras está en pausa."
-							: `Tu tiempo no corre desde las ${timeText(pauseStart, timeZone)}.`
-						: over
-							? "Guarda y apaga. Lo que sigas usando también cuenta."
-							: soon
-								? "Ve terminando: ya casi se acaba."
-								: `Termina a las ${timeText(t.endsAtMs ?? now, timeZone)}.`}
+					{paused ? (
+						pauseStart === null ? (
+							"Tu tiempo no corre mientras está en pausa."
+						) : (
+							`Tu tiempo no corre desde las ${timeText(pauseStart, timeZone)}.`
+						)
+					) : over ? (
+						graceLeftMs > 0 ? (
+							<>
+								Guarda y apaga. Tienes{" "}
+								<span className="tabular font-bold">
+									{countdown(graceLeftMs)}
+								</span>{" "}
+								para avisar a mamá o papá que la detengan: ese tiempo no cuenta.
+							</>
+						) : session.graceSeconds > 0 ? (
+							"Guarda y apaga. Lo que sigas usando ahora sí cuenta."
+						) : (
+							"Guarda y apaga. Lo que sigas usando también cuenta."
+						)
+					) : soon ? (
+						"Ve terminando: ya casi se acaba."
+					) : (
+						`Termina a las ${timeText(t.endsAtMs ?? now, timeZone)}.`
+					)}
 				</p>
 				<p
 					className={`text-[0.9375rem] ${paused ? "text-pause-ink" : running ? "text-white/85" : "text-ink-soft"}`}
@@ -337,6 +364,7 @@ export function NowCard({
 	const name = activityById(activities, session.activityId)?.name ?? "pantalla";
 	const warningMinutes =
 		bagFor(policies, session.activityId)?.warningMinutes ?? 0;
+	const graceMinutes = Math.floor(session.graceSeconds / 60);
 	const t = timing(session, now);
 
 	useSessionAlarm(
@@ -350,7 +378,10 @@ export function NowCard({
 						}
 					: {
 							title: `Se acabó tu sesión de ${name}`,
-							body: "Guarda y apaga. Avisa a mamá o papá para que la detengan.",
+							body:
+								graceMinutes > 0
+									? `Guarda y apaga. Tienes ${minutesText(graceMinutes)} para avisar a mamá o papá que la detengan.`
+									: "Guarda y apaga. Avisa a mamá o papá para que la detengan.",
 						};
 			toast.show("alarm", words.title, words.body);
 			return words;
