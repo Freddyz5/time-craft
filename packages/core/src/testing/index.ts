@@ -83,6 +83,8 @@ export interface HouseholdOptions {
 			| "weeklyBonusCapMinutes"
 			| "carryOverExcess"
 			| "warningMinutes"
+			| "allowedDays"
+			| "graceMinutes"
 		>
 	> | null;
 }
@@ -173,6 +175,8 @@ export function seedHousehold(
 			weeklyBonusCapMinutes: 60,
 			carryOverExcess: false,
 			warningMinutes: 5,
+			allowedDays: [0, 1, 2, 3, 4, 5, 6],
+			graceMinutes: 0,
 			...options.policy,
 			validFrom: new Date("2026-01-01T00:00:00Z"),
 			validTo: null,

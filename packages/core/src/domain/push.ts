@@ -108,11 +108,19 @@ export const messages = {
 		sessionId: string;
 		childName: string;
 		activityName: string;
+		// The session's grace: the minutes after the end that do not count.
+		graceMinutes: number;
 	}): PushMessage {
+		const ended = `Terminó ${input.activityName} de ${input.childName}.`;
 		return {
 			kind: "session_ended",
 			title: "Se acabó el tiempo",
-			body: `Terminó ${input.activityName} de ${input.childName}.`,
+			body:
+				input.graceMinutes === 0
+					? ended
+					: input.audience === "parents"
+						? `${ended} Si la detienes en ${input.graceMinutes} min, lo que se pase no cuenta.`
+						: `Terminó ${input.activityName}. Tienes ${input.graceMinutes} min para avisar a mamá o papá que lo detengan.`,
 			url: urlFor(input.audience),
 			tag: `session-${input.sessionId}`,
 			data: { sessionId: input.sessionId },

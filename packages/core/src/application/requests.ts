@@ -1,6 +1,10 @@
 // The child's requests (start, extra_time) and how parents resolve them.
 import { type Actor, requireChild, requireParent } from "../domain/actor";
-import { assertFitsCap, sessionCapSeconds } from "../domain/balance";
+import {
+	assertDayAllowed,
+	assertFitsCap,
+	sessionCapSeconds,
+} from "../domain/balance";
 import { messages } from "../domain/push";
 import {
 	type ChildRequest,
@@ -121,7 +125,8 @@ export interface CreateRequestInput {
 
 // The child asks to start, or for extra time once the quota is used up. Only
 // one pending request at a time; it expires after the family's
-// request_expiry_minutes. The parents get a push.
+// request_expiry_minutes. On a day the policy does not allow, nothing can be
+// asked. The parents get a push.
 export async function createRequest(
 	deps: CoreDeps,
 	actor: Actor,
@@ -159,6 +164,8 @@ export async function createRequest(
 			child.id,
 			activity.id,
 		);
+		// Not even extra time: on a day off only a parent can give some.
+		assertDayAllowed(balance);
 		if (input.requestType === "start") {
 			// With nothing left this fails with quota_exhausted: ask for extra time.
 			assertFitsCap(minutesToSeconds(minutes), sessionCapSeconds(balance));
@@ -307,6 +314,9 @@ export async function approveRequest(
 			activity.id,
 		);
 		const isExtraTime = request.requestType === "extra_time";
+		if (!isExtraTime) {
+			assertDayAllowed(balance);
+		}
 		const plannedSeconds = minutesToSeconds(approvedMinutes);
 		assertFitsCap(
 			plannedSeconds,
@@ -338,6 +348,7 @@ export async function approveRequest(
 			scheduledStartAt,
 			parentId: actor.parentId,
 			warningMinutes: policy.warningMinutes,
+			graceMinutes: policy.graceMinutes,
 		});
 		tx.after.notify(
 			[child.authUserId],

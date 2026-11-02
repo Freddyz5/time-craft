@@ -72,6 +72,7 @@ export async function grantOverride(
 			scheduledStartAt,
 			parentId: actor.parentId,
 			warningMinutes: policy.warningMinutes,
+			graceMinutes: policy.graceMinutes,
 		});
 		return { override, session };
 	});

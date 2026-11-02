@@ -64,9 +64,15 @@ describe("state machine", () => {
 		const scheduled = scheduledSession("2026-10-21T20:00:00Z", {
 			plannedMinutes: 30,
 		});
-		const running = markStarted(scheduled, at("2026-10-21T20:00:00Z"), 1200);
+		const running = markStarted(
+			scheduled,
+			at("2026-10-21T20:00:00Z"),
+			1200,
+			60,
+		);
 		expect(running.status).toBe("running");
 		expect(running.plannedDurationSeconds).toBe(1200);
+		expect(running.graceSeconds).toBe(60);
 
 		const paused = markPaused(running, {
 			id: "p1",

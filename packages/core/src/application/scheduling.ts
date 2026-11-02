@@ -12,6 +12,7 @@ import {
 	createScheduledSession,
 	type Session,
 } from "../domain/session";
+import { minutesToSeconds } from "../domain/values";
 import { DomainError } from "../errors";
 import type { Tx } from "./context";
 import { calendarOf } from "./quota";
@@ -132,6 +133,7 @@ export interface OpenSessionInput {
 	scheduledStartAt: Date | null;
 	parentId: string;
 	warningMinutes: number;
+	graceMinutes: number;
 }
 
 // Creates the session (running now, or scheduled) and its jobs. The caller
@@ -148,6 +150,7 @@ export async function openSession(
 		requestId: input.requestId,
 		overrideId: input.overrideId,
 		plannedDurationSeconds: input.plannedSeconds,
+		graceSeconds: minutesToSeconds(input.graceMinutes),
 		startedByParentId: input.parentId,
 		now: tx.now,
 	};

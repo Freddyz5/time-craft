@@ -30,6 +30,7 @@ export const errorKinds = {
 	bonus_task_not_found: "not_found",
 	task_report_not_found: "not_found",
 	login_not_found: "not_found",
+	custom_rule_not_found: "not_found",
 
 	request_already_pending: "conflict",
 	request_already_resolved: "conflict",
@@ -48,6 +49,8 @@ export const errorKinds = {
 	quota_not_exhausted: "rule",
 	exceeds_available: "rule",
 	weekly_task_limit_reached: "rule",
+	day_not_allowed: "rule",
+	custom_rule_limit_reached: "rule",
 } as const satisfies Record<string, ErrorKind>;
 
 export type ErrorCode = keyof typeof errorKinds;
