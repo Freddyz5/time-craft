@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0](https://github.com/Freddyz5/time-craft/compare/web-v1.3.0...web-v1.4.0) (2026-11-02)
+
+### Features
+
+* **web:** days, grace, written rules and the child's rules preview ([44a8829](https://github.com/Freddyz5/time-craft/commit/44a88294cee42fd294b33cd21c5509fe1438c961))
+
 ## [1.3.0](https://github.com/Freddyz5/time-craft/compare/web-v1.2.0...web-v1.3.0) (2026-10-31)
 
 ### Features
