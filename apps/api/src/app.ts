@@ -10,6 +10,7 @@ import { notFound, onError } from "./http/errors";
 import { accountRoutes, recoveryRoutes } from "./routes/accounts";
 import { balanceRoutes } from "./routes/balance";
 import { bonusTaskRoutes } from "./routes/bonus-tasks";
+import { customRuleRoutes } from "./routes/custom-rules";
 import { historyRoutes } from "./routes/history";
 import { jobRoutes } from "./routes/jobs";
 import { nativePushTokenRoutes } from "./routes/native-push-tokens";
@@ -52,6 +53,7 @@ export function createApp(deps: AppDeps) {
 		.route("/api", requestRoutes(deps))
 		.route("/api", overrideRoutes(deps))
 		.route("/api", policyRoutes(deps))
+		.route("/api", customRuleRoutes(deps))
 		.route("/api", bonusTaskRoutes(deps))
 		.route("/api", taskReportRoutes(deps))
 		.route("/api", pushSubscriptionRoutes(deps))
