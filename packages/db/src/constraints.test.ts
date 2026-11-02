@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import { DrizzleQueryError, eq } from "drizzle-orm";
 import {
 	childRequests,
+	customRules,
 	type NewChildRequest,
 	type NewSession,
 	quotaPolicies,
@@ -327,5 +328,55 @@ describe("quota_policies", () => {
 		await db.insert(quotaPolicies).values(newPolicy(f, f.game.id));
 
 		await db.insert(quotaPolicies).values(newPolicy(f, f.tv.id));
+	});
+});
+
+describe("quota_policies days", () => {
+	const newPolicy = (f: FamilyFixture, allowedDays?: number[]) => ({
+		childId: f.child.id,
+		dailyLimitMinutes: 60,
+		weeklyLimitMinutes: 300,
+		createdByParentId: f.mom.id,
+		...(allowedDays === undefined ? {} : { allowedDays }),
+	});
+
+	test("every day is allowed by default", async () => {
+		const f = await createFamily(db);
+		const policy = first(
+			await db.insert(quotaPolicies).values(newPolicy(f)).returning(),
+		);
+
+		expect(policy.allowedDays).toEqual([0, 1, 2, 3, 4, 5, 6]);
+		expect(policy.graceMinutes).toBe(0);
+	});
+
+	test("at least one day, and only days of the week", async () => {
+		const f = await createFamily(db);
+
+		await expectViolation(
+			db.insert(quotaPolicies).values(newPolicy(f, [])),
+			"chk_quota_allowed_days",
+		);
+		await expectViolation(
+			db.insert(quotaPolicies).values(newPolicy(f, [1, 7])),
+			"chk_quota_allowed_days",
+		);
+		await db.insert(quotaPolicies).values(newPolicy(f, [6, 0]));
+	});
+});
+
+describe("custom_rules", () => {
+	test("a rule needs some text", async () => {
+		const f = await createFamily(db);
+
+		await expectViolation(
+			db.insert(customRules).values({
+				childId: f.child.id,
+				text: "   ",
+				position: 0,
+				createdByParentId: f.mom.id,
+			}),
+			"chk_custom_rules_text",
+		);
 	});
 });
