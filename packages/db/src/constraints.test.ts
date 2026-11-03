@@ -5,6 +5,7 @@ import { DrizzleQueryError, eq } from "drizzle-orm";
 import {
 	childRequests,
 	customRules,
+	hiddenRules,
 	type NewChildRequest,
 	type NewSession,
 	quotaPolicies,
@@ -378,5 +379,21 @@ describe("custom_rules", () => {
 			}),
 			"chk_custom_rules_text",
 		);
+	});
+});
+
+describe("hidden_rules", () => {
+	test("only known kinds of rule, once per child", async () => {
+		const f = await createFamily(db);
+		const hide = (ruleKey: string) =>
+			db.insert(hiddenRules).values({
+				childId: f.child.id,
+				ruleKey,
+				hiddenByParentId: f.mom.id,
+			});
+
+		await hide("one_session");
+		await expectViolation(hide("one_session"), "pk_hidden_rules");
+		await expectViolation(hide("anything"), "chk_hidden_rules_key");
 	});
 });

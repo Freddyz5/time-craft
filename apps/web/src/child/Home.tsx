@@ -12,6 +12,7 @@ import { buttonClass, LoadingBricks, Notice } from "../components/ui";
 import {
 	useBalance,
 	useCustomRules,
+	useHiddenRules,
 	useLiveSession,
 	usePolicies,
 } from "../lib/queries";
@@ -34,6 +35,7 @@ export function Home() {
 	const balance = useBalance(childId);
 	const policies = usePolicies(childId);
 	const customRules = useCustomRules(childId);
+	const hiddenRules = useHiddenRules(childId);
 	const requests = useMyRequests();
 	const { arrival } = requests;
 
@@ -108,6 +110,7 @@ export function Home() {
 			<Rules
 				policies={policies.data?.policies ?? []}
 				customRules={customRules.data?.rules ?? []}
+				hidden={hiddenRules.data?.ruleKeys ?? []}
 			/>
 			<PushOffer />
 		</>

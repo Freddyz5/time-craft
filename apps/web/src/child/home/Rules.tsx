@@ -2,19 +2,33 @@
 // the batteries. The same policies and rules the parents set, read from the
 // api: the rules are visible to everyone, not only implied by the fractions.
 import { ChevronDown, ScrollText } from "lucide-react";
-import { ChildRules } from "../../components/ChildRules";
-import type { CustomRule, Policy } from "../../lib/types";
+import { ChildRules, hasVisibleRules } from "../../components/ChildRules";
+import type { CustomRule, HiddenRuleKey, Policy } from "../../lib/types";
 import { useChild } from "../context";
 
 export function Rules({
 	policies,
 	customRules,
+	hidden,
 }: {
 	policies: readonly Policy[];
 	customRules: readonly CustomRule[];
+	// The automatic lines the parents chose to leave out.
+	hidden: readonly HiddenRuleKey[];
 }) {
 	const { activities, household } = useChild();
-	if (policies.length === 0 && customRules.length === 0) {
+	const input = {
+		policies,
+		customRules,
+		hidden,
+		requestExpiryMinutes: household.family.requestExpiryMinutes,
+		weekStartDay: household.family.weekStartDay,
+	};
+	// Without limits yet, or with every line hidden, there is nothing to read.
+	if (
+		(policies.length === 0 && customRules.length === 0) ||
+		!hasVisibleRules(input)
+	) {
 		return null;
 	}
 	return (
@@ -28,13 +42,7 @@ export function Rules({
 				/>
 			</summary>
 			<div className="px-4 pb-4 sm:px-5 sm:pb-5">
-				<ChildRules
-					policies={policies}
-					activities={activities}
-					customRules={customRules}
-					requestExpiryMinutes={household.family.requestExpiryMinutes}
-					weekStartDay={household.family.weekStartDay}
-				/>
+				<ChildRules {...input} activities={activities} />
 			</div>
 		</details>
 	);

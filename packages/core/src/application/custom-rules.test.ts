@@ -154,3 +154,48 @@ describe("custom rules", () => {
 		).rejects.toMatchObject({ code: "child_not_found" });
 	});
 });
+
+describe("hidden automatic rules", () => {
+	const hide = (ruleKey: string, hidden = true) =>
+		kit.core.setRuleHidden(h.mom, { childId: h.childId, ruleKey, hidden });
+
+	test("a parent hides and shows them; twice changes nothing", async () => {
+		expect(await hide("one_session")).toEqual(["one_session"]);
+		expect(await hide("one_session")).toEqual(["one_session"]);
+		await hide("week_change");
+		expect(
+			(await kit.core.listHiddenRules(h.child, { childId: h.childId })).sort(),
+		).toEqual(["one_session", "week_change"]);
+
+		expect(await hide("one_session", false)).toEqual(["week_change"]);
+		expect(await hide("one_session", false)).toEqual(["week_change"]);
+	});
+
+	test("only known automatic rules", async () => {
+		await expect(hide("custom")).rejects.toMatchObject({
+			code: "invalid_input",
+			details: { field: "ruleKey" },
+		});
+	});
+
+	test("the child cannot choose them", async () => {
+		await expect(
+			kit.core.setRuleHidden(h.child, {
+				childId: h.childId,
+				ruleKey: "limits",
+				hidden: true,
+			}),
+		).rejects.toMatchObject({ code: "forbidden" });
+	});
+
+	test("another family's child is not found", async () => {
+		const other = seedHousehold(kit, { prefix: "x-" });
+		await expect(
+			kit.core.setRuleHidden(other.mom, {
+				childId: h.childId,
+				ruleKey: "limits",
+				hidden: true,
+			}),
+		).rejects.toMatchObject({ code: "child_not_found" });
+	});
+});

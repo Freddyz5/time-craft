@@ -183,3 +183,39 @@ describe("custom rules", () => {
 		expect(response.status).toBe(403);
 	});
 });
+
+describe("hidden automatic rules", () => {
+	test("parents hide and show them; the child reads the list", async () => {
+		const path = `/api/children/${t.ids.childId}/hidden-rules`;
+		await body<object>(
+			await t.request("PUT", `${path}/one_session`, { cookie: parent }),
+			200,
+		);
+		// Twice is the same.
+		await body<object>(
+			await t.request("PUT", `${path}/one_session`, { cookie: parent }),
+			200,
+		);
+		await body<object>(
+			await t.request("PUT", `${path}/week_change`, { cookie: parent }),
+			200,
+		);
+		const shown = await body<{ ruleKeys: string[] }>(
+			await t.request("DELETE", `${path}/week_change`, { cookie: parent }),
+			200,
+		);
+		expect(shown.ruleKeys).toEqual(["one_session"]);
+		const forChild = await body<{ ruleKeys: string[] }>(
+			await t.request("GET", path, { cookie: child }),
+			200,
+		);
+		expect(forChild.ruleKeys).toEqual(["one_session"]);
+
+		const unknown = await t.request("PUT", `${path}/anything`, {
+			cookie: parent,
+		});
+		expect(unknown.status).toBe(400);
+		const byChild = await t.request("PUT", `${path}/limits`, { cookie: child });
+		expect(byChild.status).toBe(403);
+	});
+});

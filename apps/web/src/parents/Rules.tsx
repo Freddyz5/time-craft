@@ -5,7 +5,8 @@
 // another, so the history below keeps every change. The policy in force
 // applies to the whole current week. Below the limits, the rules the parents
 // write (for the child, and reminders only they see) and the child's «Tus
-// reglas» exactly as the child reads them.
+// reglas» exactly as the child reads them, with a switch for each automatic
+// line.
 
 import { useQueryClient } from "@tanstack/react-query";
 import { RotateCcw, ScrollText, SlidersHorizontal } from "lucide-react";
@@ -17,7 +18,11 @@ import {
 	BrickRow,
 	brickUnit,
 } from "../components/bricks";
-import { ChildRules } from "../components/ChildRules";
+import {
+	automaticRules,
+	ChildRules,
+	hasVisibleRules,
+} from "../components/ChildRules";
 import {
 	Button,
 	buttonClass,
@@ -41,6 +46,7 @@ import {
 import {
 	keys,
 	useCustomRules,
+	useHiddenRules,
 	usePolicies,
 	usePolicyHistory,
 } from "../lib/queries";
@@ -48,6 +54,7 @@ import type { Activity, Policy } from "../lib/types";
 import { useCommand } from "../lib/useCommand";
 import { parentName, useParents } from "./context";
 import { CustomRuleList } from "./rules/CustomRules";
+import { RuleVisibility } from "./rules/RuleVisibility";
 
 interface Limits {
 	dailyLimitMinutes: number;
@@ -601,6 +608,7 @@ export function Rules() {
 	const policies = usePolicies(childId);
 	const history = usePolicyHistory(childId);
 	const customRules = useCustomRules(childId);
+	const hiddenRules = useHiddenRules(childId);
 	const invalidate = useInvalidateRules(childId ?? "");
 
 	const saveGeneral = useCommand(
@@ -632,6 +640,16 @@ export function Rules() {
 
 	const current = policies.data?.policies;
 	const general = current?.find((policy) => policy.activityId === null);
+	// «Tus reglas» as the child gets it: their rules and the lines not hidden.
+	const preview = {
+		policies: current ?? [],
+		customRules: (customRules.data?.rules ?? []).filter(
+			(rule) => !rule.parentsOnly,
+		),
+		hidden: hiddenRules.data?.ruleKeys ?? [],
+		requestExpiryMinutes: household.family.requestExpiryMinutes,
+		weekStartDay: household.family.weekStartDay,
+	};
 
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-5">
@@ -737,7 +755,7 @@ export function Rules() {
 				<LoadingBricks />
 			)}
 
-			{current !== undefined && customRules.data && (
+			{current !== undefined && customRules.data && hiddenRules.data && (
 				<Callout
 					className="flex flex-col gap-4 p-4 sm:p-5"
 					aria-labelledby="preview-title"
@@ -753,21 +771,25 @@ export function Rules() {
 							Lo que lee en «Tus reglas», en su Inicio.
 						</p>
 					</div>
-					<div className="flex flex-col gap-3 rounded-control border-[1.5px] border-rule-strong/40 bg-sheet-sunk p-4">
-						<p className="flex items-center gap-3 text-lg font-semibold">
-							<ScrollText className="size-5 shrink-0" aria-hidden="true" />
-							Tus reglas
-						</p>
-						<ChildRules
-							policies={current}
-							activities={activities}
-							customRules={customRules.data.rules.filter(
-								(rule) => !rule.parentsOnly,
-							)}
-							requestExpiryMinutes={household.family.requestExpiryMinutes}
-							weekStartDay={household.family.weekStartDay}
-						/>
-					</div>
+					{hasVisibleRules(preview) ? (
+						<div className="flex flex-col gap-3 rounded-control border-[1.5px] border-rule-strong/40 bg-sheet-sunk p-4">
+							<p className="flex items-center gap-3 text-lg font-semibold">
+								<ScrollText className="size-5 shrink-0" aria-hidden="true" />
+								Tus reglas
+							</p>
+							<ChildRules {...preview} activities={activities} />
+						</div>
+					) : (
+						<Notice>
+							Con todo apagado, {child.name} no ve «Tus reglas» en su Inicio.
+						</Notice>
+					)}
+					<RuleVisibility
+						childId={child.id}
+						childName={child.name}
+						lines={automaticRules(preview)}
+						hidden={hiddenRules.data.ruleKeys}
+					/>
 				</Callout>
 			)}
 

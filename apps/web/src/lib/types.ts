@@ -41,6 +41,12 @@ export type CustomRule = InferResponseType<
 	200
 >["rules"][number];
 
+// A kind of automatic line in «Tus reglas» the parents can hide.
+export type HiddenRuleKey = InferResponseType<
+	Child["hidden-rules"]["$get"],
+	200
+>["ruleKeys"][number];
+
 export type History = InferResponseType<Child["history"]["$get"], 200>;
 
 export type LoginSession = InferResponseType<

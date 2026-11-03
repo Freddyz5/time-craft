@@ -36,6 +36,13 @@
       "when": 1793649675161,
       "tag": "0004_rule_days_grace_custom",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793716884308,
+      "tag": "0005_hidden_rules",
+      "breakpoints": true
     }
   ]
 }

@@ -7,7 +7,7 @@ import { bonusTasks, taskReports } from "./bonuses";
 import { activities, children, families, parents } from "./family";
 import { nativePushTokens, pushSubscriptions } from "./notifications";
 import { childRequests, quotaOverrides } from "./requests";
-import { customRules, quotaPolicies } from "./rules";
+import { customRules, hiddenRules, quotaPolicies } from "./rules";
 import { sessionAlerts, sessionPauses, sessions } from "./timer";
 
 export const authUserRelations = relations(authUser, ({ one, many }) => ({
@@ -51,6 +51,7 @@ export const parentsRelations = relations(parents, ({ one, many }) => ({
 	}),
 	createdQuotaPolicies: many(quotaPolicies),
 	createdCustomRules: many(customRules),
+	hiddenRules: many(hiddenRules),
 	resolvedRequests: many(childRequests),
 	grantedOverrides: many(quotaOverrides),
 	startedSessions: many(sessions, { relationName: "sessionStartedBy" }),
@@ -72,6 +73,7 @@ export const childrenRelations = relations(children, ({ one, many }) => ({
 	}),
 	quotaPolicies: many(quotaPolicies),
 	customRules: many(customRules),
+	hiddenRules: many(hiddenRules),
 	requests: many(childRequests),
 	overrides: many(quotaOverrides),
 	sessions: many(sessions),
@@ -110,6 +112,17 @@ export const customRulesRelations = relations(customRules, ({ one }) => ({
 	}),
 	createdBy: one(parents, {
 		fields: [customRules.createdByParentId],
+		references: [parents.id],
+	}),
+}));
+
+export const hiddenRulesRelations = relations(hiddenRules, ({ one }) => ({
+	child: one(children, {
+		fields: [hiddenRules.childId],
+		references: [children.id],
+	}),
+	hiddenBy: one(parents, {
+		fields: [hiddenRules.hiddenByParentId],
 		references: [parents.id],
 	}),
 }));
