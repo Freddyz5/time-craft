@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/Freddyz5/time-craft/compare/api-v1.3.0...api-v1.4.0) (2026-11-03)
+
+### Features
+
+* **api:** hidden rules routes ([345c0d1](https://github.com/Freddyz5/time-craft/commit/345c0d1b943ef523d9f748cebd109c234406bdf7))
+* **core:** let parents hide automatic rules from the child ([1575a88](https://github.com/Freddyz5/time-craft/commit/1575a88628347ff12eb2c6147bb12039515dbd90))
+* **db:** add hidden_rules for the automatic rules the child does not read ([39c64d1](https://github.com/Freddyz5/time-craft/commit/39c64d141a714833aa4b85f7dcf0c5caf8dd4404))
+
 ## [1.3.0](https://github.com/Freddyz5/time-craft/compare/api-v1.2.0...api-v1.3.0) (2026-11-02)
 
 ### Features
