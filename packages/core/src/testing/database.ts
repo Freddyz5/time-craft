@@ -5,7 +5,7 @@
 import type { SessionAlert } from "../domain/alerts";
 import type { BonusTask, TaskReport } from "../domain/bonus";
 import type { Period } from "../domain/calendar";
-import type { CustomRule } from "../domain/custom-rule";
+import type { CustomRule, HiddenRule } from "../domain/custom-rule";
 import type { Activity, Child, Family, Parent } from "../domain/family";
 import type { QuotaPolicy } from "../domain/policy";
 import type { NativePushToken, PushSubscription } from "../domain/push";
@@ -21,6 +21,8 @@ export interface Tables {
 	activities: Map<string, Activity>;
 	policies: Map<string, QuotaPolicy>;
 	customRules: Map<string, CustomRule>;
+	// Keyed by child and rule key.
+	hiddenRules: Map<string, HiddenRule>;
 	requests: Map<string, ChildRequest>;
 	overrides: Map<string, QuotaOverride>;
 	sessions: Map<string, Session>;
@@ -42,6 +44,7 @@ function emptyTables(): Tables {
 		activities: new Map(),
 		policies: new Map(),
 		customRules: new Map(),
+		hiddenRules: new Map(),
 		requests: new Map(),
 		overrides: new Map(),
 		sessions: new Map(),
@@ -285,6 +288,22 @@ function createRepositories(t: () => Tables): Repositories {
 			},
 			delete: async (id) => {
 				t().customRules.delete(id);
+			},
+		},
+
+		hiddenRules: {
+			listByChild: async (childId) =>
+				values("hiddenRules")
+					.filter((rule) => rule.childId === childId)
+					.map(copy),
+			insert: async (rule) => {
+				const key = `${rule.childId}:${rule.ruleKey}`;
+				if (!t().hiddenRules.has(key)) {
+					t().hiddenRules.set(key, copy(rule));
+				}
+			},
+			delete: async (childId, ruleKey) => {
+				t().hiddenRules.delete(`${childId}:${ruleKey}`);
 			},
 		},
 

@@ -7,7 +7,7 @@
 import type { SessionAlert } from "../domain/alerts";
 import type { BonusTask, TaskReport } from "../domain/bonus";
 import type { Period } from "../domain/calendar";
-import type { CustomRule } from "../domain/custom-rule";
+import type { CustomRule, HiddenRule } from "../domain/custom-rule";
 import type { Activity, Child, Family, Parent } from "../domain/family";
 import type { QuotaPolicy } from "../domain/policy";
 import type { NativePushToken, PushSubscription } from "../domain/push";
@@ -69,6 +69,13 @@ export interface CustomRuleRepository {
 	insert(rule: CustomRule): Promise<void>;
 	update(rule: CustomRule): Promise<void>;
 	delete(id: string): Promise<void>;
+}
+
+export interface HiddenRuleRepository {
+	listByChild(childId: string): Promise<HiddenRule[]>;
+	// Does nothing if that rule is already hidden.
+	insert(rule: HiddenRule): Promise<void>;
+	delete(childId: string, ruleKey: HiddenRule["ruleKey"]): Promise<void>;
 }
 
 export interface ChildRequestRepository {
@@ -184,6 +191,7 @@ export interface Repositories {
 	activities: ActivityRepository;
 	policies: QuotaPolicyRepository;
 	customRules: CustomRuleRepository;
+	hiddenRules: HiddenRuleRepository;
 	requests: ChildRequestRepository;
 	overrides: QuotaOverrideRepository;
 	sessions: SessionRepository;

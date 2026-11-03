@@ -24,3 +24,31 @@ export function byPosition(a: CustomRule, b: CustomRule): number {
 		a.position - b.position || a.createdAt.getTime() - b.createdAt.getTime()
 	);
 }
+
+// The automatic lines of «Tus reglas»: those that come from the limits and the
+// ones every session follows. The parents can hide any of them; they keep
+// working, the child just does not read them there.
+export const AUTOMATIC_RULE_KEYS = [
+	"limits",
+	"days",
+	"bonus",
+	"warning",
+	"grace",
+	"carry_over",
+	"one_session",
+	"request_wait",
+	"week_change",
+] as const;
+
+export type AutomaticRuleKey = (typeof AUTOMATIC_RULE_KEYS)[number];
+
+export interface HiddenRule {
+	childId: string;
+	ruleKey: AutomaticRuleKey;
+	hiddenByParentId: string;
+	createdAt: Date;
+}
+
+export function isAutomaticRuleKey(value: string): value is AutomaticRuleKey {
+	return (AUTOMATIC_RULE_KEYS as readonly string[]).includes(value);
+}
