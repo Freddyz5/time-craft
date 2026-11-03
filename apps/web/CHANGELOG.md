@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0](https://github.com/Freddyz5/time-craft/compare/web-v1.4.0...web-v1.5.0) (2026-11-03)
+
+### Features
+
+* **web:** choose which automatic rules the child reads ([42bb515](https://github.com/Freddyz5/time-craft/commit/42bb51554c0ec203e54bef64622656bb613a8ba4))
+
 ## [1.4.0](https://github.com/Freddyz5/time-craft/compare/web-v1.3.0...web-v1.4.0) (2026-11-02)
 
 ### Features
