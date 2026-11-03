@@ -1,5 +1,6 @@
-// Rules the parents write, for the child or only for themselves. The child
-// reads the ones for them; only parents write.
+// Rules the parents write, for the child or only for themselves, and the
+// automatic rules they hide from the child's «Tus reglas». The child reads
+// the ones for them; only parents write.
 import { Hono } from "hono";
 import * as z from "zod";
 import { type AppDeps, type AppEnv, actorOf } from "../http/context";
@@ -19,6 +20,9 @@ const updateBody = z.object({
 });
 
 const orderBody = z.object({ ruleIds: z.array(id).min(1) });
+
+// The kind of automatic rule; core checks it is one.
+const hiddenParam = childParam.extend({ ruleKey: z.string().max(30) });
 
 export function customRuleRoutes({ core }: AppDeps) {
 	return (
@@ -58,6 +62,40 @@ export function customRuleRoutes({ core }: AppDeps) {
 						...c.req.valid("json"),
 					});
 					return c.json({ rules }, 200);
+				},
+			)
+			// The automatic rules the child does not read in «Tus reglas».
+			.get(
+				"/children/:childId/hidden-rules",
+				validate("param", childParam),
+				async (c) => {
+					const ruleKeys = await core.listHiddenRules(
+						actorOf(c),
+						c.req.valid("param"),
+					);
+					return c.json({ ruleKeys }, 200);
+				},
+			)
+			.put(
+				"/children/:childId/hidden-rules/:ruleKey",
+				validate("param", hiddenParam),
+				async (c) => {
+					const ruleKeys = await core.setRuleHidden(actorOf(c), {
+						...c.req.valid("param"),
+						hidden: true,
+					});
+					return c.json({ ruleKeys }, 200);
+				},
+			)
+			.delete(
+				"/children/:childId/hidden-rules/:ruleKey",
+				validate("param", hiddenParam),
+				async (c) => {
+					const ruleKeys = await core.setRuleHidden(actorOf(c), {
+						...c.req.valid("param"),
+						hidden: false,
+					});
+					return c.json({ ruleKeys }, 200);
 				},
 			)
 			.patch(
