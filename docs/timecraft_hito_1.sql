@@ -34,6 +34,8 @@
 --     exceso nunca se descuenta.
 --   - custom_rules: reglas escritas por los padres, para el niño o solo
 --     para los padres (parents_only). No cambian ningún cálculo.
+--   - hidden_rules: las reglas automáticas que los padres sacan de «Tus
+--     reglas» (siguen valiendo).
 -- =====================================================================
 -- Regla de permisos
 --   El niño solo LEE o PIDE. Todo lo que da tiempo o inicia una sesión
@@ -237,6 +239,19 @@ CREATE TABLE custom_rules (
     CONSTRAINT chk_custom_rules_position CHECK (position >= 0),
     CONSTRAINT fk_custom_rules_child FOREIGN KEY (child_id) REFERENCES children (id),
     CONSTRAINT fk_custom_rules_created_by FOREIGN KEY (created_by_parent_id) REFERENCES parents (id)
+);
+
+-- Reglas automáticas de «Tus reglas» que los padres ocultan al niño (una
+-- fila por tipo). Siguen valiendo; solo dejan de leerse ahí.
+CREATE TABLE hidden_rules (
+    child_id              UUID        NOT NULL,
+    rule_key              VARCHAR(30) NOT NULL,              -- limits | days | bonus | warning | grace | carry_over | one_session | request_wait | week_change
+    hidden_by_parent_id   UUID        NOT NULL,
+    created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT pk_hidden_rules PRIMARY KEY (child_id, rule_key),
+    CONSTRAINT chk_hidden_rules_key CHECK (rule_key IN ('limits', 'days', 'bonus', 'warning', 'grace', 'carry_over', 'one_session', 'request_wait', 'week_change')),
+    CONSTRAINT fk_hidden_rules_child FOREIGN KEY (child_id) REFERENCES children (id),
+    CONSTRAINT fk_hidden_rules_hidden_by FOREIGN KEY (hidden_by_parent_id) REFERENCES parents (id)
 );
 
 -- ---------------------------------------------------------------------

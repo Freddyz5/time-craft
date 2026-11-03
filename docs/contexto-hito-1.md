@@ -52,6 +52,7 @@ packages/
 - **Gracia al terminar:** cada cuota define `grace_minutes` (0 por defecto, hasta 15): los primeros minutos después del fin nunca se descuentan, para que el niño avise y un padre la detenga. Si la detienen después, solo cuenta lo que pasó de la gracia. La sesión copia la gracia de su cuota al arrancar (`sessions.grace_seconds`), así un cambio posterior no reescribe sesiones pasadas. `consumed_seconds` sigue siendo el tiempo real; el saldo y el historial descuentan la gracia.
 - **Días con tiempo:** cada cuota define en `allowed_days` qué días de la semana se puede usar (la general vale para todas las actividades sin cuota propia; una cuota por actividad tiene sus propios días). Un día que no está, esa bolsa no tiene tiempo: el niño no puede pedir empezar ni tiempo extra (`day_not_allowed`) y un padre no puede iniciar una sesión normal, pero sí dar tiempo extra con motivo. Ese tiempo extra cuenta para la semana. La recarga diaria (`nextDailyRechargeAt`) es el inicio del siguiente día permitido.
 - **Reglas escritas por los padres:** texto libre por niño (`custom_rules`), en dos listas: las que el niño lee en «Tus reglas» y las de solo padres (`parents_only`), recordatorios que el niño nunca recibe. Ninguna cambia el saldo ni los permisos.
+- **Reglas automáticas que ve el niño:** las líneas de «Tus reglas» que salen de las cuotas (límites, días, bonos, aviso, gracia, exceso al día siguiente) y las fijas (una sesión a la vez, cuánto espera un pedido, quién las pone) se pueden ocultar una por una, por niño (`hidden_rules`). Ocultarlas solo las saca de «Tus reglas»: siguen valiendo, y el resto de la app (Inicio, Pedir, los avisos) no cambia.
 - **Cierre automático:** si nadie detiene la sesión, el servidor la cierra en `fin + families.auto_close_after_minutes` (30 por defecto) con `end_reason = auto_closed`, y avisa a los padres. Evita que una sesión olvidada consuma toda la semana.
 - **Override:** con la cuota agotada (o en un día sin tiempo), solo un padre puede dar minutos extra, siempre con un motivo. Se usa en una sesión nueva, no extiende la que está corriendo.
 - **Cambio de límites a mitad de semana:** la política vigente al momento de calcular aplica a toda la semana (decidido).
@@ -117,7 +118,7 @@ Por qué no un cron/tick por minuto: Vercel Hobby solo permite cron diario, y un
 
 ## Flujo en 8 pasos
 1. **Configurar el hogar** (padres, una vez): seed con familia y padres; los padres crean la cuenta del niño (usuario + PIN), las actividades (Juego, TV) y activan notificaciones en sus teléfonos.
-2. **Definir reglas** (padres): límites diario y semanal, días con tiempo, tope de bonos, aviso previo, gracia al terminar, reglas escritas (para el niño o solo para los padres) y catálogo de tareas de bono. Reglas muestra «Tus reglas» tal como las ve el niño.
+2. **Definir reglas** (padres): límites diario y semanal, días con tiempo, tope de bonos, aviso previo, gracia al terminar, reglas escritas (para el niño o solo para los padres) y catálogo de tareas de bono. Reglas muestra «Tus reglas» tal como las ve el niño, con un interruptor para cada regla automática.
 3. **Pedir** (niño): solicitud para empezar o para tiempo extra. Solo una pendiente a la vez; expira a los 15 min sin respuesta; puede cancelarla. Push inmediato a los padres.
 4. **Aprobar o rechazar** (padres): se pueden aprobar menos minutos de los pedidos. Al aprobar se elige **empezar ahora** o **empezar más tarde** (hora elegida, como máximo hasta el final del día). La sesión (y el override si era tiempo extra) se crea en una sola transacción. Push al niño.
 5. **Correr el cronómetro** (servidor + padres): una sesión programada arranca sola a su hora (o antes, si un padre la adelanta) y puede cancelarse. Luego: inicio y duración, pausas, y cierre con el tiempo real consumido (o cierre automático).
@@ -125,7 +126,7 @@ Por qué no un cron/tick por minuto: Vercel Hobby solo permite cron diario, y un
 7. **Ganar bonos** (el niño reporta, push a los padres, el padre valida con los minutos ganados). Un solo reporte pendiente por niño y tarea.
 8. **Consultar** (todos, solo lectura): saldo, cronómetro en vivo, historial y desglose por actividad, overrides y solicitudes rechazadas.
 
-## Base de datos (PostgreSQL, 20 tablas)
+## Base de datos (PostgreSQL, 21 tablas)
 Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, incluidos los índices parciales y los CHECK).
 
 **Identidad (Better Auth, ids TEXT):**
@@ -142,6 +143,7 @@ Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, in
 - **activities**: family_id, code, name, is_active (unique family_id + code)
 - **quota_policies**: child_id, activity_id (null = cuota global), daily_limit_minutes, weekly_limit_minutes, weekly_bonus_cap_minutes (60), carry_over_excess, warning_minutes (5), allowed_days (smallint[], 0 = domingo … 6 = sábado; todos por defecto, al menos uno), grace_minutes (0), valid_from, valid_to (null = vigente), created_by_parent_id. Cambiar un límite cierra la política vigente y crea otra, así queda historial.
 - **custom_rules**: child_id, text (hasta 200), parents_only (false), position, created_by_parent_id, created_at, updated_at. Reglas escritas por los padres; el niño solo recibe las que no son `parents_only`.
+- **hidden_rules**: child_id + rule_key (PK; limits | days | bonus | warning | grace | carry_over | one_session | request_wait | week_change), hidden_by_parent_id, created_at. Las reglas automáticas que los padres sacan de «Tus reglas».
 - **bonus_tasks**: family_id, name, description, reward_minutes, max_per_week, is_active, created_by_parent_id
 - **child_requests**: child_id, request_type (start | extra_time), activity_id, requested_minutes, reason (obligatorio en extra_time), status (pending | approved | rejected | expired | cancelled), approved_minutes, response_note, expires_at, resolved_by_parent_id, resolved_at
 - **quota_overrides**: child_id, request_id (null, unique → child_requests), granted_by_parent_id, extra_minutes, reason
