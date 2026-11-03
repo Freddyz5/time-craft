@@ -7,6 +7,7 @@ import {
 	index,
 	integer,
 	pgTable,
+	primaryKey,
 	smallint,
 	timestamp,
 	uniqueIndex,
@@ -133,3 +134,38 @@ export const customRules = pgTable(
 
 export type CustomRuleRow = typeof customRules.$inferSelect;
 export type NewCustomRule = typeof customRules.$inferInsert;
+
+// The automatic rules (from the limits, and the fixed ones) the parents chose
+// to leave out of the child's «Tus reglas». They keep working; the child just
+// does not read them there. One row per hidden kind of rule.
+export const hiddenRules = pgTable(
+	"hidden_rules",
+	{
+		childId: uuid("child_id").notNull(),
+		ruleKey: varchar("rule_key", { length: 30 }).notNull(),
+		hiddenByParentId: uuid("hidden_by_parent_id").notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+	},
+	(t) => [
+		primaryKey({ name: "pk_hidden_rules", columns: [t.childId, t.ruleKey] }),
+		check(
+			"chk_hidden_rules_key",
+			sql`${t.ruleKey} IN ('limits', 'days', 'bonus', 'warning', 'grace', 'carry_over', 'one_session', 'request_wait', 'week_change')`,
+		),
+		foreignKey({
+			name: "fk_hidden_rules_child",
+			columns: [t.childId],
+			foreignColumns: [children.id],
+		}),
+		foreignKey({
+			name: "fk_hidden_rules_hidden_by",
+			columns: [t.hiddenByParentId],
+			foreignColumns: [parents.id],
+		}),
+	],
+);
+
+export type HiddenRuleRow = typeof hiddenRules.$inferSelect;
+export type NewHiddenRule = typeof hiddenRules.$inferInsert;

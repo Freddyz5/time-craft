@@ -1,11 +1,18 @@
-// Rules: quota policies, with history (valid_to null = current), and the
-// rules the parents write.
-import type {
-	CustomRuleRepository,
-	QuotaPolicy,
-	QuotaPolicyRepository,
+// Rules: quota policies, with history (valid_to null = current), the rules
+// the parents write and the automatic ones they hide from the child.
+import {
+	type CustomRuleRepository,
+	type HiddenRuleRepository,
+	isAutomaticRuleKey,
+	type QuotaPolicy,
+	type QuotaPolicyRepository,
 } from "@time-craft/core";
-import { customRules, type Db, quotaPolicies } from "@time-craft/db";
+import {
+	customRules,
+	type Db,
+	hiddenRules,
+	quotaPolicies,
+} from "@time-craft/db";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { toWeekDay } from "./family";
 
@@ -76,6 +83,36 @@ export function customRuleRepository(db: Db): CustomRuleRepository {
 		},
 		async delete(id) {
 			await db.delete(customRules).where(eq(customRules.id, id));
+		},
+	};
+}
+
+export function hiddenRuleRepository(db: Db): HiddenRuleRepository {
+	return {
+		async listByChild(childId) {
+			const rows = await db
+				.select()
+				.from(hiddenRules)
+				.where(eq(hiddenRules.childId, childId));
+			// The CHECK constraint keeps out any other key.
+			return rows.flatMap((row) =>
+				isAutomaticRuleKey(row.ruleKey)
+					? [{ ...row, ruleKey: row.ruleKey }]
+					: [],
+			);
+		},
+		async insert(rule) {
+			await db.insert(hiddenRules).values(rule).onConflictDoNothing();
+		},
+		async delete(childId, ruleKey) {
+			await db
+				.delete(hiddenRules)
+				.where(
+					and(
+						eq(hiddenRules.childId, childId),
+						eq(hiddenRules.ruleKey, ruleKey),
+					),
+				);
 		},
 	};
 }

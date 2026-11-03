@@ -30,7 +30,9 @@ import {
 	addCustomRule,
 	deleteCustomRule,
 	listCustomRules,
+	listHiddenRules,
 	reorderCustomRules,
+	setRuleHidden,
 	updateCustomRule,
 } from "./custom-rules";
 import { getChildHistory } from "./history";
@@ -124,6 +126,8 @@ export function createCore(deps: CoreDeps) {
 		updateCustomRule: bind(deps, updateCustomRule),
 		deleteCustomRule: bind(deps, deleteCustomRule),
 		reorderCustomRules: bind(deps, reorderCustomRules),
+		listHiddenRules: bind(deps, listHiddenRules),
+		setRuleHidden: bind(deps, setRuleHidden),
 		// Bonuses
 		listBonusTasks: (actor: Actor) => listBonusTasks(deps, actor),
 		listPendingTaskReports: (actor: Actor) =>

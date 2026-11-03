@@ -1,10 +1,13 @@
-// Rules the parents write: for the child, or parents-only reminders. They
-// only inform; nothing else reads them.
+// Rules the parents write: for the child, or parents-only reminders, and the
+// automatic rules they leave out of the child's «Tus reglas». They only
+// inform; nothing else reads them.
 import { type Actor, requireParent } from "../domain/actor";
 import {
+	type AutomaticRuleKey,
 	byPosition,
 	CUSTOM_RULE_MAX_LENGTH,
 	type CustomRule,
+	isAutomaticRuleKey,
 	MAX_CUSTOM_RULES,
 } from "../domain/custom-rule";
 import { requiredText } from "../domain/values";
@@ -185,5 +188,70 @@ export async function reorderCustomRules(
 			...rules.filter((rule) => rule.parentsOnly !== first.parentsOnly),
 			...reordered,
 		].sort(byPosition);
+	});
+}
+
+function ruleKeyOf(value: string): AutomaticRuleKey {
+	if (!isAutomaticRuleKey(value)) {
+		throw invalidInput("ruleKey", "is not an automatic rule");
+	}
+	return value;
+}
+
+async function hiddenKeys(
+	tx: Tx,
+	childId: string,
+): Promise<AutomaticRuleKey[]> {
+	return (await tx.repos.hiddenRules.listByChild(childId)).map(
+		(rule) => rule.ruleKey,
+	);
+}
+
+// The automatic rules the child does not read in «Tus reglas». The child
+// gets their own.
+export async function listHiddenRules(
+	deps: CoreDeps,
+	actor: Actor,
+	input: { childId: string },
+): Promise<AutomaticRuleKey[]> {
+	return transaction(deps, async (tx) => {
+		const child = await loadChild(tx, actor, input.childId, "see the rules");
+		return hiddenKeys(tx, child.id);
+	});
+}
+
+export interface SetRuleHiddenInput {
+	childId: string;
+	ruleKey: string;
+	hidden: boolean;
+}
+
+// Hides or shows one automatic rule; doing it twice changes nothing. Returns
+// the hidden ones.
+export async function setRuleHidden(
+	deps: CoreDeps,
+	actor: Actor,
+	input: SetRuleHiddenInput,
+): Promise<AutomaticRuleKey[]> {
+	requireParent(actor, "choose the rules the child sees");
+	const ruleKey = ruleKeyOf(input.ruleKey);
+	return transaction(deps, async (tx) => {
+		const child = await loadChild(
+			tx,
+			actor,
+			input.childId,
+			"choose the rules the child sees",
+		);
+		if (input.hidden) {
+			await tx.repos.hiddenRules.insert({
+				childId: child.id,
+				ruleKey,
+				hiddenByParentId: actor.parentId,
+				createdAt: tx.now,
+			});
+		} else {
+			await tx.repos.hiddenRules.delete(child.id, ruleKey);
+		}
+		return hiddenKeys(tx, child.id);
 	});
 }

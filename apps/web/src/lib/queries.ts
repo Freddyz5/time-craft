@@ -35,6 +35,7 @@ export const keys = {
 	policies: (childId: string) => ["policies", childId] as const,
 	policyHistory: (childId: string) => ["policy-history", childId] as const,
 	customRules: (childId: string) => ["custom-rules", childId] as const,
+	hiddenRules: (childId: string) => ["hidden-rules", childId] as const,
 	bonusTasks: ["bonus-tasks"] as const,
 	history: (childId: string, from?: string, to?: string) =>
 		["history", childId, from ?? "current", to ?? "current"] as const,
@@ -126,6 +127,20 @@ export function useCustomRules(childId: string | undefined) {
 		queryFn: () =>
 			call(
 				api.children[":childId"]["custom-rules"].$get({
+					param: { childId: childId ?? "" },
+				}),
+			),
+		enabled: childId !== undefined,
+	});
+}
+
+// The automatic rules the child does not read in «Tus reglas».
+export function useHiddenRules(childId: string | undefined) {
+	return useQuery({
+		queryKey: keys.hiddenRules(childId ?? ""),
+		queryFn: () =>
+			call(
+				api.children[":childId"]["hidden-rules"].$get({
 					param: { childId: childId ?? "" },
 				}),
 			),

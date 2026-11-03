@@ -13,7 +13,11 @@ import {
 } from "./family";
 import { nativePushTokenRepository, pushSubscriptionRepository } from "./push";
 import { childRequestRepository, quotaOverrideRepository } from "./requests";
-import { customRuleRepository, quotaPolicyRepository } from "./rules";
+import {
+	customRuleRepository,
+	hiddenRuleRepository,
+	quotaPolicyRepository,
+} from "./rules";
 import { sessionAlertRepository, sessionRepository } from "./timer";
 
 export function createRepositories(db: Db): Repositories {
@@ -24,6 +28,7 @@ export function createRepositories(db: Db): Repositories {
 		activities: activityRepository(db),
 		policies: quotaPolicyRepository(db),
 		customRules: customRuleRepository(db),
+		hiddenRules: hiddenRuleRepository(db),
 		requests: childRequestRepository(db),
 		overrides: quotaOverrideRepository(db),
 		sessions: sessionRepository(db),

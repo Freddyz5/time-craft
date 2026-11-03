@@ -72,6 +72,7 @@ Con la app en primer plano, el teléfono suena y vibra al segundo exacto, ademá
 - [ ] En **Reglas › Cuota general › Días con tiempo**, deja solo un día que no sea hoy y guarda. Inicio del niño dice «Hoy es día de descanso», sin «Pedir tiempo», y en **Pedir** aparece «Hoy no toca …». Inicio del padre dice «Hoy no le toca» y **Nueva sesión** solo ofrece tiempo extra (con motivo), que sí empieza.
 - [ ] Ponle a TV límites propios con hoy entre sus días: el niño puede pedir TV, pero no Juego.
 - [ ] Escribe una regla en «Reglas para …» y otra en «Solo para mamá y papá». «Así lo ve …» y el Inicio del niño (en «Tus reglas») muestran solo la primera; la segunda sale en **Nueva sesión** y en cada pedido como «Para no olvidar».
+- [ ] En «Así lo ve …», apaga «Una sesión a la vez»: desaparece de la vista previa y, al recargar, del «Tus reglas» del niño. Vuelve a encenderla. Con todas apagadas y sin reglas escritas, el niño no ve «Tus reglas».
 - [ ] Vuelve a dejar todos los días, la gracia en 0 y el aviso en 5 min.
 
 ## 4b. Alarma en la computadora
