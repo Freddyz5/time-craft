@@ -4,5 +4,8 @@
 	"installCommand": "bun install --frozen-lockfile",
 	"buildCommand": "cd ../.. && bun run build --filter=@time-craft/api",
 	"outputDirectory": "dist",
+	"git": {
+		"deploymentEnabled": { "**": false, "dev": true, "prod": true }
+	},
 	"ignoreCommand": "node ../../scripts/vercel-ignore.mjs @time-craft/api"
 }
