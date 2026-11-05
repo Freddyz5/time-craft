@@ -12,6 +12,19 @@ const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 // cookies and no CORS. BETTER_AUTH_URL must then be this origin.
 const apiTarget = process.env.API_DEV_URL ?? "http://localhost:3000";
 
+// Which deployment this build is for, from Vercel's system variables (missing
+// outside Vercel): every page that is not production's says so. Same rule as
+// the api's (apps/api/src/environment.ts).
+function environment(): "production" | "dev" | "preview" | "local" {
+	if (process.env.VERCEL_ENV === "production") {
+		return "production";
+	}
+	if (process.env.VERCEL_ENV === "preview") {
+		return process.env.VERCEL_GIT_COMMIT_REF === "dev" ? "dev" : "preview";
+	}
+	return "local";
+}
+
 export default defineConfig({
 	output: "static",
 	integrations: [react()],
@@ -30,6 +43,13 @@ export default defineConfig({
 				context: "client",
 				access: "public",
 				optional: true,
+			}),
+			// Worked out at build time; not a variable to set.
+			TIMECRAFT_ENV: envField.enum({
+				context: "client",
+				access: "public",
+				values: ["production", "dev", "preview", "local"],
+				default: environment(),
 			}),
 		},
 	},
