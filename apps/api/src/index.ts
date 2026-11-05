@@ -9,6 +9,7 @@ import { systemClock } from "./adapters/system";
 import { WebPushNotifier } from "./adapters/web-push";
 import { createContainer } from "./container";
 import { parseEnv } from "./env";
+import { environmentOf } from "./environment";
 
 const env = parseEnv(process.env);
 if (env.FCM_SERVICE_ACCOUNT === null) {
@@ -54,6 +55,7 @@ const { app } = createContainer({
 			: []),
 	]),
 	jobSignatures: new QStashSignatureVerifier(qstash),
+	environment: environmentOf(env),
 });
 
 export default app;

@@ -32,12 +32,18 @@ describe("AppType", () => {
 		}
 	});
 
-	test("/health answers without a session, with the api's version", async () => {
+	test("/health and /api/health answer without a session: version, environment and web", async () => {
 		const t = await createTestApp();
-		const response = await t.app.request("/health");
-		expect(await response.json()).toEqual({
-			ok: true,
-			app: { name: "Time Craft", version: pkg.version },
-		});
+		for (const path of ["/health", "/api/health"]) {
+			const response = await t.app.request(path);
+			expect(response.status).toBe(200);
+			expect(await response.json()).toEqual({
+				ok: true,
+				app: { name: "Time Craft", version: pkg.version },
+				environment: "local",
+				// BETTER_AUTH_URL's origin: the web this api serves.
+				web: "http://localhost",
+			});
+		}
 	});
 });

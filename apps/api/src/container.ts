@@ -16,6 +16,7 @@ import { ScryptRecoveryCodes } from "./adapters/recovery-codes";
 import { uuidIds } from "./adapters/system";
 import { createApp } from "./app";
 import { type AuthOptions, createAuth } from "./auth";
+import type { Environment } from "./environment";
 import { DatabaseRateLimiter } from "./http/rate-limit";
 
 export interface ContainerOptions {
@@ -29,6 +30,8 @@ export interface ContainerOptions {
 	jobs: JobScheduler;
 	notifier: Notifier;
 	jobSignatures: JobSignatureVerifier;
+	// What /health reports. Defaults to local (tests, the seed).
+	environment?: Environment;
 }
 
 export function createContainer(options: ContainerOptions) {
@@ -59,6 +62,11 @@ export function createContainer(options: ContainerOptions) {
 		clock,
 		jobSignatures: options.jobSignatures,
 		rateLimiter: new DatabaseRateLimiter(db),
+		deployment: {
+			environment: options.environment ?? "local",
+			// The web is where the browser reaches /api/auth: BETTER_AUTH_URL.
+			web: new URL(options.auth.baseURL).origin,
+		},
 	});
 	return { app, auth, core };
 }
