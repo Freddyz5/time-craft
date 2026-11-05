@@ -7,7 +7,7 @@ Pruebas de punta a punta con Playwright: los 8 pasos del flujo del hito 1 ([docs
 - `src/family.ts`: la familia de prueba con el seed y `core` de la api (`@time-craft/api/seed` y `/container`): dos padres con contraseña, el niño (usuario + PIN), Juego y TV, política global (120 min al día, 600 a la semana), dos tareas de bono y el código de recuperación. Nombres, correos (`@e2e.timecraft.test`) y usuario llevan un id propio, y su zona horaria es una donde ahora es mediodía: nada cambia de día durante la corrida. `resetTestFamily` la deja como recién creada; `deleteTestFamilies` solo borra familias cuyos padres usan ese dominio.
 - `scripts/family.ts`: `bun run family:create` (imprime la familia con sus contraseñas, para mirar a mano) y `bun run family:delete <id>… | --all` (restos de corridas que se cortaron). `bun run e2e` no los necesita: crea y borra su propia familia.
 - `tests/support/`: personas y sesiones (`people.ts`), atajos de la api (`api.ts`) y de la base (`db.ts`: `session_alerts`, gastar el día, vencer una solicitud), pasos de pantalla (`ui.ts`) y el estado que deja `setup` en `.e2e/` (ignorado por git).
-- Variables (de la shell o del `.env` raíz; la shell gana): `E2E_BASE_URL`, `E2E_API_URL` (solo smoke, `/health`), `DATABASE_URL_UNPOOLED` (cadena directa de la base del ambiente), `VERCEL_AUTOMATION_BYPASS_SECRET` (dominio de dev y previews: la web tiene Vercel Authentication) y `E2E_SLOW=1` (incluye los tests `@slow`).
+- Variables (de la shell o del `.env` raíz; la shell gana): `E2E_BASE_URL`, `E2E_API_URL` (solo smoke, `/health`), `DATABASE_URL_UNPOOLED` (cadena directa de la base del ambiente), `VERCEL_AUTOMATION_BYPASS_SECRET` (por si la web de dev vuelve a tener Vercel Authentication) y `E2E_SLOW=1` (incluye los tests `@slow`).
 
 ## Correr
 
@@ -19,7 +19,7 @@ E2E_SLOW=1 bun run e2e --grep @slow          # el cierre real por QStash (~4 min
 E2E_BASE_URL=<web> E2E_API_URL=<api> bun run e2e:smoke
 ```
 
-Contra dev, `E2E_BASE_URL` es el dominio fijo de la web en dev (o una preview de PR), `DATABASE_URL_UNPOOLED` la cadena directa de Neon `dev` y hace falta el secreto de bypass. Lo corre el workflow manual `.github/workflows/e2e.yml` (configuración en [docs/deploy.md](../../docs/deploy.md)). Las alarmas reales necesitan que QStash llegue a la api: en local, el servidor de desarrollo de QStash.
+Contra dev, `E2E_BASE_URL` es el dominio fijo de la web en dev (u otro deployment de Preview), `DATABASE_URL_UNPOOLED` la cadena directa de Neon `dev` y hace falta el secreto de bypass. Lo corre el workflow manual `.github/workflows/e2e.yml` (configuración en [docs/deploy.md](../../docs/deploy.md)). Las alarmas reales necesitan que QStash llegue a la api: en local, el servidor de desarrollo de QStash.
 
 ## Cómo escribir tests
 

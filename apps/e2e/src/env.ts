@@ -11,7 +11,8 @@ function origin(name: string, fallback: string): string {
 	return (value(name) ?? fallback).replace(/\/+$/, "");
 }
 
-// The web: localhost (bun run dev), the fixed dev domain or a PR preview.
+// The web: localhost (bun run dev), the fixed dev domain or another Preview
+// deployment.
 // Everything else goes through its /api rewrite, as a browser's would.
 export function baseUrl(): string {
 	return origin("E2E_BASE_URL", "http://localhost:4321");
@@ -34,9 +35,9 @@ export function databaseUrl(): string {
 	return url;
 }
 
-// Vercel's Protection Bypass for Automation: the dev domain and the PR
-// previews of the web sit behind Vercel Authentication. Every request sends
-// the secret.
+// Vercel's Protection Bypass for Automation, in case the web's Preview
+// deployments sit behind Vercel Authentication. Every request sends the
+// secret.
 export function bypassHeaders(): Record<string, string> {
 	const secret = value("VERCEL_AUTOMATION_BYPASS_SECRET");
 	return secret === undefined ? {} : { "x-vercel-protection-bypass": secret };
