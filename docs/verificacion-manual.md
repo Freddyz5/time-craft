@@ -89,7 +89,7 @@ En la computadora, Chrome no congela una pestaña de fondo: Time Craft abierto d
 
 ## 5. Login con Google
 
-Solo en `dev` y producción (en las previews de PR Google está apagado).
+En `dev` y producción. En local, solo si el `.env` tiene `GOOGLE_CLIENT_ID`.
 
 - [ ] Cada padre, en `/login`, toca **Continuar con Google**, elige su cuenta y llega a `/padres`.
 - [ ] Con una cuenta de Google que no es de un padre: vuelve a `/login` con «Ese correo de Google no es de un padre de la familia.».

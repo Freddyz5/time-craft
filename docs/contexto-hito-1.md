@@ -41,8 +41,8 @@ packages/
 3. **core:** reglas de negocio con arquitectura hexagonal. Tests con fakes en memoria y reloj fijo.
 4. **api:** Hono, Better Auth, adaptadores Drizzle/QStash/Web Push, endpoints REST, mapeo de errores de dominio a HTTP.
 5. **web:** 5a experiencia de padres, 5b experiencia del niño. Impeccable: configuración inicial (PRODUCT.md, DESIGN.md), `shape` por pantalla, `polish` al cierre.
-6. **CI/CD:** Vercel con `prod` como rama de producción y previews en PR a `dev`; `turbo-ignore`; migraciones en GitHub Actions (merge a `dev` → rama `dev` de Neon; merge a `prod` → `main`), siempre compatibles hacia atrás.
-7. **Comprobación:** e2e con Playwright de los 8 flujos sobre la preview + smoke test en producción.
+6. **CI/CD:** Vercel con `prod` como rama de producción y previews en PR a `dev` (desde el hito 4 solo se despliegan `prod` y `dev`, ver [deploy.md](deploy.md)); `turbo-ignore`; migraciones en GitHub Actions (merge a `dev` → rama `dev` de Neon; merge a `prod` → `main`), siempre compatibles hacia atrás.
+7. **Comprobación:** e2e con Playwright de los 8 flujos sobre la web de dev + smoke test en producción.
 
 ## Reglas de negocio
 - **Disponible** = mín(restante del día, restante de la semana). Si se agota la semana, no puede empezar aunque le quede tiempo en el día.
@@ -77,7 +77,7 @@ packages/
 - **Padre o niño lo decide la tabla de dominio** que referencia al `auth_user` (`parents.auth_user_id` o `children.auth_user_id`). Un middleware de Hono resuelve la sesión y le pasa a `core` un `Actor` (padre o niño); `core` no conoce Better Auth.
 - **Padres:** **"Continuar con Google"** como forma principal (proveedor social de Better Auth, cliente OAuth gratis en Google Cloud), con email + contraseña como segunda vía. Los dos padres se crean con el seed. **Sin registro público:** solo entran los correos que ya existen como padres.
   - Google OAuth: la app puede quedar en modo "testing" con los dos correos como usuarios de prueba (solo se piden `email` y `profile`).
-  - Las previews de Vercel cambian de URL y Google exige registrar las URLs de retorno: el login con Google se activa solo en `dev` (dominio fijo) y producción. En previews se entra con contraseña.
+  - Google exige registrar las URLs de retorno, así que el login con Google va en `dev` (dominio fijo) y producción. Las previews de PR, que cambiaban de URL, ya no se despliegan (hito 4).
 - **Restablecer contraseña o PIN:** un padre puede restablecer la contraseña del otro padre y el PIN del niño desde la app. Endpoint propio que verifica que sea de la misma familia y luego fija la contraseña con el hasher y el adaptador internos de Better Auth (`auth.$context`). No se usa el plugin `admin` (decidido en la fase 4): su `setUserPassword` exige una sesión de administrador y el flujo del código de recuperación no tiene sesión.
 - **Código de recuperación de la familia** (último recurso si ambos pierden acceso): código largo aleatorio de un solo uso, generado al configurar el hogar, guardado hasheado en `families.recovery_code_hash`. Se imprime o se guarda en lugar seguro. Con él se restablece la contraseña de un padre; al usarlo se genera uno nuevo. Endpoint con rate limit estricto.
 - **Sin correo en el hito 1:** no hay "olvidé mi contraseña" por email. Si se necesita más adelante, se conecta Resend (plan gratis) sin cambiar el schema.
