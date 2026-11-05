@@ -181,7 +181,7 @@ Por qué así:
 
 - `API_ORIGIN` va de tipo **Config**, no *Secret*: la reescritura de `/api/*` la lee en cada petición, y Vercel no le entrega el valor de un Secret. Con un Secret, `/api/*` entra en un bucle de redirecciones. Un Secret no se convierte a Config: bórralo y créalo de nuevo. No es un secreto, es la URL de la api.
 - `BETTER_AUTH_URL` es el dominio de la **web**, no el de la api: el navegador llega a `/api/auth` a través de la reescritura de la web, y ahí quedan las cookies.
-- `API_ORIGIN` de Preview es `<API_DEV>`, nunca la api de producción: con el valor que trae del paso 4, la web de dev le habla a la api de producción y lo que pruebes en dev cae en los datos de la familia. Se comprueba con `curl -s -o /dev/null -w '%{redirect_url}\n' '<WEB_DEV>/api/auth/callback/google?state=x&code=y'`: la URL que imprime empieza con `<WEB_DEV>`, no con `<WEB_PROD>` (la arma la api que contesta, con su `BETTER_AUTH_URL`).
+- `API_ORIGIN` de Preview es `<API_DEV>`, nunca la api de producción: con el valor que trae del paso 4, la web de dev le habla a la api de producción y lo que pruebes en dev cae en los datos de la familia. Se comprueba con `curl -s <WEB_DEV>/api/health`: su `web` es `<WEB_DEV>` y su `environment`, `dev`. La web también lo dice: en el login, «api de otra web» en rojo.
 - `BETTER_AUTH_TRUSTED_ORIGINS` no va en ningún ambiente. Solo haría falta para un deployment de otra rama de la web, hecho a mano, que hable con la api de dev (`https://time-craft-web-*-<SCOPE>.vercel.app`).
 - Google va en los dos ambientes, con el mismo cliente: las dos webs tienen dominio fijo y las dos están registradas en Google (paso 6). Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
 - No van en Vercel: `DATABASE_URL_UNPOOLED` (está en GitHub, paso 2), `SEED_*` (solo para el seed desde tu máquina) ni `API_DEV_URL` (solo local).
@@ -227,7 +227,7 @@ Usa siempre **Merge** (no squash ni rebase) en los PR de `dev` a `prod`: así `p
 
 ### 10. Seed de una base vacía
 
-Solo si la rama de Neon no tiene el hogar todavía (SQL Editor: `select name from families;` no devuelve filas). El seed crea la familia, los padres, las actividades, la cuenta del niño y su política desde las variables `SEED_*` de tu `.env`, y es idempotente. Corre en tu máquina, contra la cadena **directa** de la rama, después de que `Migrate` la haya migrado:
+En producción, solo si la rama de Neon no tiene el hogar todavía (SQL Editor: `select name from families;` no devuelve filas). El seed crea la familia, los padres, las actividades, la cuenta del niño y su política desde las variables `SEED_*` de tu `.env`, y es idempotente. Corre en tu máquina, contra la cadena **directa** de la rama, después de que `Migrate` la haya migrado:
 
 ```sh
 env DATABASE_URL_UNPOOLED='<cadena directa de la rama>' \
@@ -241,10 +241,19 @@ env DATABASE_URL_UNPOOLED='<cadena directa de la rama>' \
 
 Las variables de la línea de comandos ganan a las del `.env`. El seed imprime el **código de recuperación** de la familia una sola vez: guárdalo en un lugar seguro. Cada base tiene el suyo.
 
+**En dev, mejor `bun run db:reset`:** vacía la base, le aplica todas las migraciones y corre el seed, así que deja dev igual a una base nueva con su familia de prueba. Solo trabaja sobre una base con la marca del paso 14 y se niega con cualquier otra, producción incluida. Sirve también para volver a empezar cuando dev quede sucio de pruebas. Usa en `SEED_*` los correos de Google de los padres (para entrar con Google en dev) y un usuario y PIN de prueba para el niño:
+
+```sh
+env DATABASE_URL_UNPOOLED='<cadena directa de Neon dev>' \
+    BETTER_AUTH_SECRET='<el secreto de Preview>' \
+    BETTER_AUTH_URL='<WEB_DEV>' \
+    bun run db:reset
+```
+
 ### 11. Comprobar `dev`
 
-- [ ] `curl <API_DEV>/health` responde `{"ok":true,…}`.
-- [ ] Abre `<WEB_DEV>`: ves el login de Time Craft.
+- [ ] `curl <API_DEV>/health` responde `{"ok":true,…}` con `"environment":"dev"` y `"web":"<WEB_DEV>"`. `curl <WEB_DEV>/api/health` responde lo mismo: la web le habla a la api de dev.
+- [ ] Abre `<WEB_DEV>`: ves el login de Time Craft, con la franja «Ambiente de pruebas (dev)» arriba y las versiones de la web y la api abajo, sin nada en rojo.
 - [ ] Inicia sesión como padre con **Continuar con Google**. En las herramientas del navegador, las llamadas van a `<WEB_DEV>/api/…` (mismo origen) y la cookie `__Secure-better-auth.session_token` es de `<WEB_DEV>`.
 - [ ] Alarmas: activa las notificaciones y crea una sesión de 6 minutos. Con el aviso por defecto (5 minutos antes), al minuto llega el aviso y a los 6 el fin. En la consola de QStash (**Logs**) aparecen los mensajes entregados a `<API_DEV>/internal/jobs` con estado 200.
 - [ ] En el SQL Editor de Neon (rama `dev`): `select ip_address, user_agent from auth_session order by created_at desc limit 3;`. La IP debe ser la tuya. Si es una IP de Vercel, la reescritura no pasa la IP del cliente y los límites por IP (5 inicios de sesión por minuto) los comparten todos: avísalo para ajustar `advanced.ipAddress` en `apps/api/src/auth/index.ts`.
@@ -267,7 +276,7 @@ Las variables de la línea de comandos ganan a las del `.env`. El seed imprime e
 ## Parte C. Día a día
 
 1. Rama desde `dev` (`feat/f7-…`), commits, PR hacia `dev`. CI corre en el PR; Vercel no despliega la rama. Lo que haga falta probar antes del merge, se prueba en local (`bun run dev`).
-2. Merge a `dev`: migraciones en Neon `dev` y deploy en `<WEB_DEV>` / `<API_DEV>`. Ahí se prueba todo junto, incluidos Google y las alarmas.
+2. Merge a `dev`: migraciones en Neon `dev` y deploy en `<WEB_DEV>` / `<API_DEV>`. Ahí se prueba todo junto, incluidos Google y las alarmas. Para empezar de nuevo con la familia de prueba: `bun run db:reset` (paso 10).
 3. Release: PR de `dev` a `prod`, merge con **Merge**. Migraciones en `main`. El workflow `Release` publica la versión nueva de cada app que cambió, y Vercel despliega a producción esos commits de release. Al final fusiona `prod` en `dev` (parte E): haz `git pull` en tu `dev` antes de crear la siguiente rama.
 
 Una migración nueva se genera con `bun run db:generate` y nunca se edita a mano. Se aplica sola al llegar a `dev` y a `prod`.
@@ -278,11 +287,11 @@ Para forzar el build de una app que el paso de ignorar saltó: **Deployments →
 
 ## Parte D. Comprobación: e2e y smoke test
 
-El e2e (`apps/e2e`) recorre los 8 pasos del flujo en la web de dev. Escribe en Neon `dev`: crea una familia de prueba por corrida y la borra al terminar. El smoke test solo lee producción. Lo que no se puede automatizar está en [verificacion-manual.md](verificacion-manual.md).
+El e2e (`apps/e2e`) recorre los 8 pasos del flujo en la web de dev. Escribe en Neon `dev`: crea una familia de prueba por corrida y la borra al terminar. El smoke test solo lee, en producción y en dev, y comprueba que cada web le habla a la api de su ambiente. Lo que no se puede automatizar está en [verificacion-manual.md](verificacion-manual.md).
 
 ### 14. Marcar Neon `dev` como base de pruebas (una vez)
 
-Una cadena de conexión de Neon no dice a qué rama apunta, así que el e2e se niega a escribir en una base que no esté marcada. La marca es un comentario de la base, que vive solo en la rama donde se escribe: `main` nunca la tiene.
+Una cadena de conexión de Neon no dice a qué rama apunta, así que el e2e y `bun run db:reset` se niegan a escribir en una base que no esté marcada. La marca es un comentario de la base, que vive solo en la rama donde se escribe: `main` nunca la tiene.
 
 - [ ] Neon → **SQL Editor** → elige la rama **`dev`** (¡no `main`!) y la base `neondb` → corre:
   ```sql
@@ -304,7 +313,7 @@ El workflow del e2e exige un secreto de automatización de Vercel. Con Vercel Au
 En el repo, **Settings → Environments → `dev`** (el mismo del paso 2):
 
 - [ ] **Environment secrets → Add environment secret**: `VERCEL_AUTOMATION_BYPASS_SECRET` = el secreto del paso 15. `DATABASE_URL_UNPOOLED` ya está (paso 2).
-- [ ] **Environment variables → Add environment variable**: `E2E_BASE_URL` = `<WEB_DEV>`.
+- [ ] **Environment variables → Add environment variable**: `E2E_BASE_URL` = `<WEB_DEV>` y `E2E_API_URL` = `<API_DEV>` (este, para el smoke test de dev).
 
 En **Settings → Secrets and variables → Actions → Variables** (del repositorio, para el smoke test):
 
@@ -315,7 +324,7 @@ En **Settings → Secrets and variables → Actions → Variables** (del reposit
 - [ ] **Actions → E2E → Run workflow**, rama **`dev`** (el Environment solo deja leer sus secretos a esa rama):
   - `e2e`: el flujo completo contra `<WEB_DEV>` (unos minutos).
   - `e2e-slow`: además, una sesión de 2 minutos que espera el aviso, el fin y el cierre real por QStash (unos 4 minutos más).
-  - `smoke`: producción, solo lectura.
+  - `smoke`: producción y dev, solo lectura, cada uno en su job. Falla si la web le habla a la api de otro ambiente. Contra producción, desde el release que trae `/api/health` (api v1.5).
   - `base_url` (opcional): otra URL de la web, por ejemplo un deployment de Preview hecho a mano (habla con la api de dev). Vacío, usa `<WEB_DEV>`.
 - [ ] GitHub solo ofrece **Run workflow** cuando `e2e.yml` está en la rama por defecto (`prod`), como pasó con `Migrate`: hasta el siguiente release, córrelo desde tu máquina (abajo).
 - [ ] Si falla, el job sube el reporte de Playwright como artefacto `e2e-report` (con trazas y capturas). Una corrida cortada a la mitad deja su familia: el último paso del job borra las que queden (`bun run e2e:family:delete --all`).
@@ -436,7 +445,7 @@ Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o
 | La app Android abre el navegador al arrancar y queda en negro | La web de ese ambiente tiene Vercel Authentication (paso 4): desactívalo. No hace falta otro APK. |
 | En la app, **Activar avisos** dice «No se pudo completar» | La api publicada no tiene la ruta de los tokens (`/health` muestra una versión vieja: revisa el release de la api y su `Migrate`), o la sesión venció. |
 | Iniciar sesión da 403 `Invalid origin` | `BETTER_AUTH_URL` de ese ambiente no es exactamente el dominio de su web (`https://`, sin `/` final). En dev, revisa también la fila siguiente. |
-| La web de dev le habla a la api de producción: el callback de Google de `<WEB_DEV>` redirige a `<WEB_PROD>`, o en dev aparecen datos de la familia | `API_ORIGIN` de Preview es `<API_PROD>` (el valor del paso 4), o un valor con *Branch* `dev` gana al de Preview (paso 7). Corrígelo y haz Redeploy de la web de dev sin *Use project's Ignore Build Step*: la reescritura usa el valor que la variable tenía al crear el deployment. |
+| La web de dev le habla a la api de producción: el login de dev dice «api de otra web» en rojo, `<WEB_DEV>/api/health` trae `"web":"<WEB_PROD>"`, o en dev aparecen datos de la familia | `API_ORIGIN` de Preview es `<API_PROD>` (el valor del paso 4), o un valor con *Branch* `dev` gana al de Preview (paso 7). Corrígelo y haz Redeploy de la web de dev sin *Use project's Ignore Build Step*: la reescritura usa el valor que la variable tenía al crear el deployment. |
 | Un push a una rama que no es `dev` ni `prod` no aparece en Vercel | Es lo esperado: `git.deploymentEnabled` solo deja desplegar esas dos ramas. |
 | Google responde `redirect_uri_mismatch` | Falta `<dominio de la web>/api/auth/callback/google` en el cliente OAuth (paso 6). |
 | En QStash los mensajes fallan con 401 | La api tiene Vercel Authentication activado (paso 3), o las claves de firma son de otra región. Con 404, `PUBLIC_API_URL` no apunta a la api. |
