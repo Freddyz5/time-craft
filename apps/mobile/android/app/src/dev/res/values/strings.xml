@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- «Time Craft Dev»: the dev flavor's name (build.gradle). -->
+<resources>
+    <string name="app_name">Time Craft Dev</string>
+    <string name="title_activity_main">Time Craft Dev</string>
+</resources>
