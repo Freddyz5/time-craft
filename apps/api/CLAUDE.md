@@ -14,7 +14,7 @@ API REST con Hono, desplegada en Vercel. Contiene las rutas, la autenticación (
 
 ## Better Auth
 
-- El navegador llega a `/api/auth` por el dominio de la web (la web reescribe `/api/*` hacia la api), así que `BETTER_AUTH_URL` es el origen de la web, no el de la api. `BETTER_AUTH_TRUSTED_ORIGINS` (opcional, hoy sin uso) agrega otros orígenes de la web, con `*` como comodín: solo haría falta para un deployment de otra rama de la web, hecho a mano, que hable con la api de dev.
+- El navegador llega a `/api/auth` por el dominio de la web (la web reescribe `/api/*` hacia la api), así que `BETTER_AUTH_URL` es el origen de la web, no el de la api. `BETTER_AUTH_TRUSTED_ORIGINS` agrega otros orígenes de la web, con `*` como comodín. Solo lo lleva la api de dev: deja entrar a las previews de la web de otras ramas, pedidas a mano en Vercel, que le hablan a ella ([docs/deploy.md](../../docs/deploy.md), parte C). En ellas no hay login con Google: su vuelta va a `BETTER_AUTH_URL`, la web de dev.
 - No se usa el plugin `admin`: su `setUserPassword` exige una sesión de administrador y el flujo del código de recuperación no tiene sesión. `IdentityService` hace lo mismo que esos endpoints por dentro (`password.hash` + `internalAdapter`).
 - Tras subir de versión Better Auth o cambiar sus plugins, compara su schema con `packages/db/src/schema/auth.ts`: crea un archivo temporal que exporte `auth = createAuth({...})` (con una base PGlite) y corre `bunx auth@<versión> generate --config <archivo> --output <scratch>`. Si falta algo, ajústalo en `packages/db` con una migración. Better Auth además valida tablas y columnas al primer request.
 

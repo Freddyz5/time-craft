@@ -42,7 +42,7 @@ feat/*  ──PR──▶  dev  ──PR (release)──▶  prod
 Dev es una copia de producción para probar, con sus propios datos: todo lo que funciona en producción tiene que funcionar en dev. Las demás ramas no se despliegan (`git.deploymentEnabled` en el `vercel.json` de cada app).
 
 - En producción solo se despliegan releases: cada app se construye con su commit de release, que hace el workflow `Release` después del merge de `dev` (parte E). En `dev`, cada push crea deployments solo de la app que cambió: un cambio solo en la api no reconstruye la web, y al revés. La web usa de la api solo sus tipos, así que un cambio en `api`, `core` o `db` no la reconstruye. Un cambio en `turbo.json`, el `package.json` raíz o `bunfig.toml` reconstruye las dos; uno en `bun.lock`, las apps cuyas dependencias cambiaron. Uno solo en `docs/`, `.github/` o los `CLAUDE.md` raíz no reconstruye ninguna. En el primer deployment de `dev` no hay uno anterior con qué comparar, así que el paso de ignorar construye todo lo que Vercel no haya saltado por su cuenta.
-- Un PR no tiene preview: CI lo revisa, y la web y la api se prueban juntas en dev después del merge. Lo que haga falta probar antes, se prueba en local (`bun run dev`).
+- Un PR no tiene preview automática: CI lo revisa, y la web y la api se prueban juntas en dev después del merge. Lo que haga falta probar antes, se prueba en local (`bun run dev`) o, si es un cambio de la web, en una preview de su rama pedida a mano (parte C).
 - Las migraciones corren en GitHub Actions mientras la api publicada sigue atendiendo (en `dev`, Vercel despliega la nueva al mismo tiempo). Por eso deben ser **compatibles hacia atrás** (la regla está en el [`CLAUDE.md`](../CLAUDE.md) raíz). En producción, el workflow `Release` migra antes de crear el commit de release de la api, que es lo único que Vercel construye: la api nueva nunca corre antes de su migración.
 
 ## Tus valores
@@ -166,6 +166,7 @@ Proyecto **time-craft-api**:
 | `VAPID_PRIVATE_KEY` | par de producción | par de dev |
 | `VAPID_SUBJECT` | `mailto:<tu correo>` | `mailto:<tu correo>` |
 | `FCM_SERVICE_ACCOUNT` | la clave de Firebase (paso 21) | la misma |
+| `BETTER_AUTH_TRUSTED_ORIGINS` | no va | `https://time-craft-*-<SCOPE>.vercel.app` |
 
 Proyecto **time-craft-web** (edita el `API_ORIGIN` que pusiste al importar):
 
@@ -180,7 +181,7 @@ Por qué así:
 - `API_ORIGIN` va de tipo **Config**, no *Secret*: la reescritura de `/api/*` la lee en cada petición, y Vercel no le entrega el valor de un Secret. Con un Secret, `/api/*` entra en un bucle de redirecciones. Un Secret no se convierte a Config: bórralo y créalo de nuevo. No es un secreto, es la URL de la api.
 - `BETTER_AUTH_URL` es el dominio de la **web**, no el de la api: el navegador llega a `/api/auth` a través de la reescritura de la web, y ahí quedan las cookies.
 - `API_ORIGIN` de Preview es `<API_DEV>`, nunca la api de producción: con el valor que trae del paso 4, la web de dev le habla a la api de producción y lo que pruebes en dev cae en los datos de la familia. Se comprueba con `curl -s <WEB_DEV>/api/health`: su `web` es `<WEB_DEV>` y su `environment`, `dev`. La web también lo dice: en el login, «api de otra web» en rojo.
-- `BETTER_AUTH_TRUSTED_ORIGINS` no va en ningún ambiente. Solo haría falta para un deployment de otra rama de la web, hecho a mano, que hable con la api de dev (`https://time-craft-web-*-<SCOPE>.vercel.app`).
+- `BETTER_AUTH_TRUSTED_ORIGINS` va solo en Preview, de tipo **Config**: deja entrar a la api de dev a las previews de la web que pidas a mano (parte C). El patrón cubre las dos direcciones de cada preview, la de la rama (`time-craft-web-git-<rama>-<SCOPE>`) y la del deployment. Sin ella, el login de una preview dice que no se pudo entrar (la api responde `INVALID_ORIGIN`).
 - Google va en los dos ambientes, con el mismo cliente: las dos webs tienen dominio fijo y las dos están registradas en Google (paso 6). Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
 - No van en Vercel: `DATABASE_URL_UNPOOLED` (está en GitHub, paso 2), `SEED_*` (solo para el seed desde tu máquina) ni `API_DEV_URL` (solo local).
 - Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar, con **Use project's Ignore Build Step** desmarcado. El redeploy usa el mismo commit, así que el paso de ignorar no ve cambios y lo cancelaría.
@@ -274,13 +275,27 @@ env DATABASE_URL_UNPOOLED='<cadena directa de Neon dev>' \
 
 ## Parte C. Día a día
 
-1. Rama desde `dev` (`feat/f7-…`), commits, PR hacia `dev`. CI corre en el PR; Vercel no despliega la rama. Lo que haga falta probar antes del merge, se prueba en local (`bun run dev`).
+1. Rama desde `dev` (`feat/f7-…`), commits, PR hacia `dev`. CI corre en el PR; Vercel no despliega la rama sola. Lo que haga falta probar antes del merge, se prueba en local (`bun run dev`) o, si es de la web, en una preview (abajo).
 2. Merge a `dev`: migraciones en Neon `dev` y deploy en `<WEB_DEV>` / `<API_DEV>`. Ahí se prueba todo junto, incluidos Google y las alarmas. Para empezar de nuevo con la familia de prueba: `bun run db:reset` (paso 10).
 3. Release: PR de `dev` a `prod`, merge con **Merge**. El workflow `Release` aplica las migraciones en `main` y publica la versión nueva de cada app que cambió, y Vercel despliega a producción esos commits de release. Al final fusiona `prod` en `dev` (parte E): haz `git pull` en tu `dev` antes de crear la siguiente rama.
 
 Una migración nueva se genera con `bun run db:generate` y nunca se edita a mano. Se aplica sola al llegar a `dev` y a `prod`.
 
 Para forzar el build de una app que el paso de ignorar saltó: **Deployments → ⋯ → Redeploy** y desmarca **Use project's Ignore Build Step**. En producción, eso es el despliegue de emergencia (parte E).
+
+### Preview de la web de una rama (a mano)
+
+Para ver un cambio de la web antes del merge, sin ramas especiales. `git.deploymentEnabled` solo apaga los despliegues automáticos: uno pedido a mano funciona igual.
+
+- [ ] Una vez: `BETTER_AUTH_TRUSTED_ORIGINS` en el Preview de **time-craft-api** (paso 7). Llega con el siguiente deployment de la api de dev, o con un **Redeploy** sin el paso de ignorar.
+- [ ] Cada vez: proyecto **time-craft-web** → **Deployments → ⋯ → Create Deployment** → elige la rama → **Create Preview Deployment**. Tarda unos segundos. En sus detalles, **Domains** trae la dirección de la rama, `https://time-craft-web-git-<rama>-<SCOPE>.vercel.app`. Después de nuevos commits, otro **Create Deployment** la actualiza; si la rama solo cambió la api, el paso de ignorar lo salta.
+
+Qué es y qué no:
+
+- Es la web de esa rama hablándole a la api de dev, con los datos de dev. Arriba dice «Ambiente de pruebas (preview)», y en el login, «api v… de dev».
+- Se entra con correo y contraseña (padres) o con usuario y PIN (niño). No hay botón de Google: su vuelta llega a `<WEB_DEV>`, no a la preview.
+- Solo la web. Si la rama cambia la api, `core`, la base o las migraciones, la preview sigue usando la api de dev tal como está: eso se prueba en local o en dev después del merge. No pidas previews del proyecto de la api: correrían contra la base de dev sin las migraciones de la rama.
+- Es pública, como dev: sin sesión no muestra datos. Los deployments quedan en **Deployments**; bórralos cuando ya no sirvan.
 
 ---
 
