@@ -83,7 +83,7 @@ bun run db:reset       # vacía una base marcada como de pruebas (timecraft:dev)
 
 bun run test --filter=@time-craft/core   # cualquier tarea, en un solo paquete
 
-TIMECRAFT_WEB_URL=<web> bun --cwd=apps/mobile run android:debug   # APK de prueba (Java 21 y SDK de Android)
+TIMECRAFT_WEB_URL=<web> bun --cwd=apps/mobile run android:debug   # APK de prueba de «Time Craft Dev» (Java 21 y SDK de Android)
 
 bun run e2e            # e2e con Playwright contra E2E_BASE_URL (por defecto la web local); crea y borra su familia
 bun run e2e:smoke      # smoke test de solo lectura (E2E_BASE_URL y E2E_API_URL), apto para producción y dev: la web le habla a la api de su ambiente
