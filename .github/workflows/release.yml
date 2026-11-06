@@ -1,20 +1,21 @@
 name: Release
 
-# Every push to prod is a release from dev. semantic-release gives the web,
-# the api and the Android app their next version from the commits since each one's last tag
+# Every push to prod is a release from dev. First it migrates production's
+# database (Neon main). Then semantic-release gives the web, the api and the
+# Android app their next version from the commits since each one's last tag
 # (scripts/release/config.mjs): it writes it into the app's package.json and
 # CHANGELOG.md, commits that to prod, tags it (web-v1.2.0, api-v1.2.0,
 # mobile-v1.2.0) and publishes a GitHub release; a mobile-v tag then builds
 # the APK (android.yml). Then prod goes back into dev, so both branches
 # hold the same versions. Vercel deploys production only from these release
-# commits (scripts/vercel-ignore.mjs), so a failed run means no deploy.
+# commits (scripts/vercel-ignore.mjs), so a failed run means no deploy, and
+# the new api never runs before its migration.
 #
 # The release app, a GitHub App, does the pushes (docs/deploy.md, part E).
 # Its pushes run the other workflows as any push does, and the workflow's
-# own GITHUB_TOKEN's would not: Migrate must run on the release commit,
-# because Vercel's Deployment Checks hold the api's production deployment
-# until it passes on that same commit. If prod and dev get rulesets, the
-# app goes in their bypass lists.
+# own GITHUB_TOKEN's would not: android.yml must run on the mobile-v tag,
+# and CI on the release commits. If prod and dev get rulesets, the app goes
+# in their bypass lists.
 
 on:
   push:
@@ -30,7 +31,8 @@ jobs:
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # The app's key lives in the prod environment: only prod can read it.
+    # The prod environment holds the app's key and production's
+    # DATABASE_URL_UNPOOLED: only prod can read them.
     environment: prod
     # One release at a time, never cancelled halfway. Here and not on the
     # workflow, so the skipped runs above don't take a queued release's place.
@@ -72,6 +74,22 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      # Before any release commit: Vercel builds the production api only from
+      # its release commit, so the new code never runs before its migration,
+      # and a failed migration releases nothing. The api already published
+      # keeps serving meanwhile, so migrations stay backward compatible
+      # (CLAUDE.md). This job is the only one that migrates production, and
+      # its concurrency group keeps two releases from migrating at once.
+      - name: Migrate the production database
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: |
+          if [ -z "$DATABASE_URL_UNPOOLED" ]; then
+            echo "::error::The prod environment has no DATABASE_URL_UNPOOLED secret (see docs/deploy.md)."
+            exit 1
+          fi
+          bun run db:migrate
+
       # The release commits and the merge into dev show up as the app's bot.
       # semantic-release reads these variables, not git config.
       - name: Commit as the release app
@@ -102,9 +120,6 @@ jobs:
           RELEASE_APP: mobile
         run: bun run release
 
-      # Last: each release commit is its own push to prod, and a newer push
-      # cancels the Migrate run still waiting for the one before it. Vercel
-      # publishes the api only when Migrate passes on its release commit.
       - name: Release the api
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
