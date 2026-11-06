@@ -9,9 +9,9 @@ Cómo se publica Time Craft y qué hay que configurar a mano, una sola vez, en V
 | Las ramas que Vercel despliega: solo `dev` y `prod` | `git.deploymentEnabled` en los dos `vercel.json` |
 | Saltar el build de la app que un commit no afecta | [`scripts/vercel-ignore.mjs`](../scripts/vercel-ignore.mjs) (el `ignoreCommand` de cada app) |
 | Lint, typecheck, tests y build en cada PR | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) |
-| Migraciones de Neon al hacer push a `dev` o `prod` | [`.github/workflows/migrate.yml`](../.github/workflows/migrate.yml) |
+| Migraciones de Neon `dev` en cada push a `dev` | [`.github/workflows/migrate.yml`](../.github/workflows/migrate.yml) |
 | E2E contra dev y smoke test de producción, a mano | [`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml) (parte D) |
-| Versión, `CHANGELOG.md`, tag y GitHub Release de cada app en cada push a `prod` | [`.github/workflows/release.yml`](../.github/workflows/release.yml) y [`scripts/release/`](../scripts/release/) (parte E) |
+| Migraciones de Neon `main`, y versión, `CHANGELOG.md`, tag y GitHub Release de cada app, en cada push a `prod` | [`.github/workflows/release.yml`](../.github/workflows/release.yml) y [`scripts/release/`](../scripts/release/) (parte E) |
 | Versión de Node (22) | `engines` en `apps/api/package.json` y `apps/web/package.json` |
 
 ## Cómo fluye un cambio
@@ -19,14 +19,12 @@ Cómo se publica Time Craft y qué hay que configurar a mano, una sola vez, en V
 ```
 feat/*  ──PR──▶  dev  ──PR (release)──▶  prod
          CI       │                      │
-                  ├─ Migrate: Neon dev   ├─ Migrate: Neon main
-                  └─ Vercel: dominio     └─ Release: versión y tag
-                     fijo de dev            de cada app, vuelta a dev
+                  ├─ Migrate: Neon dev   └─ Release: migra Neon main,
+                  └─ Vercel: dominio        versión y tag de cada app,
+                     fijo de dev            vuelta a dev
                                               │
-                                              ├─ Migrate: Neon main
                                               └─ Vercel: producción, solo
                                                  los commits de release
-                                                 (la api espera a Migrate)
 ```
 
 | | Producción | Dev |
@@ -45,7 +43,7 @@ Dev es una copia de producción para probar, con sus propios datos: todo lo que 
 
 - En producción solo se despliegan releases: cada app se construye con su commit de release, que hace el workflow `Release` después del merge de `dev` (parte E). En `dev`, cada push crea deployments solo de la app que cambió: un cambio solo en la api no reconstruye la web, y al revés. La web usa de la api solo sus tipos, así que un cambio en `api`, `core` o `db` no la reconstruye. Un cambio en `turbo.json`, el `package.json` raíz o `bunfig.toml` reconstruye las dos; uno en `bun.lock`, las apps cuyas dependencias cambiaron. Uno solo en `docs/`, `.github/` o los `CLAUDE.md` raíz no reconstruye ninguna. En el primer deployment de `dev` no hay uno anterior con qué comparar, así que el paso de ignorar construye todo lo que Vercel no haya saltado por su cuenta.
 - Un PR no tiene preview: CI lo revisa, y la web y la api se prueban juntas en dev después del merge. Lo que haga falta probar antes, se prueba en local (`bun run dev`).
-- Las migraciones corren en GitHub Actions al mismo tiempo que Vercel despliega. Por eso deben ser **compatibles hacia atrás** (la regla está en el [`CLAUDE.md`](../CLAUDE.md) raíz). En producción, Vercel no publica la api nueva hasta que el job `Migrate database` termina bien (paso 9).
+- Las migraciones corren en GitHub Actions mientras la api publicada sigue atendiendo (en `dev`, Vercel despliega la nueva al mismo tiempo). Por eso deben ser **compatibles hacia atrás** (la regla está en el [`CLAUDE.md`](../CLAUDE.md) raíz). En producción, el workflow `Release` migra antes de crear el commit de release de la api, que es lo único que Vercel construye: la api nueva nunca corre antes de su migración.
 
 ## Tus valores
 
@@ -84,7 +82,7 @@ En el repo: **Settings → Environments → New environment**.
   - **Environment secrets → Add environment secret**: nombre `DATABASE_URL_UNPOOLED`, valor la cadena **directa** (sin pooling) de la rama `dev` de Neon.
 - [ ] Lo mismo con el nombre `prod`: regla de rama `prod` y la cadena **directa** de `main`.
 
-El workflow `Migrate` elige el Environment por el nombre de la rama, y la regla impide que otra rama lea esos secretos.
+El workflow `Migrate` usa el Environment `dev`, y `Release` el de `prod` (que también guarda la App de releases, parte E). La regla impide que otra rama lea esos secretos.
 
 ### 3. Vercel: proyecto de la api
 
@@ -185,7 +183,7 @@ Por qué así:
 - `BETTER_AUTH_TRUSTED_ORIGINS` no va en ningún ambiente. Solo haría falta para un deployment de otra rama de la web, hecho a mano, que hable con la api de dev (`https://time-craft-web-*-<SCOPE>.vercel.app`).
 - Google va en los dos ambientes, con el mismo cliente: las dos webs tienen dominio fijo y las dos están registradas en Google (paso 6). Sin `GOOGLE_CLIENT_ID`, la web no muestra el botón y la api no ofrece Google.
 - No van en Vercel: `DATABASE_URL_UNPOOLED` (está en GitHub, paso 2), `SEED_*` (solo para el seed desde tu máquina) ni `API_DEV_URL` (solo local).
-- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar, con **Use project's Ignore Build Step** desmarcado. El redeploy usa el mismo commit, así que el paso de ignorar no ve cambios y lo cancelaría. En producción, la api además queda en *Running Checks* hasta que la promuevas a mano (parte E, *Desplegar ya*).
+- Un cambio de variables se aplica en el **siguiente** deployment: después de editarlas, **Deployments → ⋯ → Redeploy** en el deployment que quieras actualizar, con **Use project's Ignore Build Step** desmarcado. El redeploy usa el mismo commit, así que el paso de ignorar no ve cambios y lo cancelaría.
 
 ### 8. GitHub: reglas de las ramas
 
@@ -223,11 +221,11 @@ Usa siempre **Merge** (no squash ni rebase) en los PR de `dev` a `prod`: así `p
   - **CI** sobre `dev`.
   - **Migrate** (Actions): aplica en Neon `dev` las migraciones pendientes. En su log, `drizzle-kit migrate` termina sin error.
   - **Vercel**: un deployment de cada proyecto para `dev`, en `<WEB_DEV>` y `<API_DEV>`. Es el primero de `dev` en estos proyectos, así que el paso de ignorar no tiene con qué comparar y construye.
-- [ ] Proyecto **time-craft-api** → **Settings → Build and Deployment → Deployment Checks → Add Checks** → *GitHub* → elige `Migrate database` (no `Migrate database (dev)`, que es el de la rama `dev`) → guarda. Desde ahora, un deployment de producción de la api no se publica hasta que ese job pasa en el mismo commit. Un Redeploy nunca lo cumple, ni volviendo a correr Migrate: se publica con **⋯ → Force Promote** en el deployment (parte E), que también sirve si algún día necesitas saltar el check.
+- [ ] Proyecto **time-craft-api** → **Settings → Build and Deployment → Deployment Checks**: la lista debe quedar vacía. Si tiene `Migrate database` (lo pedía una versión anterior de esta guía), quítalo: ese job ya no corre en `prod`, y la api de producción lo esperaría para siempre. La migración de producción la hace `Release` antes de crear el commit de la api (parte E).
 
 ### 10. Seed de una base vacía
 
-En producción, solo si la rama de Neon no tiene el hogar todavía (SQL Editor: `select name from families;` no devuelve filas). El seed crea la familia, los padres, las actividades, la cuenta del niño y su política desde las variables `SEED_*` de tu `.env`, y es idempotente. Corre en tu máquina, contra la cadena **directa** de la rama, después de que `Migrate` la haya migrado:
+En producción, solo si la rama de Neon no tiene el hogar todavía (SQL Editor: `select name from families;` no devuelve filas). El seed crea la familia, los padres, las actividades, la cuenta del niño y su política desde las variables `SEED_*` de tu `.env`, y es idempotente. Corre en tu máquina, contra la cadena **directa** de la rama, después de que la hayan migrado `Migrate` (dev) o `Release` (producción):
 
 ```sh
 env DATABASE_URL_UNPOOLED='<cadena directa de la rama>' \
@@ -261,7 +259,8 @@ env DATABASE_URL_UNPOOLED='<cadena directa de Neon dev>' \
 ### 12. Primer release: `dev` → `prod`
 
 - [ ] Abre un PR de `dev` a `prod`. Corren `Lint, typecheck, test, build` y `PR to prod comes from dev`.
-- [ ] Fusiónalo con **Merge**. Eso dispara **Migrate** en Neon `main` y los deployments de producción. La api queda en *Waiting for checks* hasta que `Migrate database` pasa, y luego se publica en `<API_PROD>`. Desde la parte E, producción solo construye los commits de release: el merge queda *Canceled* y el deploy llega con el workflow `Release`, que necesita la App de los pasos 18 y 19.
+- [ ] Antes de fusionarlo, configura la App de releases (pasos 18 y 19): el workflow `Release` la necesita, y es el que migra producción.
+- [ ] Fusiónalo con **Merge**. Eso dispara el workflow `Release`: migra Neon `main` y crea los commits de release. Producción solo construye esos commits: el merge queda *Canceled*, y la web y la api se publican con su release en `<WEB_PROD>` y `<API_PROD>`.
 - [ ] Si `main` no tiene el hogar, haz el seed (paso 10) con los valores de producción.
 
 ### 13. Comprobar producción
@@ -277,7 +276,7 @@ env DATABASE_URL_UNPOOLED='<cadena directa de Neon dev>' \
 
 1. Rama desde `dev` (`feat/f7-…`), commits, PR hacia `dev`. CI corre en el PR; Vercel no despliega la rama. Lo que haga falta probar antes del merge, se prueba en local (`bun run dev`).
 2. Merge a `dev`: migraciones en Neon `dev` y deploy en `<WEB_DEV>` / `<API_DEV>`. Ahí se prueba todo junto, incluidos Google y las alarmas. Para empezar de nuevo con la familia de prueba: `bun run db:reset` (paso 10).
-3. Release: PR de `dev` a `prod`, merge con **Merge**. Migraciones en `main`. El workflow `Release` publica la versión nueva de cada app que cambió, y Vercel despliega a producción esos commits de release. Al final fusiona `prod` en `dev` (parte E): haz `git pull` en tu `dev` antes de crear la siguiente rama.
+3. Release: PR de `dev` a `prod`, merge con **Merge**. El workflow `Release` aplica las migraciones en `main` y publica la versión nueva de cada app que cambió, y Vercel despliega a producción esos commits de release. Al final fusiona `prod` en `dev` (parte E): haz `git pull` en tu `dev` antes de crear la siguiente rama.
 
 Una migración nueva se genera con `bun run db:generate` y nunca se edita a mano. Se aplica sola al llegar a `dev` y a `prod`.
 
@@ -333,7 +332,7 @@ En tu máquina: `bun run e2e` contra `bun run dev` (con el servidor de desarroll
 
 ## Parte E. Versiones de la web y la api
 
-Cada app tiene su versión semántica en su `package.json`, independiente de los hitos del producto, y nadie la edita a mano. En cada push a `prod`, el workflow `Release` ([`release.yml`](../.github/workflows/release.yml)) corre semantic-release para la web y luego para la api ([`scripts/release/`](../scripts/release/)):
+Cada app tiene su versión semántica en su `package.json`, independiente de los hitos del producto, y nadie la edita a mano. En cada push a `prod`, el workflow `Release` ([`release.yml`](../.github/workflows/release.yml)) aplica las migraciones en Neon `main` y después corre semantic-release para cada app ([`scripts/release/`](../scripts/release/)):
 
 - Cuenta los commits desde el último tag de la app que tocaron su carpeta, la de un paquete del workspace del que depende o un archivo raíz que leen todos los builds (`package.json`, `bun.lock`, `bunfig.toml`, `turbo.json`). La api cuenta `core` y `db`; la web no cuenta la api, porque de ella solo usa los tipos.
 - `feat` sube el minor y `feat!:` (o `BREAKING CHANGE:` en el cuerpo) el major. `fix`, `perf`, `refactor`, `build`, `style`, `chore` y `ci` suben el patch: todo lo que cambia lo que se despliega publica una versión, porque producción solo despliega releases. `docs` y `test` no publican. El primer release de cada app sale como `1.0.0`.
@@ -341,14 +340,14 @@ Cada app tiene su versión semántica en su `package.json`, independiente de los
 - Al final fusiona `prod` en `dev`: un fast-forward si `dev` no se movió, un commit de merge si se movió. Así las dos ramas tienen siempre las mismas versiones.
 - La web muestra su versión abajo a la derecha en las pantallas de entrada (login de padres, login del niño y recuperación). La api la devuelve en `/health`.
 
-**Producción despliega solo releases.** En producción, el paso de ignorar ([`scripts/vercel-ignore.mjs`](../scripts/vercel-ignore.mjs)) construye una app solo con su commit de release (`chore(release): web-v…` para la web, `api-v…` para la api). El merge de `dev` queda *Canceled* con `Skip: production deploys only … release commits`, y cada release se construye una sola vez, ya con su versión. `Migrate` corre en el merge, así que la migración se aplica antes de que llegue la api nueva, y vuelve a correr en el commit del release (sin nada pendiente, termina enseguida); la api de producción espera ese segundo `Migrate` por la Deployment Check. Si un release no cambia una app, esa app no se despliega. En `dev` sigue igual: se construye lo que cambió.
+**Producción despliega solo releases.** En producción, el paso de ignorar ([`scripts/vercel-ignore.mjs`](../scripts/vercel-ignore.mjs)) construye una app solo con su commit de release (`chore(release): web-v…` para la web, `api-v…` para la api). El merge de `dev` queda *Canceled* con `Skip: production deploys only … release commits`, y cada release se construye una sola vez, ya con su versión. `Release` aplica las migraciones antes de crear los commits de release, así que la api nueva nunca corre antes de su migración, y Vercel la publica apenas termina el build. No hay Deployment Checks: esperaban a un job de GitHub y dejaban la api colgada cuando ese job terminaba antes que el build, o en cualquier Redeploy. Si un release no cambia una app, esa app no se despliega. En `dev` sigue igual: se construye lo que cambió.
 
 **Emergencias:**
 
-- *Desplegar ya* (falló `Release`, o hay que publicar un commit sin release): proyecto → **Deployments** → filtra por *Production* → el deployment de ese commit (aunque esté *Canceled*) → **⋯ → Redeploy** → desmarca **Use project's Ignore Build Step** → **Redeploy**. Construye ese commit con las variables actuales. La versión que muestra es la de su `package.json`. La api queda en *Running Checks* para siempre: Vercel no le asocia ningún run de `Migrate database`, ni siquiera uno nuevo con **Re-run all jobs**. Revisa en Actions → **Migrate** que el run de `prod` de ese commit pasó y, en el deployment, **⋯ → Force Promote**. Si el problema fue `Release`, lo normal es corregirlo y hacer **Re-run jobs**.
+- *Desplegar ya* (falló `Release`, o hay que publicar un commit sin release): proyecto → **Deployments** → filtra por *Production* → el deployment de ese commit (aunque esté *Canceled*) → **⋯ → Redeploy** → desmarca **Use project's Ignore Build Step** → **Redeploy**. Construye ese commit con las variables actuales. La versión que muestra es la de su `package.json`. Si el commit trae una migración, hazlo solo si `Release` llegó a aplicarla (su paso *Migrate the production database* pasó): si no, la api nueva correría contra el esquema viejo. Si el problema fue `Release`, lo normal es corregirlo y hacer **Re-run jobs**.
 - *Volver atrás*: en el proyecto, **Instant Rollback** en el tile de producción. En Hobby solo vuelve al deployment anterior. Mientras dure el rollback, Vercel no publica deployments nuevos de producción: cuando el arreglo esté desplegado, **Undo Rollback** y elige ese deployment.
 
-Esos pushes los hace una GitHub App tuya. El token propio del workflow (`GITHUB_TOKEN`) no sirve: lo que empuja no dispara otros workflows, y `Migrate` tiene que correr en el commit del release. Un token personal también podría, pero depende de tu cuenta y llega a todos tus repos. La App solo puede escribir el contenido de este repo, y cada token que el workflow le pide dura una hora. Si las ramas tienen rulesets (paso 8), la App va en sus listas de bypass (paso 19).
+Esos pushes los hace una GitHub App tuya. El token propio del workflow (`GITHUB_TOKEN`) no sirve: lo que empuja no dispara otros workflows, y el tag `mobile-v…` tiene que construir el APK (`android.yml`). Un token personal también podría, pero depende de tu cuenta y llega a todos tus repos. La App solo puede escribir el contenido de este repo, y cada token que el workflow le pide dura una hora. Si las ramas tienen rulesets (paso 8), la App va en sus listas de bypass (paso 19).
 
 Configúrala antes del release que lleve `release.yml` a `prod`. Si no, ese job falla al pedir el token; después de configurarla, basta con **Re-run jobs**.
 
@@ -443,15 +442,16 @@ Mientras tanto, la api tiene que quedar con Vercel Authentication desactivado, o
 | Producción no se actualiza aunque `Release` publicó la versión | Hay un Instant Rollback activo: **Undo Rollback** en el tile de producción (parte E). |
 | La api responde 500 y el log de la función dice `Invalid environment variables` | El mensaje nombra la variable que falta o es inválida en ese ambiente (paso 7). |
 | La app Android abre el navegador al arrancar y queda en negro | La web de ese ambiente tiene Vercel Authentication (paso 4): desactívalo. No hace falta otro APK. |
-| En la app, **Activar avisos** dice «No se pudo completar» | La api publicada no tiene la ruta de los tokens (`/health` muestra una versión vieja: revisa el release de la api y su `Migrate`), o la sesión venció. |
+| En la app, **Activar avisos** dice «No se pudo completar» | La api publicada no tiene la ruta de los tokens (`/health` muestra una versión vieja: revisa el release de la api en Actions → Release y su deployment en Vercel), o la sesión venció. |
 | Iniciar sesión da 403 `Invalid origin` | `BETTER_AUTH_URL` de ese ambiente no es exactamente el dominio de su web (`https://`, sin `/` final). En dev, revisa también la fila siguiente. |
 | La web de dev le habla a la api de producción: el login de dev dice «api de otra web» en rojo, `<WEB_DEV>/api/health` trae `"web":"<WEB_PROD>"`, o en dev aparecen datos de la familia | `API_ORIGIN` de Preview es `<API_PROD>` (el valor del paso 4), o un valor con *Branch* `dev` gana al de Preview (paso 7). Corrígelo y haz Redeploy de la web de dev sin *Use project's Ignore Build Step*: la reescritura usa el valor que la variable tenía al crear el deployment. |
 | Un push a una rama que no es `dev` ni `prod` no aparece en Vercel | Es lo esperado: `git.deploymentEnabled` solo deja desplegar esas dos ramas. |
 | Google responde `redirect_uri_mismatch` | Falta `<dominio de la web>/api/auth/callback/google` en el cliente OAuth (paso 6). |
 | En QStash los mensajes fallan con 401 | La api tiene Vercel Authentication activado (paso 3), o las claves de firma son de otra región. Con 404, `PUBLIC_API_URL` no apunta a la api. |
-| La api de producción queda en *Waiting for checks* o *Running Checks* | El job `Migrate database` de ese commit falló o no corrió: revisa Actions → Migrate. Si es un Redeploy, no se destraba solo ni volviendo a correr el job: **⋯ → Force Promote** (parte E). |
+| La api de producción queda en *Waiting for checks* o *Running Checks* | El proyecto todavía tiene una Deployment Check (paso 9): quítala y, en ese deployment, **⋯ → Force Promote**. La migración ya se aplicó: `Release` la hace antes de crear el commit de la api. |
 | Iniciar una sesión da 500 `internal_error` y el log dice `invalid destination url: endpoint resolves to a loopback address` | `PUBLIC_API_URL` es local (`http://localhost:3000`) en ese ambiente: pon el dominio de la api y haz Redeploy. Desde que la api lo valida, falla al arrancar con `PUBLIC_API_URL` en `Invalid environment variables`. |
-| `Migrate` falla con `has no DATABASE_URL_UNPOOLED secret` | Falta el secreto en el Environment de esa rama (paso 2). Después, Actions → Migrate → **Run workflow** en esa rama (el botón aparece cuando `migrate.yml` ya está en `prod`). |
+| `Migrate` o `Release` falla con `has no DATABASE_URL_UNPOOLED secret` | Falta el secreto en el Environment `dev` (para `Migrate`) o `prod` (para `Release`) (paso 2). Agrégalo y **Re-run jobs** en esa corrida. |
+| `Release` falla en *Migrate the production database* | Neon `main` no se migró y no se publicó nada. Mira el log del paso: si fue la conexión o el secreto, corrígelo y **Re-run jobs**; si fue la migración, arréglala con una migración nueva que pase por `dev` y haz otro release. |
 | `Release` falla en *Get a token for the release app* | Falta `RELEASE_APP_CLIENT_ID` o `RELEASE_APP_PRIVATE_KEY` en el Environment `prod`, o la App no está instalada en el repo (paso 18). Corrígelo y **Re-run jobs**: el job parte de la punta de `prod`, así que retoma lo que haya quedado sin publicar. |
 | `Release` falla al hacer push con `push declined due to repository rule violations` | La App no está en la lista de bypass del ruleset de esa rama (paso 19). Agrégala y **Re-run jobs**. |
 | `Release` falla en *Bring prod back into dev* | `dev` cambió las mismas líneas que el release (un `package.json` o un `CHANGELOG.md`). Abre un PR de `prod` a `dev`, resuelve el conflicto ahí y fusiónalo. |
