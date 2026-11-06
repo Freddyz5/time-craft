@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/Freddyz5/time-craft/compare/api-v1.4.0...api-v1.5.0) (2026-11-06)
+
+### Features
+
+* **api:** say the environment and the web it serves in /health ([528c2cc](https://github.com/Freddyz5/time-craft/commit/528c2cc223b13ae1fbb8adabcf39e526f7999329))
+* **db:** reset a test database with bun run db:reset ([250d4a0](https://github.com/Freddyz5/time-craft/commit/250d4a09c1a0379b198088a1f564685c55198b21))
+* **web:** mark test environments and show the api's version ([0896ef8](https://github.com/Freddyz5/time-craft/commit/0896ef843dc064bc7829f5ed9c4cc64558fc6bb4))
+
+### Other changes
+
+* deploy only the dev and prod branches on Vercel ([897eafc](https://github.com/Freddyz5/time-craft/commit/897eafca7ce48da734481b8ac399cef84c0c5ac4))
+
 ## [1.4.0](https://github.com/Freddyz5/time-craft/compare/api-v1.3.0...api-v1.4.0) (2026-11-03)
 
 ### Features
