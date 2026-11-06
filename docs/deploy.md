@@ -382,13 +382,13 @@ Si ya tenías configurada solo «Time Craft»: en el paso 20, agrega la app `app
 
 ### 20. Firebase y Google: un solo proyecto
 
-El cliente Android del login con Google tiene que estar en el **mismo** proyecto de Google Cloud que el cliente web que ya usa la web (`GOOGLE_CLIENT_ID`). Firebase se agrega encima de ese proyecto.
+El cliente Android del login con Google tiene que estar en el **mismo** proyecto de Google Cloud que el cliente web que ya usa la web (`GOOGLE_CLIENT_ID`). Firebase se agrega encima de ese proyecto. Si Firebase ya está en otro proyecto, los avisos funcionan igual; los clientes Android van siempre en el del cliente web.
 
 - [ ] [console.firebase.google.com](https://console.firebase.google.com) → **Create a project** → elige el proyecto de Google Cloud existente (el del login con Google) → sin Google Analytics → plan **Spark**.
 - [ ] **Project settings → General → Your apps → Add app → Android**: package name `app.timecraft`, nickname «Time Craft» → **Register app**. Repite con `app.timecraft.dev`, nickname «Time Craft Dev».
 - [ ] En la misma pantalla, descarga **`google-services.json`** (de cualquiera de las dos apps: es uno solo y trae las dos). No va al repo. Sin la app que se construye, Gradle se detiene con «No matching client found».
 - [ ] **Project settings → Service accounts → Generate new private key**: se descarga un JSON. Es un secreto: va solo a Vercel (paso 21) y después se borra de tu máquina.
-- [ ] [console.cloud.google.com](https://console.cloud.google.com) (mismo proyecto) → **APIs & Services → Credentials → Create credentials → OAuth client ID → Android**, una vez por app:
+- [ ] [console.cloud.google.com](https://console.cloud.google.com) (el proyecto del cliente web) → **APIs & Services → Credentials → Create credentials → OAuth client ID → Android**, una vez por app:
   - *Package name*: `app.timecraft`, y en el segundo `app.timecraft.dev`.
   - *SHA-1*: el de la llave de firma, el mismo en los dos (`keytool -list -v -keystore ~/.config/time-craft/android/release.keystore`, o el que figura en la tarea de Notion).
   - Si vas a probar APKs de debug (`bun run android:debug` construye «Time Craft Dev»), crea otro para `app.timecraft.dev` con el SHA-1 de la llave de debug (`keytool -list -v -keystore ~/.android/debug.keystore -storepass android`).
