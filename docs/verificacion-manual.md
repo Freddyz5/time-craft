@@ -9,8 +9,9 @@ El e2e (`apps/e2e`) recorre los 8 pasos del flujo en Chrome, pero hay cosas que 
 - [ ] Dos teléfonos Android con Chrome actualizado: uno de un padre y otro del niño. Para la sección 7 hace falta un tercero (el otro padre); sirve también una computadora.
 - [ ] En cada teléfono: sonido y vibración activados, sin modo No molestar, y las notificaciones de Chrome permitidas en los ajustes de Android (*Ajustes › Apps › Chrome › Notificaciones*).
 - [ ] Ambiente:
-  - **dev**: `<WEB_DEV>` (ver [deploy.md](deploy.md)). Tiene Vercel Authentication: en cada teléfono, la primera vez entra con tu cuenta de Vercel. Usa el hogar sembrado en Neon `dev`.
-  - **producción**: `<WEB_PROD>`, con la familia real.
+  - **dev**: `<WEB_DEV>` (ver [deploy.md](deploy.md)), con la familia de prueba sembrada en Neon `dev`. Cada página lleva arriba la franja «Ambiente de pruebas (dev)».
+  - **producción**: `<WEB_PROD>`, con la familia real. No lleva la franja.
+- [ ] En el login, abajo a la derecha, se ven la versión de la web y la de la api, y nada en rojo. «api de otra web» en rojo quiere decir que esa web le habla a la api de otro ambiente: no sigas, revisa `API_ORIGIN` ([deploy.md](deploy.md), problemas frecuentes).
 - [ ] La api responde: `curl <API>/health` devuelve `{"ok":true,…}`.
 - [ ] En la [consola de QStash](https://console.upstash.com/qstash), pestaña **Logs**, a mano para ver las entregas a `<API>/internal/jobs` (deben responder 200).
 - [ ] Anota al final, en el registro, la fecha, el ambiente y el commit desplegado.
@@ -89,7 +90,7 @@ En la computadora, Chrome no congela una pestaña de fondo: Time Craft abierto d
 
 ## 5. Login con Google
 
-Solo en `dev` y producción (en las previews de PR Google está apagado).
+En `dev` y producción. En local, solo si el `.env` tiene `GOOGLE_CLIENT_ID`.
 
 - [ ] Cada padre, en `/login`, toca **Continuar con Google**, elige su cuenta y llega a `/padres`.
 - [ ] Con una cuenta de Google que no es de un padre: vuelve a `/login` con «Ese correo de Google no es de un padre de la familia.».

@@ -12,7 +12,12 @@
 		"@time-craft/web#build": {
 			"dependsOn": ["^build", "transit"],
 			"outputs": ["dist/**"],
-			"env": ["VAPID_PUBLIC_KEY", "GOOGLE_CLIENT_ID"]
+			"env": [
+				"VAPID_PUBLIC_KEY",
+				"GOOGLE_CLIENT_ID",
+				"VERCEL_ENV",
+				"VERCEL_GIT_COMMIT_REF"
+			]
 		},
 		"//#lint:root": {},
 		"lint": {

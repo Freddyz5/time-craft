@@ -1,13 +1,60 @@
 // The public pages' frame (login, recovery): the mark, one line on what the
 // app is, a short row of bricks showing the idea, and the form on a plate.
 // The child's login leaves the bricks out: to them, bricks are their time.
-// The web's version sits in the bottom corner.
-import type { ReactNode } from "react";
+// The web's version sits in the bottom corner, with the api's.
+import { type ReactNode, useEffect, useState } from "react";
 // The release writes the web's version here (scripts/release); Vite bundles
 // only this field.
 import { version } from "../../package.json";
 import { Wordmark } from "../components/brand";
 import { BrickRow, bricksFor } from "../components/bricks";
+import { api, call } from "../lib/api";
+
+interface ApiHealth {
+	version: string;
+	// The origin of the web that api serves.
+	web: string;
+}
+
+// What the api behind /api says about itself. Null until it answers, and if
+// it never does (an api from before /api/health, or no connection).
+function useApiHealth(): ApiHealth | null {
+	const [health, setHealth] = useState<ApiHealth | null>(null);
+	useEffect(() => {
+		let active = true;
+		call(api.health.$get())
+			.then(({ app, web }) => {
+				if (active) {
+					setHealth({ version: app.version, web });
+				}
+			})
+			.catch(() => {});
+		return () => {
+			active = false;
+		};
+	}, []);
+	return health;
+}
+
+// The versions, and a warning when this web reaches another web's api: dev
+// talking to production's api would write to the family's data.
+function Versions() {
+	const health = useApiHealth();
+	return (
+		<p className="absolute right-4 bottom-2 text-sm text-ink-faint tabular-nums">
+			web v{version}
+			{health &&
+				(health.web === window.location.origin ? (
+					<> · api v{health.version}</>
+				) : (
+					<span className="font-bold text-stop-ink">
+						{" "}
+						· api de otra web: {new URL(health.web).host}
+					</span>
+				))}
+		</p>
+	);
+}
 
 export function PublicFrame({
 	title,
@@ -24,9 +71,7 @@ export function PublicFrame({
 }) {
 	return (
 		<div className="relative flex min-h-dvh flex-col items-center px-4 py-8 sm:justify-center sm:py-12">
-			<p className="absolute right-4 bottom-2 text-sm text-ink-faint tabular-nums">
-				v{version}
-			</p>
+			<Versions />
 			<div className="flex w-full max-w-[25rem] flex-col gap-6">
 				<div className="flex flex-col gap-4">
 					<Wordmark size="lg" />

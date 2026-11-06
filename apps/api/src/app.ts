@@ -1,16 +1,15 @@
 // The Hono app: Better Auth at /api/auth/*, the REST routes under /api (all
-// of them need a parent or the child signed in, except the recovery code),
-// and the QStash callback at /internal/jobs.
+// of them need a parent or the child signed in, except the recovery code and
+// health), and the QStash callback at /internal/jobs.
 // AppType is what the web's typed client uses: hc<AppType>("/").
 import { Hono } from "hono";
-// The release writes the api's version here (scripts/release).
-import pkg from "../package.json" with { type: "json" };
 import { type AppDeps, type AppEnv, resolveActor } from "./http/context";
 import { notFound, onError } from "./http/errors";
 import { accountRoutes, recoveryRoutes } from "./routes/accounts";
 import { balanceRoutes } from "./routes/balance";
 import { bonusTaskRoutes } from "./routes/bonus-tasks";
 import { customRuleRoutes } from "./routes/custom-rules";
+import { healthRoutes } from "./routes/health";
 import { historyRoutes } from "./routes/history";
 import { jobRoutes } from "./routes/jobs";
 import { nativePushTokenRoutes } from "./routes/native-push-tokens";
@@ -22,7 +21,7 @@ import { sessionRoutes } from "./routes/sessions";
 import { taskReportRoutes } from "./routes/task-reports";
 
 // Under /api, these answer without a session of ours.
-const PUBLIC_PATHS = ["/api/auth/", "/api/recovery-code/use"];
+const PUBLIC_PATHS = ["/api/auth/", "/api/recovery-code/use", "/api/health"];
 
 function isPublic(path: string): boolean {
 	return PUBLIC_PATHS.some((prefix) => path.startsWith(prefix));
@@ -33,9 +32,6 @@ export function createApp(deps: AppDeps) {
 	app.onError(onError);
 	app.notFound(notFound);
 
-	app.get("/health", (c) =>
-		c.json({ ok: true, app: { name: "Time Craft", version: pkg.version } }),
-	);
 	app.on(["GET", "POST"], "/api/auth/*", (c) => deps.auth.handler(c.req.raw));
 	app.use("/api/*", async (c, next) => {
 		if (!isPublic(c.req.path)) {
@@ -45,6 +41,7 @@ export function createApp(deps: AppDeps) {
 	});
 
 	return app
+		.route("/", healthRoutes(deps))
 		.route("/api", accountRoutes(deps))
 		.route("/api", recoveryRoutes(deps))
 		.route("/api", balanceRoutes(deps))

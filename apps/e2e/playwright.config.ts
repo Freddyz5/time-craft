@@ -1,4 +1,4 @@
-// Two suites against E2E_BASE_URL (local, the dev domain or a PR preview):
+// Two suites against E2E_BASE_URL (local, dev or another Preview deployment):
 // - e2e: the eight steps of the milestone 1 flow, on a family the setup project
 //   creates for the run and the teardown project deletes. Tests share that
 //   family, so they run one at a time and each starts from a reset.
