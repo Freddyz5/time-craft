@@ -376,19 +376,22 @@ Se comprueba en el siguiente release: **Actions → Release** termina en verde, 
 
 ## Parte F. App Android (hito 2)
 
-La app ([`apps/mobile`](../apps/mobile/CLAUDE.md), [contexto](contexto-hito-2.md)) muestra la web publicada y recibe los avisos por Firebase Cloud Messaging. Todo es gratis: Firebase en el plan Spark y el APK instalado a mano. Los pasos 20 a 22 se hacen una vez; el 23 en cada teléfono.
+La app ([`apps/mobile`](../apps/mobile/CLAUDE.md), [contexto](contexto-hito-2.md)) muestra la web publicada y recibe los avisos por Firebase Cloud Messaging. Son dos apps del mismo código, que se instalan una al lado de la otra: **«Time Craft»** (`app.timecraft`) abre la web de producción, y **«Time Craft Dev»** (`app.timecraft.dev`, ícono azul con «DEV») la de dev. Todo es gratis: Firebase en el plan Spark y el APK instalado a mano. Los pasos 20 a 22 se hacen una vez; el 23 en cada teléfono.
+
+Si ya tenías configurada solo «Time Craft»: en el paso 20, agrega la app `app.timecraft.dev` en Firebase y sus clientes Android en Google Cloud, y en el 21 reemplaza el secreto `GOOGLE_SERVICES_JSON` por el archivo nuevo. Revisa también que `TIMECRAFT_WEB_URL_DEV` sea el dominio fijo de dev.
 
 ### 20. Firebase y Google: un solo proyecto
 
-El cliente Android del login con Google tiene que estar en el **mismo** proyecto de Google Cloud que el cliente web que ya usa la web (`GOOGLE_CLIENT_ID`). Firebase se agrega encima de ese proyecto.
+El cliente Android del login con Google tiene que estar en el **mismo** proyecto de Google Cloud que el cliente web que ya usa la web (`GOOGLE_CLIENT_ID`). Firebase se agrega encima de ese proyecto. Si Firebase ya está en otro proyecto, los avisos funcionan igual; los clientes Android van siempre en el del cliente web.
 
 - [ ] [console.firebase.google.com](https://console.firebase.google.com) → **Create a project** → elige el proyecto de Google Cloud existente (el del login con Google) → sin Google Analytics → plan **Spark**.
-- [ ] **Project settings → General → Your apps → Add app → Android**: package name `app.timecraft` → **Register app** → descarga **`google-services.json`**. No va al repo.
+- [ ] **Project settings → General → Your apps → Add app → Android**: package name `app.timecraft`, nickname «Time Craft» → **Register app**. Repite con `app.timecraft.dev`, nickname «Time Craft Dev».
+- [ ] En la misma pantalla, descarga **`google-services.json`** (de cualquiera de las dos apps: es uno solo y trae las dos). No va al repo. Sin la app que se construye, Gradle se detiene con «No matching client found».
 - [ ] **Project settings → Service accounts → Generate new private key**: se descarga un JSON. Es un secreto: va solo a Vercel (paso 21) y después se borra de tu máquina.
-- [ ] [console.cloud.google.com](https://console.cloud.google.com) (mismo proyecto) → **APIs & Services → Credentials → Create credentials → OAuth client ID → Android**:
-  - *Package name*: `app.timecraft`.
-  - *SHA-1*: el de la llave de firma (`keytool -list -v -keystore ~/.config/time-craft/android/release.keystore`, o el que figura en la tarea de Notion).
-  - Crea otro igual con el SHA-1 de la llave de debug (`keytool -list -v -keystore ~/.android/debug.keystore -storepass android`) si vas a probar APKs de debug.
+- [ ] [console.cloud.google.com](https://console.cloud.google.com) (el proyecto del cliente web) → **APIs & Services → Credentials → Create credentials → OAuth client ID → Android**, una vez por app:
+  - *Package name*: `app.timecraft`, y en el segundo `app.timecraft.dev`.
+  - *SHA-1*: el de la llave de firma, el mismo en los dos (`keytool -list -v -keystore ~/.config/time-craft/android/release.keystore`, o el que figura en la tarea de Notion).
+  - Si vas a probar APKs de debug (`bun run android:debug` construye «Time Craft Dev»), crea otro para `app.timecraft.dev` con el SHA-1 de la llave de debug (`keytool -list -v -keystore ~/.android/debug.keystore -storepass android`).
   - El ID de estos clientes no se copia en ningún lado: la app usa el cliente web y Google solo comprueba que el APK coincida.
 
 ### 21. Vercel y GitHub: secretos y variables
@@ -399,14 +402,14 @@ El cliente Android del login con Google tiene que estar en el **mismo** proyecto
   - `ANDROID_KEYSTORE_BASE64`: `base64 -i ~/.config/time-craft/android/release.keystore | pbcopy` y pega.
   - `ANDROID_KEYSTORE_PASSWORD` y `ANDROID_KEY_PASSWORD`: la contraseña de `keystore.properties` (es la misma).
   - `ANDROID_KEY_ALIAS`: `timecraft`.
-  - `GOOGLE_SERVICES_JSON`: el contenido de `google-services.json`.
-- [ ] **Variables → New repository variable**: `TIMECRAFT_WEB_URL_PROD` (el dominio de producción de la web, `<WEB_PROD>`) y `TIMECRAFT_WEB_URL_DEV` (`<WEB_DEV>`).
+  - `GOOGLE_SERVICES_JSON`: el contenido de `google-services.json`, con las dos apps. El workflow lo revisa antes de construir.
+- [ ] **Variables → New repository variable**: `TIMECRAFT_WEB_URL_PROD` (el dominio de producción de la web, `<WEB_PROD>`) y `TIMECRAFT_WEB_URL_DEV` (el dominio fijo de dev, `<WEB_DEV>`).
 
 ### 22. El primer APK
 
-- [ ] Con los pasos 20 y 21 hechos, fusiona en `dev` la rama del hito 2: el push a `dev` que toca `apps/mobile` corre **Actions → Android app** solo. Al terminar, en ese run descarga el artefacto `time-craft-dev-apk` (un `.zip` con el `.apk` que abre la web de `dev`). Si falló porque faltaba un secreto, agrégalo y **Re-run jobs**.
-- [ ] Más adelante, con `android.yml` ya en `prod` (la rama por defecto), también se puede correr a mano: **Run workflow** → *web* `dev` o `prod`.
-- [ ] Para producción no hace falta nada: el release que lleve la app a `prod` crea el tag `mobile-v1.0.0`, y `Android app` adjunta `time-craft-1.0.0.apk` a ese GitHub Release.
+- [ ] Con los pasos 20 y 21 hechos, fusiona en `dev` la rama del hito 2: el push a `dev` que toca `apps/mobile` corre **Actions → Android app** solo. Al terminar, en ese run descarga el artefacto `time-craft-dev-apk` (un `.zip` con `time-craft-dev-<versión>.apk`: «Time Craft Dev», que abre la web de `dev`). Si falló porque faltaba un secreto, o porque `GOOGLE_SERVICES_JSON` no trae `app.timecraft.dev`, corrígelo y **Re-run jobs**.
+- [ ] Más adelante, con `android.yml` ya en `prod` (la rama por defecto), también se puede correr a mano: **Run workflow** → *web* `dev` («Time Craft Dev») o `prod` («Time Craft»).
+- [ ] Para producción no hace falta nada: el release que lleve la app a `prod` crea el tag `mobile-v1.0.0`, y `Android app` adjunta `time-craft-1.0.0.apk` («Time Craft») a ese GitHub Release.
 
 ### 23. Instalar y preparar cada teléfono
 
@@ -416,6 +419,7 @@ El cliente Android del login con Google tiene que estar en el **mismo** proyecto
 - [ ] En la misma pantalla, la lista «Para que la alarma no se silencie»: **Permitir** en batería y en pantalla completa hasta que las dos tengan el check, y **Probar la alarma de fin** (suena, se repite y «Silenciar» la calla).
 - [ ] Samsung: además, **Ajustes → Batería → Límites de uso en segundo plano**: que Time Craft no esté en «Apps en suspensión». Xiaomi: **Ajustes → Apps → Time Craft → Ahorro de batería → Sin restricciones** y activa **Inicio automático**.
 - [ ] Una actualización del APK se instala encima (mismos pasos); los datos y la sesión se conservan.
+- [ ] «Time Craft Dev» se instala igual y queda al lado de «Time Craft», sin reemplazarla: cada una con su web, su sesión y sus avisos. Solo en los teléfonos de quien prueba.
 
 ## QStash y la protección de Vercel
 

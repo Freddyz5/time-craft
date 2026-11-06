@@ -120,6 +120,7 @@ Cambia de verdad la contraseña de un padre. En producción, ten la contraseña 
 
 Con la app instalada en los teléfonos ([deploy.md](deploy.md#parte-f-app-android-hito-2), pasos 22 y 23) y los avisos activados en ella. Cierra la app (quítala de recientes) y apaga la pantalla antes de cada paso del otro lado.
 
+- [ ] **Dos apps:** en dev se prueba con «Time Craft Dev» (ícono azul con «DEV»). Se instala al lado de «Time Craft» sin reemplazarla, y cada una abre su web con su propia sesión.
 - [ ] **Login:** un padre entra con **Continuar con Google** desde la app: aparece el selector de cuentas del teléfono, sin pedir contraseña. El niño entra con usuario y PIN y, al volver a abrir la app, con **Entrar con huella**.
 - [ ] **Huella de padres:** al abrir el lado de los padres pide la huella; tras dos minutos fuera de la app la vuelve a pedir. En Cuentas, «Pedir huella al abrir la app» apagado deja de pedirla.
 - [ ] **Push inmediatos:** el niño pide tiempo → al padre le suena **«Nueva solicitud»** con la pantalla apagada, con el sonido elegido en Cuentas › Sonido. Tocar el aviso abre Inicio con la solicitud.

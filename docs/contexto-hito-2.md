@@ -25,7 +25,7 @@ Una app Android para los dos padres y el niño, todos con teléfonos Android. Ha
 | Login de padres | Google con el selector de cuentas del teléfono (Credential Manager, `@capgo/capacitor-social-login`) → ID token → Better Auth `signIn.social` con `idToken` | Google bloquea su página de login dentro de una app. La audiencia del token es el cliente web de siempre |
 | Huella | `@capgo/capacitor-native-biometric`. Padres: bloquea su lado al abrir y tras 2 minutos fuera (se puede apagar en Cuentas). Niño: tras entrar con el PIN, el teléfono lo guarda cifrado (Keystore de Android) y la huella lo libera | Nadie aprueba tiempo desde el teléfono de un padre; nadie recuerda otra contraseña |
 | Plugin propio | `TimeCraftPlugin` (Java): token, permiso de avisos, sonidos elegidos, ajustes de batería y pantalla completa, prueba de la alarma | El plugin de push de Capacitor no entrega mensajes de datos con la app cerrada |
-| Distribución | APK firmado en GitHub Actions (`android.yml`), adjunto al GitHub Release `mobile-v…` | Gratis. Cada APK lleva la misma llave, o el teléfono no actualiza |
+| Distribución | APK firmado en GitHub Actions (`android.yml`), adjunto al GitHub Release `mobile-v…`. Para probar dev, «Time Craft Dev» (`app.timecraft.dev`, hito 4) se instala al lado | Gratis. Cada APK lleva la misma llave, o el teléfono no actualiza |
 | Versión | `apps/mobile` tiene su versión semántica, como la web y la api | Solo sus propios cambios la suben: los de la web llegan solos |
 | Código nativo | Java (no Kotlin) | Es lo que genera Capacitor; no hace falta otro plugin de Gradle |
 
