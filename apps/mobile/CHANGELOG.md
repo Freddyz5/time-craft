@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Freddyz5/time-craft/compare/mobile-v1.1.1...mobile-v1.2.0) (2026-11-06)
+
+### Features
+
+* **db:** reset a test database with bun run db:reset ([250d4a0](https://github.com/Freddyz5/time-craft/commit/250d4a09c1a0379b198088a1f564685c55198b21))
+* **web:** mark test environments and show the api's version ([0896ef8](https://github.com/Freddyz5/time-craft/commit/0896ef843dc064bc7829f5ed9c4cc64558fc6bb4))
+
 ## [1.1.1](https://github.com/Freddyz5/time-craft/compare/mobile-v1.1.0...mobile-v1.1.1) (2026-11-01)
 
 ### Bug Fixes

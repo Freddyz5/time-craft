@@ -118,6 +118,11 @@ export const envSchema = z
 		// Push to the Android app (Firebase Cloud Messaging). Without it the
 		// app gets no notifications; browsers still get Web Push.
 		FCM_SERVICE_ACCOUNT: fcmServiceAccount,
+
+		// Vercel's system variables, missing outside Vercel: which deployment
+		// this is (production, or a Preview of some branch). See environment.ts.
+		VERCEL_ENV: optional,
+		VERCEL_GIT_COMMIT_REF: optional,
 	})
 	.refine(
 		(env) =>

@@ -1,10 +1,11 @@
 // What every route receives: the use cases, Better Auth, the clock (for
-// serverTime) and, for the routes that need them, the QStash signature check
-// and the rate limiter.
+// serverTime) and, for the routes that need them, the QStash signature check,
+// the rate limiter and what /health says about the deployment.
 import type { Actor, Clock, Core } from "@time-craft/core";
 import type { Context } from "hono";
 import type { JobSignatureVerifier } from "../adapters/qstash";
 import type { Auth } from "../auth";
+import type { Environment } from "../environment";
 import { HttpError } from "./errors";
 import type { RateLimiter } from "./rate-limit";
 
@@ -14,6 +15,8 @@ export interface AppDeps {
 	clock: Clock;
 	jobSignatures: JobSignatureVerifier;
 	rateLimiter: RateLimiter;
+	// Which environment this api is, and the origin of the web it serves.
+	deployment: { environment: Environment; web: string };
 }
 
 export interface AppEnv {

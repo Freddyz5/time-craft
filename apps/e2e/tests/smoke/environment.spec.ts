@@ -1,14 +1,33 @@
-// Smoke test, read only: safe against production. No family, no database,
-// no sign-in; only GETs and a page load.
+// Smoke test, read only: safe against production, and run against dev too.
+// No family, no database, no sign-in; only GETs and a page load.
 //   E2E_BASE_URL  the web (its /api rewrite included)
 //   E2E_API_URL   the api's own domain, for /health
+// Both must be the same environment's: each api says which web it serves.
 import { expect, test } from "@playwright/test";
-import { apiUrl } from "../../src/env";
+import { apiUrl, baseUrl } from "../../src/env";
 
-test("the api answers /health", async ({ request }) => {
+const web = new URL(baseUrl()).origin;
+
+test("the api answers /health, serving this web", async ({ request }) => {
 	const response = await request.get(`${apiUrl()}/health`);
 	expect(response.status()).toBe(200);
-	expect(await response.json()).toMatchObject({ ok: true });
+	expect(await response.json()).toMatchObject({ ok: true, web });
+});
+
+// The rewrite's API_ORIGIN can point at another environment's api (dev's
+// web at production's, which would write to the family's data). The api
+// behind /api must be the one at E2E_API_URL, and serve this web.
+test("the web's /api reaches the api of its own environment", async ({
+	request,
+}) => {
+	const [behindWeb, own] = await Promise.all([
+		request.get("/api/health"),
+		request.get(`${apiUrl()}/health`),
+	]);
+	expect(behindWeb.status()).toBe(200);
+	const health = await behindWeb.json();
+	expect(health.web).toBe(web);
+	expect(health).toEqual(await own.json());
 });
 
 test("the login page loads and is ready to sign in", async ({ page }) => {

@@ -1,6 +1,8 @@
 ---
 // The document shell every page shares: language, viewport, theme, icons,
-// the manifest for Web Push, and the global styles.
+// the manifest for Web Push, the global styles and, on every build that is
+// not production's, a strip that says so: dev has its own test data.
+import { TIMECRAFT_ENV } from "astro:env/client";
 import "../styles/global.css";
 
 interface Props {
@@ -46,6 +48,13 @@ const {
 		<title>{title}</title>
 	</head>
 	<body class="baseplate text-ink">
+		{
+			TIMECRAFT_ENV !== "production" && (
+				<p class="bg-ink px-4 py-1 text-center text-sm font-bold text-on-ink">
+					Ambiente de pruebas ({TIMECRAFT_ENV})
+				</p>
+			)
+		}
 		<slot />
 	</body>
 </html>
