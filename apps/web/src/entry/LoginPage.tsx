@@ -2,7 +2,7 @@
 // and password. There is no sign-up: only the parents the seed created get in.
 // In the Android app, Google comes from the phone's account picker (an ID
 // token) instead of Google's page, which refuses to load inside an app.
-import { GOOGLE_CLIENT_ID } from "astro:env/client";
+import { GOOGLE_CLIENT_ID, TIMECRAFT_ENV } from "astro:env/client";
 import { Eye, EyeOff } from "lucide-react";
 import { type SubmitEvent, useEffect, useId, useState } from "react";
 import { Button, Field, inputClass, Notice } from "../components/ui";
@@ -12,6 +12,11 @@ import { errorMessage } from "../lib/errors";
 import { homeFor, safeNext } from "../lib/guard";
 import { googleIdToken, isNativeApp, rememberArea } from "../lib/native";
 import { PublicFrame } from "./PublicFrame";
+
+// Google's callback goes to the api's BETTER_AUTH_URL, which for a preview of
+// another branch is dev's web: the session would land there, not here. So a
+// preview offers only the email and password (docs/deploy.md).
+const offerGoogle = Boolean(GOOGLE_CLIENT_ID) && TIMECRAFT_ENV !== "preview";
 
 const googleErrors: Record<string, string> = {
 	signup_disabled:
@@ -193,7 +198,7 @@ export default function LoginPage() {
 		>
 			{error && <Notice tone="error">{error}</Notice>}
 
-			{GOOGLE_CLIENT_ID && (
+			{offerGoogle && (
 				<>
 					<Button
 						variant="secondary"
