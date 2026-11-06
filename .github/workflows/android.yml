@@ -1,18 +1,20 @@
 name: Android app
 
-# Builds the Android app (apps/mobile) as a signed APK.
+# Builds the Android app (apps/mobile) as a signed APK. There are two apps,
+# which install side by side: «Time Craft» (Gradle flavor prod, package
+# app.timecraft) opens production's web, and «Time Craft Dev» (flavor dev,
+# app.timecraft.dev) dev's.
 #
-# - On a mobile-v* tag (release.yml creates it on prod): the APK opens the
-#   production web and is attached to that tag's GitHub release, where the
-#   family downloads it.
-# - On a push to dev that touches the app: an APK for dev's web, kept as a
+# - On a mobile-v* tag (release.yml creates it on prod): «Time Craft», attached
+#   to that tag's GitHub release, where the family downloads it.
+# - On a push to dev that touches the app: «Time Craft Dev», kept as a
 #   downloadable artifact of the run, to test before a release.
 # - By hand (Actions › Android app › Run workflow, once this file is on the
-#   default branch): pick the web it opens, dev or prod; also an artifact.
+#   default branch): pick the app, dev or prod; also an artifact.
 #
 # The repository's variables hold the webs it can open
 # (TIMECRAFT_WEB_URL_PROD, TIMECRAFT_WEB_URL_DEV) and its secrets the
-# Firebase config and the release key: GOOGLE_SERVICES_JSON,
+# Firebase config (with both apps) and the release key: GOOGLE_SERVICES_JSON,
 # ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and
 # ANDROID_KEY_PASSWORD (docs/deploy.md, part F). No GitHub Environment: a
 # tag could not use prod's, which only accepts the prod branch. Every APK is
@@ -26,7 +28,7 @@ on:
   workflow_dispatch:
     inputs:
       web:
-        description: Which web the app opens
+        description: Which app, and the web it opens (dev is «Time Craft Dev»)
         type: choice
         options: [dev, prod]
         default: dev
@@ -35,7 +37,8 @@ permissions:
   contents: write
 
 env:
-  # prod for a release tag or when picked by hand; dev otherwise.
+  # prod for a release tag or when picked by hand; dev otherwise. It is both
+  # the Gradle flavor and the web the app opens.
   WEB: ${{ (github.ref_type == 'tag' || inputs.web == 'prod') && 'prod' || 'dev' }}
 
 jobs:
@@ -81,6 +84,13 @@ jobs:
           fi
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
             printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+            # Without its package, Gradle stops with "No matching client found".
+            package=app.timecraft
+            [ "$WEB" = dev ] && package=app.timecraft.dev
+            if ! jq -e --arg package "$package" 'any(.client[]; .client_info.android_client_info.package_name == $package)' app/google-services.json > /dev/null; then
+              echo "::error::GOOGLE_SERVICES_JSON has no Android app $package: add it in Firebase and update the secret with the new google-services.json (docs/deploy.md, part F)."
+              exit 1
+            fi
           else
             echo "::warning::No GOOGLE_SERVICES_JSON: this APK cannot receive notifications."
           fi
@@ -96,14 +106,15 @@ jobs:
         env:
           TIMECRAFT_WEB_URL: ${{ (github.ref_type == 'tag' || inputs.web == 'prod') && vars.TIMECRAFT_WEB_URL_PROD || vars.TIMECRAFT_WEB_URL_DEV }}
         working-directory: apps/mobile
-        run: bun run android:release
+        run: bun run "android:release:$WEB"
 
       - name: Name the APK
         id: apk
         run: |
           version=$(jq -r .version apps/mobile/package.json)
           file="time-craft-${version}.apk"
-          cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk "$file"
+          [ "$WEB" = dev ] && file="time-craft-dev-${version}.apk"
+          cp "apps/mobile/android/app/build/outputs/apk/$WEB/release/app-$WEB-release.apk" "$file"
           echo "file=$file" >> "$GITHUB_OUTPUT"
 
       - name: Attach it to the release
