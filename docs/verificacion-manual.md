@@ -71,7 +71,7 @@ Con la app en primer plano, el teléfono suena y vibra al segundo exacto, ademá
 - [ ] Durante ese minuto, «Ahora» del niño cuenta lo que le queda para avisar, sin ladrillo rojo, y el del padre dice «Gracia: si la detienes en …» sin rojo. Detén la sesión dentro del minuto: en Inicio el saldo baja solo los 2 min.
 - [ ] Repite y detenla pasado el minuto: el rojo vuelve y solo cuenta lo que pasó de la gracia.
 - [ ] En **Reglas › Cuota general › Días con tiempo**, deja solo un día que no sea hoy y guarda. Inicio del niño dice «Hoy es día de descanso», sin «Pedir tiempo», y en **Pedir** aparece «Hoy no toca …». Inicio del padre dice «Hoy no le toca» y **Nueva sesión** solo ofrece tiempo extra (con motivo), que sí empieza.
-- [ ] Ponle a TV límites propios con hoy entre sus días: el niño puede pedir TV, pero no Juego.
+- [ ] Reparte la cuota general entre Juego y TV y ponle a TV hoy entre sus días: el niño puede pedir TV, pero no Juego. Vuelve a juntarlas.
 - [ ] Escribe una regla en «Reglas para …» y otra en «Solo para mamá y papá». «Así lo ve …» y el Inicio del niño (en «Tus reglas») muestran solo la primera; la segunda sale en **Nueva sesión** y en cada pedido como «Para no olvidar».
 - [ ] En «Así lo ve …», apaga «Una sesión a la vez»: desaparece de la vista previa y, al recargar, del «Tus reglas» del niño. Vuelve a encenderla. Con todas apagadas y sin reglas escritas, el niño no ve «Tus reglas».
 - [ ] Vuelve a dejar todos los días, la gracia en 0 y el aviso en 5 min.
@@ -87,6 +87,14 @@ En la computadora, Chrome no congela una pestaña de fondo: Time Craft abierto d
 - [ ] Un padre con Time Craft abierto en **Reglas** escucha el timbre cuando el niño pide tiempo, con el aviso «Nueva solicitud» abajo a la derecha.
 - [ ] Al cerrar la pestaña con la sesión en curso, Chrome pregunta antes de salir. «Salir» (cerrar sesión) no pregunta.
 - [ ] Con «Decir el aviso en voz alta» activado y la pestaña detrás del juego, la voz también se escucha al aviso y al fin. Si Windows no tiene voces en español, «Voz» muestra las de Google (necesitan internet).
+
+## 4c. Cuotas por actividad y bonos
+
+- [ ] En **Reglas › Cuotas**, «Repartir entre Juego y TV» propone la general dividida en dos y dice el total antes y después. Repártela: la cuota general desaparece y quedan Juego y TV, cada una con su cuota, con «En total…» y una fila de ladrillos de los dos colores arriba.
+- [ ] «Cambiar» en una de ellas dice cómo cambia el total al subir o bajar su límite.
+- [ ] Inicio del padre muestra un bloque por actividad y «En total le quedan … hoy». Inicio del niño muestra una batería por actividad, cada una con su nombre.
+- [ ] El niño reporta una tarea. En la tarjeta del padre aparece «¿A qué cuota suma?» con Juego y TV y cuánto le falta a cada una para su tope. Elige TV y apruébala: el aviso dice «+… min para TV», al niño le llega «Ganaste … min para TV…» y en **Tareas** del niño solo sube «Bonos de TV».
+- [ ] «Juntar con TV» en Juego vuelve a crear la cuota general con la suma de las dos; con una sola cuota, la tarjeta de la tarea ya no pregunta.
 
 ## 5. Login con Google
 
