@@ -103,6 +103,51 @@ test("the general quota is split between the activities and joined back", async 
 	});
 });
 
+test("parents add an activity that shares the general quota, and deactivate it", async ({
+	ana,
+	child,
+}) => {
+	await ana.page.goto("/padres/reglas");
+	const activities = ana.page.getByRole("region", { name: "Actividades" });
+	const quotas = ana.page.getByRole("region", { name: "Cuotas" });
+	await activities.getByRole("button", { name: "Agregar actividad" }).click();
+	await activities.getByLabel("Nombre").fill("Computadora");
+	await activities
+		.getByRole("button", { name: "Agregar", exact: true })
+		.click();
+	await expect(toast(ana.page, "«Computadora» agregada")).toBeVisible();
+	await expect(
+		quotas.getByText("La comparten Computadora, Juego y TV."),
+	).toBeVisible();
+
+	// The child can ask for it.
+	await child.page.goto("/nino/pedir");
+	await expect(
+		child.page.getByText("Computadora", { exact: true }).first(),
+	).toBeVisible();
+
+	// Deactivated, the general quota is Juego and TV's again and the child
+	// no longer sees it.
+	await activities
+		.getByRole("listitem")
+		.filter({ has: ana.page.getByRole("heading", { name: "Computadora" }) })
+		.getByRole("button", { name: "Desactivar" })
+		.click();
+	await ana.page
+		.getByRole("dialog")
+		.getByRole("button", { name: "Desactivar" })
+		.click();
+	await expect(toast(ana.page, "Computadora desactivada")).toBeVisible();
+	await expect(quotas.getByText("La comparten Juego y TV.")).toBeVisible();
+	await child.page.reload();
+	await expect(
+		child.page.getByRole("heading", { name: "¿Qué quieres usar?" }),
+	).toBeVisible();
+	await expect(
+		child.page.getByText("Computadora", { exact: true }),
+	).toHaveCount(0);
+});
+
 test("parents add a bonus task and the child can do it", async ({
 	ana,
 	child,
