@@ -92,8 +92,8 @@ En la computadora, Chrome no congela una pestaña de fondo: Time Craft abierto d
 
 - [ ] En **Reglas › Cuotas**, «Repartir entre Juego y TV» propone la general dividida en dos y dice el total antes y después. Repártela: la cuota general desaparece y quedan Juego y TV, cada una con su cuota, con «En total…» y una fila de ladrillos de los dos colores arriba.
 - [ ] «Cambiar» en una de ellas dice cómo cambia el total al subir o bajar su límite.
-- [ ] Inicio del padre muestra un bloque por actividad y «En total le quedan … hoy». Inicio del niño muestra una batería por actividad, cada una con su nombre.
-- [ ] El niño reporta una tarea. En la tarjeta del padre aparece «¿A qué cuota suma?» con Juego y TV y cuánto le falta a cada una para su tope. Elige TV y apruébala: el aviso dice «+… min para TV», al niño le llega «Ganaste … min para TV…» y en **Tareas** del niño solo sube «Bonos de TV».
+- [ ] Inicio del padre muestra un bloque por actividad y «En total le quedan … hoy». Inicio del niño muestra arriba «Hoy te quedan … en total» y «Pedir tiempo» (para cualquier actividad), y debajo una batería por actividad, cada una con su nombre y sus bonos.
+- [ ] El niño reporta una tarea. En la tarjeta del padre aparece «¿A qué cuota suma?» con Juego y TV y cuánto le falta a cada una para su tope. Elige TV y apruébala: el aviso dice «+… min para TV», al niño le llega «Ganaste … min para TV…», en **Tareas** del niño solo sube «Bonos de TV» y el reporte dice «… de bono para TV», igual que en el **Historial** del padre.
 - [ ] «Juntar con TV» en Juego vuelve a crear la cuota general con la suma de las dos; con una sola cuota, la tarjeta de la tarea ya no pregunta.
 
 ## 5. Login con Google
