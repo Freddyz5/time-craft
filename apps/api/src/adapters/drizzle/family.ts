@@ -154,5 +154,19 @@ export function activityRepository(db: Db): ActivityRepository {
 				.where(eq(activities.familyId, familyId))
 				.orderBy(asc(activities.name));
 		},
+		async insert(activity) {
+			await db.insert(activities).values(activity);
+		},
+		async update(activity) {
+			await db
+				.update(activities)
+				.set({
+					name: activity.name,
+					isActive: activity.isActive,
+					color: activity.color,
+					icon: activity.icon,
+				})
+				.where(eq(activities.id, activity.id));
+		},
 	};
 }

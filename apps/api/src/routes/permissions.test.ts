@@ -53,6 +53,12 @@ describe("the child", () => {
 				},
 			],
 			["POST", "/api/bonus-tasks", { name: "Nada", rewardMinutes: 60 }],
+			[
+				"POST",
+				"/api/activities",
+				{ name: "Consola", color: "violet", icon: "gamepad" },
+			],
+			["POST", `/api/activities/${t.ids.tvId}/deactivate`],
 			["POST", "/api/children", { name: "Yo", username: "yo2", pin: "123456" }],
 			["PUT", `/api/children/${childId}/pin`, { pin: "111111" }],
 			["GET", `/api/children/${childId}/logins`],
