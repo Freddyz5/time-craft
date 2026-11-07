@@ -71,6 +71,29 @@ export function bagMembers<A extends MemberActivity>(
 	);
 }
 
+// Whose quota a bonus went to, by the activities that share it now
+// ("TV", "Juego y Computadora"). Empty with a single quota (nothing to tell
+// apart) or for a bonus approved before the parents could choose.
+export function bonusQuotaName(
+	bonusActivityId: string | null,
+	bags: readonly { activityId: string | null }[],
+	activities: readonly MemberActivity[],
+): string {
+	if (bonusActivityId === null || bags.length < 2) {
+		return "";
+	}
+	const bag =
+		bags.find((other) => other.activityId === bonusActivityId) ??
+		bags.find((other) => other.activityId === null);
+	if (bag === undefined) {
+		return "";
+	}
+	const names = bagMembers(bag, bags, activities).map((a) => a.name);
+	return names.length <= 1
+		? (names[0] ?? "")
+		: `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
+}
+
 // The general quota first, then the activities with their own, by name.
 export function bagOrder<B extends { activityId: string | null }>(
 	bags: readonly B[],

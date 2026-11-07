@@ -12,7 +12,7 @@ import {
 	LoadingBricks,
 	Notice,
 } from "../components/ui";
-import { bagMembers, bagOrder } from "../lib/activity";
+import { bagMembers, bagOrder, bonusQuotaName } from "../lib/activity";
 import { api, call } from "../lib/api";
 import { serverNow } from "../lib/clock";
 import {
@@ -167,9 +167,12 @@ function TaskCard({
 function ReportItem({
 	report,
 	taskName,
+	quotaName,
 }: {
 	report: TaskReport;
 	taskName: string;
+	// With several quotas, the one the bonus went to.
+	quotaName: string;
 }) {
 	const { parentName, timeZone } = useChild();
 	const who = parentName(report.reviewedByParentId);
@@ -178,7 +181,7 @@ function ReportItem({
 		report.status === "approved"
 			? {
 					Icon: Check,
-					text: `${who} la aprobó: +${minutesText(report.awardedMinutes ?? 0)} de bono`,
+					text: `${who} la aprobó: +${minutesText(report.awardedMinutes ?? 0)} de bono${quotaName ? ` para ${quotaName}` : ""}`,
 					className: "text-bonus-ink font-medium",
 				}
 			: report.status === "rejected"
@@ -358,6 +361,11 @@ export function Tasks() {
 								key={report.id}
 								report={report}
 								taskName={taskName(report.bonusTaskId)}
+								quotaName={bonusQuotaName(
+									report.bonusActivityId ?? null,
+									balances,
+									activities,
+								)}
 							/>
 						))}
 					</ul>
