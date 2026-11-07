@@ -340,7 +340,7 @@ function BagBatteries({
 	const after = Math.max(0, available - reserved);
 	const sessionColor =
 		running && reserved > 0
-			? activityLook(activityById(activities, session.activityId)?.code).color
+			? activityLook(activityById(activities, session.activityId)).color
 			: null;
 
 	const dayLimit = toMin(balance.dailyLimitSeconds);
@@ -575,7 +575,7 @@ export function Batteries({
 						style={
 							own
 								? ({
-										"--color-balance": activityLook(own.code).color,
+										"--color-balance": activityLook(own).color,
 									} as CSSProperties)
 								: undefined
 						}

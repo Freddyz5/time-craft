@@ -359,7 +359,7 @@ export function BalanceCard({
 						style={
 							own
 								? ({
-										"--color-balance": activityLook(own.code).color,
+										"--color-balance": activityLook(own).color,
 									} as React.CSSProperties)
 								: undefined
 						}

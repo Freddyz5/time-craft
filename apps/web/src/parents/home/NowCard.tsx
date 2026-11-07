@@ -50,7 +50,7 @@ function ActivityTag({
 }) {
 	const { activities } = useParents();
 	const activity = activityById(activities, activityId);
-	const look = activityLook(activity?.code);
+	const look = activityLook(activity);
 	return (
 		<span
 			className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-bold text-white"
@@ -141,7 +141,7 @@ function LiveSession({
 	const now = useServerNow();
 	const [confirm, setConfirm] = useState<"stop" | "cancel" | null>(null);
 	const activity = activityById(activities, session.activityId);
-	const look = activityLook(activity?.code);
+	const look = activityLook(activity);
 	const name = activity?.name ?? "La sesión";
 	const commands = useSessionCommands(session, name);
 	const t = timing(session, now);

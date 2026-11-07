@@ -60,6 +60,13 @@ const messages: Record<string, string> = {
 		"La cuota general tiene que compartirla al menos dos actividades.",
 	activities_without_quota:
 		"Cada actividad necesita una cuota: propia o la general.",
+	activity_limit_reached:
+		"Ya hay 6 actividades, el máximo. Desactiva una para agregar otra.",
+	last_active_activity: "Tiene que quedar al menos una actividad activa.",
+	activity_name_taken:
+		"Ya hay una actividad con ese nombre (quizá desactivada). Elige otro o actívala.",
+	activity_in_use:
+		"Esa actividad tiene una sesión o un pedido abierto. Termínalo antes de desactivarla.",
 	no_general_quota:
 		"No hay una cuota general a la que volver. Junta las actividades en una nueva.",
 
@@ -94,6 +101,8 @@ const fieldMessages: Record<string, string> = {
 	rewardMinutes: "La recompensa tiene que ser de 1 a 1.440 minutos.",
 	maxPerWeek: "El máximo por semana tiene que ser de 1 a 100 veces.",
 	reason: "Escribe el motivo.",
+	color: "Elige uno de los colores de la lista.",
+	icon: "Elige uno de los íconos de la lista.",
 	name: "Escribe un nombre.",
 	username:
 		"El usuario lleva de 3 a 30 letras, números, puntos o guiones bajos.",

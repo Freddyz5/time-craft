@@ -75,7 +75,7 @@ function QuotaChoice({
 						/>
 						<span className="flex shrink-0 -space-x-1.5" aria-hidden="true">
 							{quota.members.map((activity) => {
-								const look = activityLook(activity.code);
+								const look = activityLook(activity);
 								return (
 									<span
 										key={activity.id}

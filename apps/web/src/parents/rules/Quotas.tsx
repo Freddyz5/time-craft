@@ -46,7 +46,7 @@ export interface QuotaTotals {
 const GENERAL_COLOR = "var(--color-balance)";
 
 function colorOf(activity: Activity | undefined): string {
-	return activity ? activityLook(activity.code).color : GENERAL_COLOR;
+	return activity ? activityLook(activity).color : GENERAL_COLOR;
 }
 
 // The activities of a quota as overlapping round tiles in their colours.
@@ -62,7 +62,7 @@ function MemberIcons({
 	return (
 		<span className="flex shrink-0 -space-x-2" aria-hidden="true">
 			{members.map((activity) => {
-				const look = activityLook(activity.code);
+				const look = activityLook(activity);
 				return (
 					<span
 						key={activity.id}
@@ -381,7 +381,7 @@ function SplitRows({
 						key={activity.id}
 						label={activity.name}
 						members={[activity]}
-						color={activityLook(activity.code).color}
+						color={activityLook(activity).color}
 						value={amounts[index] ?? { daily: 10, weekly: 10 }}
 						onChange={set(index)}
 					/>
@@ -904,7 +904,7 @@ function NoQuota({
 			{editing ? (
 				<LimitsForm
 					initial={initial}
-					color={activityLook(activity.code).color}
+					color={activityLook(activity).color}
 					submitLabel="Ponerle esta cuota"
 					busy={save.isPending}
 					onSubmit={(limits) => save.mutate(limits)}

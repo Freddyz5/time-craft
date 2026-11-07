@@ -77,7 +77,7 @@ export function NewSession() {
 	const extra = bag !== undefined && bag.availableSeconds === 0;
 	const max = extra ? MAX_EXTRA_MINUTES : available;
 	const value = Math.min(minutes, Math.max(1, max));
-	const look = activityLook(chosen?.code);
+	const look = activityLook(chosen);
 
 	const start = useCommand(
 		() => {
@@ -224,7 +224,7 @@ export function NewSession() {
 					<fieldset className="grid grid-cols-2 gap-2">
 						<legend className="sr-only">Actividad</legend>
 						{activeActivities.map((activity) => {
-							const activityLookItem = activityLook(activity.code);
+							const activityLookItem = activityLook(activity);
 							const itemBag = bagOf(balances, activity.id);
 							const left = Math.floor((itemBag?.availableSeconds ?? 0) / 60);
 							return (
