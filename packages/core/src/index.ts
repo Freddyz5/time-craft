@@ -1,6 +1,7 @@
 // Public API of @time-craft/core: domain types and rules, use cases, ports
 // and errors. In-memory fakes for tests live in @time-craft/core/testing.
 export * from "./application";
+export * from "./domain/activity";
 export * from "./domain/actor";
 export * from "./domain/alerts";
 export * from "./domain/attribution";

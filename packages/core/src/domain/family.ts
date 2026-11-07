@@ -37,7 +37,12 @@ export interface Child {
 export interface Activity {
 	id: string;
 	familyId: string;
+	// 'game' and 'tv' for the ones the family starts with; generated for the
+	// ones the parents add.
 	code: string;
 	name: string;
 	isActive: boolean;
+	// Keys of ACTIVITY_COLORS and ACTIVITY_ICONS; null: the look of its code.
+	color: string | null;
+	icon: string | null;
 }

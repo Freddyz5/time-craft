@@ -111,12 +111,14 @@ export function policyForActivity(
 	);
 }
 
-// Sessions that draw from `policy`: those of its activity, or for the global
-// policy those of every activity without a policy of its own.
+// Sessions that draw from `policy`: those of its activity, or for the general
+// policy those of every activity without a policy of its own, except the
+// deactivated ones (what they used stops counting).
 export function sessionsUnderPolicy(
 	policy: QuotaPolicy,
 	policies: readonly QuotaPolicy[],
 	sessions: readonly Session[],
+	activities: readonly Activity[] = [],
 ): Session[] {
 	if (policy.activityId !== null) {
 		return sessions.filter(
@@ -128,7 +130,13 @@ export function sessionsUnderPolicy(
 			other.activityId === null ? [] : [other.activityId],
 		),
 	);
-	return sessions.filter((session) => !ownBags.has(session.activityId));
+	const inactive = new Set(
+		activities.flatMap((activity) => (activity.isActive ? [] : [activity.id])),
+	);
+	return sessions.filter(
+		(session) =>
+			!ownBags.has(session.activityId) && !inactive.has(session.activityId),
+	);
 }
 
 // The general quota needs at least this many activities drawing from it.

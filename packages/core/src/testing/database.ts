@@ -233,6 +233,30 @@ function createRepositories(t: () => Tables): Repositories {
 					.filter((activity) => activity.familyId === familyId)
 					.sort((a, b) => a.name.localeCompare(b.name))
 					.map(copy),
+			insert: async (activity) => {
+				if (
+					values("activities").some(
+						(other) =>
+							other.familyId === activity.familyId &&
+							other.code === activity.code,
+					)
+				) {
+					throw uniqueViolation("uq_activities_family_code");
+				}
+				t().activities.set(activity.id, copy(activity));
+			},
+			update: async (activity) => {
+				const stored = t().activities.get(activity.id);
+				if (stored !== undefined) {
+					t().activities.set(activity.id, {
+						...stored,
+						name: activity.name,
+						isActive: activity.isActive,
+						color: activity.color,
+						icon: activity.icon,
+					});
+				}
+			},
 		},
 
 		policies: {

@@ -15,6 +15,12 @@ import {
 	revokeChildLogins,
 	useRecoveryCode,
 } from "./accounts";
+import {
+	activateActivity,
+	createActivity,
+	deactivateActivity,
+	updateActivity,
+} from "./activities";
 import { getChildBalance } from "./balance";
 import {
 	createBonusTask,
@@ -72,6 +78,7 @@ import {
 } from "./sessions";
 
 export * from "./accounts";
+export * from "./activities";
 export * from "./balance";
 export * from "./bonuses";
 export type { CoreDeps, Tx } from "./context";
@@ -117,6 +124,11 @@ export function createCore(deps: CoreDeps) {
 		resumeSession: bind(deps, resumeSession),
 		stopSession: bind(deps, stopSession),
 		stopAlarm: bind(deps, stopAlarm),
+		// Activities
+		createActivity: bind(deps, createActivity),
+		updateActivity: bind(deps, updateActivity),
+		deactivateActivity: bind(deps, deactivateActivity),
+		activateActivity: bind(deps, activateActivity),
 		// Overrides and limits
 		grantOverride: bind(deps, grantOverride),
 		listCurrentPolicies: bind(deps, listCurrentPolicies),

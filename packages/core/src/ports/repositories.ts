@@ -45,6 +45,9 @@ export interface ActivityRepository {
 	findById(id: string): Promise<Activity | null>;
 	// Active and inactive, by name.
 	listByFamily(familyId: string): Promise<Activity[]>;
+	insert(activity: Activity): Promise<void>;
+	// Writes name, is_active, color and icon.
+	update(activity: Activity): Promise<void>;
 }
 
 export interface QuotaPolicyRepository {
