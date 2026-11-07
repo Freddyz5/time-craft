@@ -140,8 +140,7 @@ export default {
 			{
 				assets: [`${folder}/package.json`, `${folder}/CHANGELOG.md`],
 				// Production builds only this commit, recognized by this message
-				// (scripts/vercel-ignore.mjs). No [skip ci]: Migrate must run on
-				// it, or Vercel's Deployment Checks hold the api's deployment.
+				// (scripts/vercel-ignore.mjs). No [skip ci]: CI runs on it.
 				message: `chore(release): ${key}-v\${nextRelease.version}`,
 			},
 		],

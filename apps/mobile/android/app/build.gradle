@@ -31,6 +31,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Two apps from the same code, side by side on one phone: «Time Craft»
+    // (prod, production's web) and «Time Craft Dev» (dev, dev's web). The
+    // dev app's name and icon are in src/dev/res. Both use the same key, and
+    // google-services.json needs both packages.
+    flavorDimensions = ["environment"]
+    productFlavors {
+        prod {
+            dimension "environment"
+        }
+        dev {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+        }
+    }
     signingConfigs {
         if (keystoreProperties['storeFile']) {
             release {
