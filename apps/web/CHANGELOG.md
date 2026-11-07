@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.0](https://github.com/Freddyz5/time-craft/compare/web-v1.6.0...web-v1.7.0) (2026-11-07)
+
+### Features
+
+* **web:** fit previews of other branches that use dev's api ([be0dc00](https://github.com/Freddyz5/time-craft/commit/be0dc005ba196e529e4e8bceeb2d7dfea747b164))
+
 ## [1.6.0](https://github.com/Freddyz5/time-craft/compare/web-v1.5.0...web-v1.6.0) (2026-11-06)
 
 ### Features
