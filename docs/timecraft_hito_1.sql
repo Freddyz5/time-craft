@@ -36,6 +36,12 @@
 --     para los padres (parents_only). No cambian ningún cálculo.
 --   - hidden_rules: las reglas automáticas que los padres sacan de «Tus
 --     reglas» (siguen valiendo).
+-- Cambios v6
+--   - La cuota general (activity_id NULL) existe mientras la compartan dos
+--     o más actividades activas sin cuota propia; la regla vive en core y
+--     una migración de datos cerró las que no la cumplían.
+--   - task_reports.bonus_activity_id: la actividad cuya cuota recibe el
+--     bono (la elige el padre al aprobar). NULL en un aprobado = todas.
 -- =====================================================================
 -- Regla de permisos
 --   El niño solo LEE o PIDE. Todo lo que da tiempo o inicia una sesión
@@ -197,7 +203,8 @@ CREATE TABLE activities (
 -- ---------------------------------------------------------------------
 
 -- Límites diario y semanal, con historial (valid_from / valid_to)
--- activity_id NULL = cuota global (juego + TV comparten la misma bolsa)
+-- activity_id NULL = cuota general: la comparten las actividades activas sin
+-- cuota propia, y existe solo mientras sean dos o más (regla de core)
 CREATE TABLE quota_policies (
     id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     child_id                  UUID        NOT NULL,
@@ -442,6 +449,7 @@ CREATE TABLE task_reports (
     note                    VARCHAR(200),                  -- lo que escribe el niño
     status                  VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending | approved | rejected
     awarded_minutes         INTEGER,
+    bonus_activity_id       UUID,                          -- la cuota de esta actividad recibe el bono; NULL en un aprobado = todas
     review_note             VARCHAR(200),
     reported_at             TIMESTAMPTZ NOT NULL DEFAULT now(),
     reviewed_by_parent_id   UUID,
@@ -451,8 +459,10 @@ CREATE TABLE task_reports (
         (status = 'approved' AND awarded_minutes > 0) OR (status <> 'approved' AND awarded_minutes IS NULL)
     ),
     CONSTRAINT chk_reports_reviewer CHECK (status = 'pending' OR reviewed_by_parent_id IS NOT NULL),
+    CONSTRAINT chk_reports_bonus_activity CHECK (status = 'approved' OR bonus_activity_id IS NULL),
     CONSTRAINT fk_reports_child FOREIGN KEY (child_id) REFERENCES children (id),
     CONSTRAINT fk_reports_task FOREIGN KEY (bonus_task_id) REFERENCES bonus_tasks (id),
+    CONSTRAINT fk_reports_bonus_activity FOREIGN KEY (bonus_activity_id) REFERENCES activities (id),
     CONSTRAINT fk_reports_reviewed_by FOREIGN KEY (reviewed_by_parent_id) REFERENCES parents (id)
 );
 

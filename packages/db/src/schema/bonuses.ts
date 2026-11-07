@@ -13,7 +13,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { children, families, parents } from "./family";
+import { activities, children, families, parents } from "./family";
 
 // Catalogue of tasks that earn minutes, defined by the parents.
 export const bonusTasks = pgTable(
@@ -66,6 +66,10 @@ export const taskReports = pgTable(
 			.notNull()
 			.default("pending"),
 		awardedMinutes: integer("awarded_minutes"),
+		// The activity whose quota the bonus adds to (its own, or the general
+		// one it draws from). NULL on an approved report: approved before the
+		// parents could choose, so it adds to every quota.
+		bonusActivityId: uuid("bonus_activity_id"),
 		reviewNote: varchar("review_note", { length: 200 }),
 		reportedAt: timestamp("reported_at", { withTimezone: true })
 			.notNull()
@@ -86,6 +90,10 @@ export const taskReports = pgTable(
 			"chk_reports_reviewer",
 			sql`${t.status} = 'pending' OR ${t.reviewedByParentId} IS NOT NULL`,
 		),
+		check(
+			"chk_reports_bonus_activity",
+			sql`${t.status} = 'approved' OR ${t.bonusActivityId} IS NULL`,
+		),
 		foreignKey({
 			name: "fk_reports_child",
 			columns: [t.childId],
@@ -95,6 +103,11 @@ export const taskReports = pgTable(
 			name: "fk_reports_task",
 			columns: [t.bonusTaskId],
 			foreignColumns: [bonusTasks.id],
+		}),
+		foreignKey({
+			name: "fk_reports_bonus_activity",
+			columns: [t.bonusActivityId],
+			foreignColumns: [activities.id],
 		}),
 		foreignKey({
 			name: "fk_reports_reviewed_by",
