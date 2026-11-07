@@ -71,8 +71,15 @@ test("the general quota is split between the activities and joined back", async 
 	await expect(quotas.getByText(/sumando todas las cuotas/)).toBeVisible();
 	await expect(currentPolicy(db, family)).rejects.toThrow();
 
-	// The child sees one battery per activity.
+	// The child sees the total and «Pedir tiempo» first, for every activity,
+	// then one battery per activity.
 	await child.page.goto("/nino");
+	await expect(
+		child.page.getByRole("heading", { name: /en total$/ }),
+	).toBeVisible();
+	await expect(
+		child.page.getByRole("link", { name: "Pedir tiempo" }),
+	).toBeVisible();
 	await expect(
 		child.page.getByRole("heading", { name: /^Juego: / }),
 	).toBeVisible();
