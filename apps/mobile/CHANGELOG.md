@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0](https://github.com/Freddyz5/time-craft/compare/mobile-v1.2.0...mobile-v1.3.0) (2026-11-07)
+
+### Features
+
+* **mobile:** add Time Craft Dev, installable next to production ([451f735](https://github.com/Freddyz5/time-craft/commit/451f735d46b01d2a41d6e7c33e0317f2695cb0da))
+
 ## [1.2.0](https://github.com/Freddyz5/time-craft/compare/mobile-v1.1.1...mobile-v1.2.0) (2026-11-06)
 
 ### Features
