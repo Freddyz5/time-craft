@@ -2,7 +2,8 @@
 // session, and while its alarm is due, whether this tab can ring), the
 // request waiting for an answer or the answer that just came,
 // then the batteries of today and the week with the bonuses and when each
-// recharges, and the way to ask for more; below, the rules folded, and while
+// recharges, and the way to ask for more (with several activities, first,
+// above all of them); below, the rules folded, and while
 // this device has no notifications, a quiet offer to turn them on. On a
 // laptop "Ahora" and the batteries sit side by side.
 import { Hand } from "lucide-react";
@@ -87,6 +88,7 @@ export function Home() {
 	const batteries = (
 		<Batteries
 			balances={balances}
+			totalSeconds={balance.data.totalAvailableSeconds}
 			asOf={Date.parse(balance.data.serverTime)}
 			live={session}
 			action={

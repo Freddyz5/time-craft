@@ -18,7 +18,12 @@ import {
 	weekWallBricks,
 } from "../../components/bricks";
 import { Callout } from "../../components/ui";
-import { activityById, activityLook, bagMembers } from "../../lib/activity";
+import {
+	activityById,
+	activityLook,
+	bagMembers,
+	bagOrder,
+} from "../../lib/activity";
 import { useServerNow } from "../../lib/clock";
 import {
 	minutesText,
@@ -497,12 +502,14 @@ function BagBatteries({
 				</Recharge>
 			</section>
 
-			{main && balance.bonusCapSeconds > 0 && (
-				<section aria-label="Bonos">
+			{balance.bonusCapSeconds > 0 && (
+				<section aria-label={title ? `Bonos de ${title}` : "Bonos"}>
 					<BonusMeter
 						earnedSeconds={balance.bonusEarnedSeconds}
 						capSeconds={balance.bonusCapSeconds}
-						footer={actionsFirst ? null : <TasksLink dayIsOut={false} />}
+						footer={
+							main && !actionsFirst ? <TasksLink dayIsOut={false} /> : null
+						}
 					/>
 				</section>
 			)}
@@ -514,35 +521,45 @@ function BagBatteries({
 
 export function Batteries({
 	balances,
+	totalSeconds,
 	asOf,
 	live,
 	action,
 }: {
 	balances: readonly Balance[];
+	// What every bag has left today, together (undefined from an older api).
+	totalSeconds: number | undefined;
 	// The balance's serverTime.
 	asOf: number;
 	live: Session | null;
-	// What the child can do next (ask for time): under the batteries, or
-	// first when the time is used up.
+	// What the child can do next (ask for time). With one bag: under the
+	// batteries, or first when the time is used up. With several: first,
+	// for every activity, above the bags.
 	action?: ReactNode;
 }) {
 	const { activities } = useChild();
-	// The general quota first, then any activity with limits of its own.
-	const ordered = [...balances].sort(
-		(a, b) => Number(a.activityId !== null) - Number(b.activityId !== null),
-	);
+	// The general quota first, then the activities with their own, by name.
+	const ordered = bagOrder(balances, activities);
+	const several = balances.length > 1;
 	return (
 		<Callout
 			className="flex flex-col gap-6 p-4 sm:p-5"
 			aria-labelledby="balance-title"
 		>
+			{several && (
+				<SeveralHeader
+					balances={balances}
+					totalSeconds={totalSeconds}
+					action={action}
+				/>
+			)}
 			{ordered.map((balance, index) => {
 				const members = bagMembers(balance, balances, activities);
 				const own = activityById(activities, balance.activityId);
 				// With several bags, the general one says whose it is.
 				const title = own
 					? own.name
-					: balances.length > 1
+					: several
 						? namesText(members.map((a) => a.name)) || null
 						: null;
 				const session =
@@ -552,7 +569,9 @@ export function Batteries({
 				return (
 					<div
 						key={balance.policyId}
-						className={index > 0 ? "border-t-[1.5px] border-rule pt-6" : ""}
+						className={
+							index > 0 || several ? "border-t-[1.5px] border-rule pt-6" : ""
+						}
 						style={
 							own
 								? ({
@@ -566,8 +585,8 @@ export function Batteries({
 							title={title}
 							session={session}
 							asOf={asOf}
-							main={index === 0}
-							action={index === 0 ? action : undefined}
+							main={!several}
+							action={several ? undefined : action}
 						/>
 					</div>
 				);
@@ -586,5 +605,48 @@ export function Batteries({
 				</>
 			)}
 		</Callout>
+	);
+}
+
+// With several bags: what is left today in all of them, then what to do
+// next, once for every activity (the child picks one when asking).
+function SeveralHeader({
+	balances,
+	totalSeconds,
+	action,
+}: {
+	balances: readonly Balance[];
+	totalSeconds: number | undefined;
+	action?: ReactNode;
+}) {
+	const restDay = balances.every((balance) => !balance.dayAllowed);
+	const total =
+		totalSeconds ??
+		balances.reduce((sum, balance) => sum + balance.availableSeconds, 0);
+	// Tasks help while some bag can still earn bonuses this week.
+	const canEarn = balances.some(
+		(balance) => balance.bonusCapSeconds > balance.bonusEarnedSeconds,
+	);
+	return (
+		<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-1">
+				<h2
+					id="balance-title"
+					className="text-[1.75rem] leading-tight font-extrabold sm:text-[2rem]"
+				>
+					{restDay
+						? "Hoy es día de descanso"
+						: total > 0
+							? `Hoy te quedan ${secondsText(total)} en total`
+							: "Se acabó tu tiempo de hoy"}
+				</h2>
+				<p className="text-ink-soft">
+					Cada actividad tiene su propio tiempo. Abajo ves cuánto le queda a
+					cada una.
+				</p>
+			</div>
+			{action}
+			{canEarn && <TasksLink dayIsOut={false} />}
+		</div>
 	);
 }

@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { amountBricks, BrickRow, brickUnit } from "../components/bricks";
 import { Callout, LoadingBricks, Notice } from "../components/ui";
-import { activityById, activityLook } from "../lib/activity";
+import { activityById, activityLook, bonusQuotaName } from "../lib/activity";
 import { useServerNow } from "../lib/clock";
 import { errorMessage } from "../lib/errors";
 import {
@@ -18,7 +18,7 @@ import {
 	secondsText,
 	timeText,
 } from "../lib/format";
-import { useBonusTasks, useHistory } from "../lib/queries";
+import { useBonusTasks, useHistory, usePolicies } from "../lib/queries";
 import { timing } from "../lib/timer";
 import type {
 	ChildRequest,
@@ -375,7 +375,13 @@ function Reports({
 	view: HistoryView;
 	taskName: (id: string) => string;
 }) {
-	const { household, timeZone } = useParents();
+	const { household, timeZone, activities, child } = useParents();
+	// The quotas in force, to say which one each bonus went to.
+	const bags = usePolicies(child?.id).data?.policies ?? [];
+	const quotaOf = (activityId: string | null) => {
+		const name = bonusQuotaName(activityId, bags, activities);
+		return name ? ` para ${name}` : "";
+	};
 	if (view.taskReports.length === 0) {
 		return <p className="text-ink-soft">No reportó tareas esta semana.</p>;
 	}
@@ -400,7 +406,7 @@ function Reports({
 							}
 						>
 							{report.status === "approved"
-								? `+${minutesText(report.awardedMinutes ?? 0)}`
+								? `+${minutesText(report.awardedMinutes ?? 0)}${quotaOf(report.bonusActivityId ?? null)}`
 								: report.status === "rejected"
 									? "Rechazada"
 									: "Por revisar"}

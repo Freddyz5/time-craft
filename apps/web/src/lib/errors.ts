@@ -56,6 +56,12 @@ const messages: Record<string, string> = {
 	custom_rule_not_found: "Esa regla ya no existe.",
 	custom_rule_limit_reached:
 		"Ya hay muchas reglas escritas. Borra alguna antes de agregar otra.",
+	general_needs_two_activities:
+		"La cuota general tiene que compartirla al menos dos actividades.",
+	activities_without_quota:
+		"Cada actividad necesita una cuota: propia o la general.",
+	no_general_quota:
+		"No hay una cuota general a la que volver. Junta las actividades en una nueva.",
 
 	// Better Auth
 	INVALID_EMAIL_OR_PASSWORD: "El correo o la contraseña no son correctos.",
