@@ -7,9 +7,12 @@ import { childBalances } from "./quota";
 export interface ChildBalanceView {
 	serverTime: Date;
 	childId: string;
-	// One per current policy: usually a single global one. Empty if the
-	// parents have not set limits yet.
+	// One per current policy: the general quota and/or one per activity.
+	// Empty if the parents have not set limits yet.
 	balances: Balance[];
+	// What every bag has left today, together. There is no cap on the total:
+	// it only adds them up.
+	totalAvailableSeconds: number;
 }
 
 // What the child has left: consumed today and this week (the open session
@@ -27,6 +30,10 @@ export async function getChildBalance(
 			serverTime: tx.now,
 			childId: child.id,
 			balances: balances.map((entry) => entry.balance),
+			totalAvailableSeconds: balances.reduce(
+				(total, entry) => total + entry.balance.availableSeconds,
+				0,
+			),
 		};
 	});
 }
