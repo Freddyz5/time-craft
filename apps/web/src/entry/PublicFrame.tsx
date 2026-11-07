@@ -2,6 +2,7 @@
 // app is, a short row of bricks showing the idea, and the form on a plate.
 // The child's login leaves the bricks out: to them, bricks are their time.
 // The web's version sits in the bottom corner, with the api's.
+import { TIMECRAFT_ENV } from "astro:env/client";
 import { type ReactNode, useEffect, useState } from "react";
 // The release writes the web's version here (scripts/release); Vite bundles
 // only this field.
@@ -12,6 +13,8 @@ import { api, call } from "../lib/api";
 
 interface ApiHealth {
 	version: string;
+	// production, dev, preview or local (apps/api/src/environment.ts).
+	environment: string;
 	// The origin of the web that api serves.
 	web: string;
 }
@@ -23,9 +26,9 @@ function useApiHealth(): ApiHealth | null {
 	useEffect(() => {
 		let active = true;
 		call(api.health.$get())
-			.then(({ app, web }) => {
+			.then(({ app, environment, web }) => {
 				if (active) {
-					setHealth({ version: app.version, web });
+					setHealth({ version: app.version, environment, web });
 				}
 			})
 			.catch(() => {});
@@ -37,15 +40,20 @@ function useApiHealth(): ApiHealth | null {
 }
 
 // The versions, and a warning when this web reaches another web's api: dev
-// talking to production's api would write to the family's data.
+// talking to production's api would write to the family's data. A preview of
+// another branch is expected to use dev's api (docs/deploy.md).
 function Versions() {
 	const health = useApiHealth();
+	const previewOnDev =
+		TIMECRAFT_ENV === "preview" && health?.environment === "dev";
 	return (
 		<p className="absolute right-4 bottom-2 text-sm text-ink-faint tabular-nums">
 			web v{version}
 			{health &&
 				(health.web === window.location.origin ? (
 					<> · api v{health.version}</>
+				) : previewOnDev ? (
+					<> · api v{health.version} de dev</>
 				) : (
 					<span className="font-bold text-stop-ink">
 						{" "}
