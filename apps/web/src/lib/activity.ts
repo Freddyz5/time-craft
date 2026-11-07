@@ -51,7 +51,40 @@ export function activityById<A extends NamedActivity>(
 	return id === null ? undefined : activities.find((a) => a.id === id);
 }
 
-// The policy whose bag an activity draws from: its own, or the global one.
+export interface MemberActivity extends NamedActivity {
+	isActive: boolean;
+}
+
+// The activities that draw from a bag (a policy or its balance): its own
+// activity, or for the general quota every active one without its own. The
+// api decides who draws from where; this only names them.
+export function bagMembers<A extends MemberActivity>(
+	bag: { activityId: string | null },
+	bags: readonly { activityId: string | null }[],
+	activities: readonly A[],
+): A[] {
+	if (bag.activityId !== null) {
+		return activities.filter((a) => a.id === bag.activityId);
+	}
+	return activities.filter(
+		(a) => a.isActive && !bags.some((other) => other.activityId === a.id),
+	);
+}
+
+// The general quota first, then the activities with their own, by name.
+export function bagOrder<B extends { activityId: string | null }>(
+	bags: readonly B[],
+	activities: readonly NamedActivity[],
+): B[] {
+	const name = (bag: B) => activityById(activities, bag.activityId)?.name ?? "";
+	return [...bags].sort(
+		(a, b) =>
+			Number(a.activityId !== null) - Number(b.activityId !== null) ||
+			name(a).localeCompare(name(b)),
+	);
+}
+
+// The policy whose bag an activity draws from: its own, or the general one.
 // (Only used to pick the warning time for the tab's alarm.)
 export function bagFor<P extends { activityId: string | null }>(
 	policies: readonly P[],

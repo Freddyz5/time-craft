@@ -1,6 +1,7 @@
 // A task the child says they did: approve it with the task's minutes (or
-// other), or reject it with a note. Approved minutes join the week as yellow
-// bricks, up to the weekly bonus cap.
+// other), or reject it with a note. Approved minutes join the week of one
+// quota as yellow bricks, up to its weekly bonus cap; with several quotas the
+// parent picks which one.
 import { Check, SlidersHorizontal, X } from "lucide-react";
 import { useId, useState } from "react";
 import { PartsBox } from "../../components/bricks";
@@ -10,30 +11,107 @@ import {
 	inputClass,
 	MinutesStepper,
 } from "../../components/ui";
+import { activityLook, bagMembers, bagOrder } from "../../lib/activity";
 import { api, call } from "../../lib/api";
 import { serverNow } from "../../lib/clock";
 import {
 	minutesText,
+	namesText,
 	relativeDayText,
 	secondsText,
 	timeText,
 } from "../../lib/format";
-import type { Balance, BonusTask, TaskReport } from "../../lib/types";
+import type { Activity, Balance, BonusTask, TaskReport } from "../../lib/types";
 import { useCommand } from "../../lib/useCommand";
 import { useParents } from "../context";
 
 type Mode = "idle" | "adjust" | "reject";
 
+// A quota the bonus can go to: its balance, the activities that share it
+// and how much of its weekly bonus cap is still free.
+interface BonusQuota {
+	balance: Balance;
+	members: Activity[];
+	name: string;
+	capLeftSeconds: number;
+}
+
+function capLeftText(quota: BonusQuota): string {
+	return quota.capLeftSeconds === 0
+		? "Ya llegó al tope de bonos"
+		: `Le faltan ${secondsText(quota.capLeftSeconds)} para el tope`;
+}
+
+// Which quota the bonus adds to: one tile per quota, in a tray sunk into the
+// plate; the chosen one is an ink tile, like the segmented control.
+function QuotaChoice({
+	quotas,
+	value,
+	onChange,
+	disabled,
+}: {
+	quotas: readonly BonusQuota[];
+	value: string;
+	onChange: (policyId: string) => void;
+	disabled: boolean;
+}) {
+	const name = useId();
+	return (
+		<fieldset className="flex flex-col gap-1.5" disabled={disabled}>
+			<legend className="mb-1.5 font-medium">¿A qué cuota suma?</legend>
+			<div className="grid gap-1 rounded-control border-[1.5px] border-rule-strong bg-sheet-sunk p-1 pb-1.5 shadow-[inset_0_2px_0_rgb(0_0_0/0.07)] sm:grid-cols-2">
+				{quotas.map((quota) => (
+					<label
+						key={quota.balance.policyId}
+						className="group flex min-h-12 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-ink-soft transition-colors hover:text-ink has-checked:bg-ink has-checked:text-on-ink has-checked:shadow-[0_3px_0_var(--color-ink-side)] has-focus-visible:outline-3 has-focus-visible:outline-focus"
+					>
+						<input
+							type="radio"
+							name={name}
+							value={quota.balance.policyId}
+							checked={value === quota.balance.policyId}
+							onChange={() => onChange(quota.balance.policyId)}
+							className="sr-only"
+						/>
+						<span className="flex shrink-0 -space-x-1.5" aria-hidden="true">
+							{quota.members.map((activity) => {
+								const look = activityLook(activity.code);
+								return (
+									<span
+										key={activity.id}
+										className="grid size-7 place-items-center rounded-full text-white ring-2 ring-sheet-sunk group-has-checked:ring-ink"
+										style={{ background: look.color }}
+									>
+										<look.Icon className="size-4" />
+									</span>
+								);
+							})}
+						</span>
+						<span className="flex min-w-0 flex-col">
+							<span className="font-bold text-ink group-has-checked:text-on-ink">
+								{quota.name}
+							</span>
+							<span className="tabular text-[0.8125rem] font-semibold">
+								{capLeftText(quota)}
+							</span>
+						</span>
+					</label>
+				))}
+			</div>
+		</fieldset>
+	);
+}
+
 export function ReportCard({
 	report,
 	task,
-	globalBalance,
+	balances,
 }: {
 	report: TaskReport;
 	task: BonusTask | undefined;
-	globalBalance: Balance | undefined;
+	balances: readonly Balance[];
 }) {
-	const { household, timeZone } = useParents();
+	const { household, timeZone, activities } = useParents();
 	const titleId = useId();
 	const noteId = useId();
 	const [mode, setMode] = useState<Mode>("idle");
@@ -44,10 +122,38 @@ export function ReportCard({
 		household.children.find((c) => c.id === report.childId)?.name ?? "El niño";
 	const reportId = report.id;
 
+	const quotas: BonusQuota[] = bagOrder(balances, activities).map((balance) => {
+		const members = bagMembers(balance, balances, activities);
+		return {
+			balance,
+			members,
+			name: namesText(members.map((a) => a.name)) || "Cuota general",
+			capLeftSeconds: Math.max(
+				0,
+				balance.bonusCapSeconds - balance.bonusEarnedSeconds,
+			),
+		};
+	});
+	// The first quota with room for bonuses, unless the parent picks another.
+	const [picked, setPicked] = useState<string | null>(null);
+	const quota =
+		quotas.find((q) => q.balance.policyId === picked) ??
+		quotas.find((q) => q.capLeftSeconds > 0) ??
+		quotas[0];
+	// The api takes an activity of the quota: the bonus follows it.
+	const bonusActivityId = quota?.members[0]?.id;
+	const quotaSuffix =
+		quotas.length > 1 && quota !== undefined ? ` para ${quota.name}` : "";
+
 	const review = useCommand(
 		(
 			input:
-				| { decision: "approve"; awardedMinutes: number; note?: string }
+				| {
+						decision: "approve";
+						awardedMinutes: number;
+						bonusActivityId?: string;
+						note?: string;
+				  }
 				| { decision: "reject"; note?: string },
 		) =>
 			call(
@@ -59,19 +165,14 @@ export function ReportCard({
 		{
 			success: (_result, input) =>
 				input.decision === "approve"
-					? `Bono aprobado: +${minutesText(input.awardedMinutes)}`
+					? `Bono aprobado: +${minutesText(input.awardedMinutes)}${quotaSuffix}`
 					: "Reporte rechazado",
 		},
 	);
 	const busy = review.isPending;
-	const capLeft =
-		globalBalance === undefined
-			? null
-			: Math.max(
-					0,
-					globalBalance.bonusCapSeconds - globalBalance.bonusEarnedSeconds,
-				);
+	const capLeft = quota === undefined ? null : quota.capLeftSeconds;
 	const trimmedNote = note.trim() === "" ? undefined : note.trim();
+	const capName = quotas.length > 1 && quota ? ` de ${quota.name}` : "";
 
 	return (
 		<Callout
@@ -100,15 +201,24 @@ export function ReportCard({
 				color="var(--color-bonus)"
 				label={`${minutesText(reward)} de bono`}
 			/>
+			{quotas.length > 1 && mode !== "reject" && (
+				<QuotaChoice
+					quotas={quotas}
+					value={quota?.balance.policyId ?? ""}
+					onChange={setPicked}
+					disabled={busy}
+				/>
+			)}
 			{capLeft !== null && capLeft === 0 && (
 				<p className="text-[0.9375rem] text-bonus-ink">
-					Ya llegó al tope de bonos de esta semana: aprobarla queda registrado,
-					pero no suma más tiempo.
+					Ya llegó al tope de bonos{capName} de esta semana: aprobarla queda
+					registrado, pero no suma más tiempo.
 				</p>
 			)}
 			{capLeft !== null && capLeft > 0 && capLeft < reward * 60 && (
 				<p className="text-[0.9375rem] text-bonus-ink">
-					Solo faltan {secondsText(capLeft)} para el tope de bonos de la semana.
+					Solo faltan {secondsText(capLeft)} para el tope de bonos{capName} de
+					la semana.
 				</p>
 			)}
 
@@ -120,7 +230,11 @@ export function ReportCard({
 						icon={<Check className="size-5" aria-hidden="true" />}
 						busy={busy}
 						onClick={() =>
-							review.mutate({ decision: "approve", awardedMinutes: reward })
+							review.mutate({
+								decision: "approve",
+								awardedMinutes: reward,
+								bonusActivityId,
+							})
 						}
 					>
 						Aprobar +{minutesText(reward)}
@@ -153,6 +267,7 @@ export function ReportCard({
 								? {
 										decision: "approve",
 										awardedMinutes: minutes,
+										bonusActivityId,
 										note: trimmedNote,
 									}
 								: { decision: "reject", note: trimmedNote },

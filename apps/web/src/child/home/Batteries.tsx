@@ -18,16 +18,17 @@ import {
 	weekWallBricks,
 } from "../../components/bricks";
 import { Callout } from "../../components/ui";
-import { activityById, activityLook } from "../../lib/activity";
+import { activityById, activityLook, bagMembers } from "../../lib/activity";
 import { useServerNow } from "../../lib/clock";
 import {
 	minutesText,
+	namesText,
 	rechargeText,
 	secondsText,
 	weekDaysText,
 } from "../../lib/format";
 import { timing } from "../../lib/timer";
-import type { Activity, Balance, Session } from "../../lib/types";
+import type { Balance, Session } from "../../lib/types";
 import { useChild } from "../context";
 
 const DAY_BRICKS = 12;
@@ -187,11 +188,14 @@ export function BonusMeter({
 	earnedSeconds,
 	capSeconds,
 	heading = "h3",
+	quotaName,
 	footer,
 }: {
 	earnedSeconds: number;
 	capSeconds: number;
 	heading?: "h2" | "h3";
+	// With several quotas, whose bonuses these are.
+	quotaName?: string;
 	// What follows the meter while the cap is not reached (a link to tasks).
 	footer?: ReactNode;
 }) {
@@ -207,12 +211,12 @@ export function BonusMeter({
 		<div className="flex flex-col gap-2">
 			<RowHead
 				as={heading}
-				title="Bonos de la semana"
+				title={quotaName ? `Bonos de ${quotaName}` : "Bonos de la semana"}
 				figure={`${minutesText(Math.floor(earned))} de ${minutesText(cap)}`}
 			/>
 			<div
 				role="img"
-				aria-label={`Bonos: ganaste ${minutesText(Math.floor(earned))} de ${minutesText(cap)} posibles esta semana`}
+				aria-label={`Bonos${quotaName ? ` de ${quotaName}` : ""}: ganaste ${minutesText(Math.floor(earned))} de ${minutesText(cap)} posibles esta semana`}
 				className="grid max-w-[24rem] gap-x-[3px]"
 				style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
 			>
@@ -508,19 +512,6 @@ function BagBatteries({
 	);
 }
 
-// The activities that draw from a bag: its own, or every one without its own
-// for the general quota.
-function bagActivities(
-	balance: Balance,
-	balances: readonly Balance[],
-	activities: readonly Activity[],
-): Activity[] {
-	if (balance.activityId !== null) {
-		return activities.filter((a) => a.id === balance.activityId);
-	}
-	return activities.filter((a) => !balances.some((b) => b.activityId === a.id));
-}
-
 export function Batteries({
 	balances,
 	asOf,
@@ -546,8 +537,14 @@ export function Batteries({
 			aria-labelledby="balance-title"
 		>
 			{ordered.map((balance, index) => {
-				const members = bagActivities(balance, balances, activities);
+				const members = bagMembers(balance, balances, activities);
 				const own = activityById(activities, balance.activityId);
+				// With several bags, the general one says whose it is.
+				const title = own
+					? own.name
+					: balances.length > 1
+						? namesText(members.map((a) => a.name)) || null
+						: null;
 				const session =
 					live !== null && members.some((a) => a.id === live.activityId)
 						? live
@@ -566,7 +563,7 @@ export function Batteries({
 					>
 						<BagBatteries
 							balance={balance}
-							title={own ? own.name : null}
+							title={title}
 							session={session}
 							asOf={asOf}
 							main={index === 0}

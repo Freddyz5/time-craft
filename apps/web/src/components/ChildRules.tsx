@@ -3,8 +3,8 @@
 // ones every session follows. The parents can hide any automatic line (it
 // keeps working, it just is not read here). The child's Inicio folds it under
 // the batteries; Reglas shows the parents the very same thing.
-import { activityById, type NamedActivity } from "../lib/activity";
-import { minutesText, weekDaysText } from "../lib/format";
+import { activityById, bagMembers, type MemberActivity } from "../lib/activity";
+import { minutesText, namesText, weekDaysText } from "../lib/format";
 import type { HiddenRuleKey, Policy } from "../lib/types";
 
 export interface RuleLine {
@@ -100,7 +100,7 @@ export function automaticRules(input: RulesInput): RuleLine[] {
 }
 
 interface ChildRulesProps extends RulesInput {
-	activities: readonly NamedActivity[];
+	activities: readonly MemberActivity[];
 	// Only those written for the child.
 	customRules: readonly { id: string; text: string }[];
 	hidden: readonly HiddenRuleKey[];
@@ -138,11 +138,15 @@ export function ChildRules({
 		<div className="flex flex-col gap-4">
 			{groups.map(({ policy, lines }) => {
 				const activity = activityById(activities, policy.activityId);
+				// The general quota is named after the activities that share it.
+				const shared = namesText(
+					bagMembers(policy, policies, activities).map((a) => a.name),
+				);
 				return (
 					<div key={policy.id} className="flex flex-col gap-1.5">
 						{policies.length > 1 && (
 							<p className="font-semibold">
-								{activity ? activity.name : "Para todo"}
+								{activity ? activity.name : shared || "Para todo"}
 							</p>
 						)}
 						<ul className="flex list-disc flex-col gap-1 pl-5 marker:text-ink-faint">
