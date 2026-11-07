@@ -1,5 +1,6 @@
 // The child reports a task done; a parent approves it (with the minutes
-// earned, the task's reward by default) or rejects it.
+// earned, the task's reward by default, and the quota they add to) or
+// rejects it.
 import { Hono } from "hono";
 import * as z from "zod";
 import { type AppDeps, type AppEnv, actorOf } from "../http/context";
@@ -16,6 +17,8 @@ const reviewBody = z.discriminatedUnion("decision", [
 	z.object({
 		decision: z.literal("approve"),
 		awardedMinutes: minutes.optional(),
+		// The activity whose quota the bonus adds to. Omitted: every quota.
+		bonusActivityId: id.optional(),
 		note: z.string().optional(),
 	}),
 	z.object({
