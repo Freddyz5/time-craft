@@ -30,6 +30,18 @@ colors:
   tv: "#c2338f"
   tv-side: "#8a1f63"
   tv-tint: "#f8e1f0"
+  violet: "#7446d6"
+  violet-side: "#4f2a9e"
+  violet-tint: "#ece5fb"
+  sky: "#0a76a4"
+  sky-side: "#07506f"
+  sky-tint: "#dcedf5"
+  brown: "#8a5a35"
+  brown-side: "#5e3c22"
+  brown-tint: "#f1e7df"
+  graphite: "#4a5263"
+  graphite-side: "#2e333f"
+  graphite-tint: "#e6e8ec"
   pause: "#ff8c1a"
   pause-side: "#b35c00"
   pause-tint: "#ffe9d2"
@@ -70,6 +82,18 @@ colors:
   tv-dark: "#c93a96"
   tv-side-dark: "#7d1f5d"
   tv-tint-dark: "#3a1f33"
+  violet-dark: "#8257e0"
+  violet-side-dark: "#4a2a93"
+  violet-tint-dark: "#2a2142"
+  sky-dark: "#0f7cab"
+  sky-side-dark: "#075474"
+  sky-tint-dark: "#15293a"
+  brown-dark: "#9a6740"
+  brown-side-dark: "#5c3b22"
+  brown-tint-dark: "#33271d"
+  graphite-dark: "#5c6578"
+  graphite-side-dark: "#2f3542"
+  graphite-tint-dark: "#30353f"
   pause-dark: "#ff9a2e"
   pause-side-dark: "#a85500"
   pause-tint-dark: "#3d2a14"
@@ -296,7 +320,7 @@ Una base neutra de plástico gris (placa base, placas blancas o carbón, tinta) 
 
 ### Secondary
 - **Amarillo Bono** (bonus): minutos ganados con tareas (la cola amarilla del muro de la semana, el medidor de bonos, la caja de piezas de un reporte, la placa de un reporte por revisar) y el color de la marca: el ladrillo del logo, la baldosa de la pestaña activa, los pernos que se llenan en el PIN del niño y la selección de texto. Su canto (bonus-side) da el volumen de la baldosa activa.
-- **Azul Juego** (game) y **Magenta TV** (tv): los colores de actividad. Pintan los ladrillos de una sesión, la etiqueta de actividad y, mientras la sesión corre, toda la placa de «Ahora» (cara del color, canto `-side`). Una actividad sin color propio usa ink-soft en sus ladrillos.
+- **Azul Juego** (game) y **Magenta TV** (tv): los colores de actividad. Pintan los ladrillos de una sesión, la etiqueta de actividad y, mientras la sesión corre, toda la placa de «Ahora» (cara del color, canto `-side`). Las actividades que agregan los padres eligen entre azul, magenta, **Violeta** (violet), **Celeste** (sky), **Café** (brown) y **Grafito** (graphite), cada uno con su canto y su tinte en los dos temas; nunca verde, amarillo, naranja ni rojo, que ya tienen trabajo. Todos llevan texto blanco con contraste de 4.5:1 o más. Una actividad sin color elegido usa el de su code (Juego, TV) o grafito.
 
 ### Tertiary
 - **Naranja Pausa** (pause): el ladrillo Pausar y la placa de una sesión en pausa (pause-tint con canto pause); pause-ink para el titular de «pausada hace rato».
@@ -404,7 +428,7 @@ Ladrillos con dos pernos, a la medida del pulgar.
 - **Grande:** la acción principal de una pantalla del niño y los dos accesos de la landing suben a 56 px.
 
 ### Chips
-- **Etiqueta de actividad:** pastilla del color de la actividad, texto blanco 700 e icono (mando para Juego, televisor para TV). Sobre su propia placa en curso se invierte: blanca con texto del color de la actividad.
+- **Etiqueta de actividad:** pastilla del color de la actividad, texto blanco 700 e icono (mando para Juego, televisor para TV; las demás, el que eligen los padres: computadora, laptop, tablet, celular, películas, música, rompecabezas o bloques). Sobre su propia placa en curso se invierte: blanca con texto del color de la actividad.
 
 ### Cards / Containers
 - **Corner Style:** 10 px.
