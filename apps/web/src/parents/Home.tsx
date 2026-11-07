@@ -95,7 +95,7 @@ export function Home() {
 					key={report.id}
 					report={report}
 					task={tasks.data?.tasks.find((t) => t.id === report.bonusTaskId)}
-					globalBalance={balances.find((b) => b.activityId === null)}
+					balances={balances}
 				/>
 			))}
 		</section>
@@ -172,6 +172,7 @@ export function Home() {
 				<div className="flex flex-col gap-5">
 					<BalanceCard
 						balances={balances}
+						totalSeconds={balance.data.totalAvailableSeconds}
 						live={live.data.live?.session ?? null}
 					/>
 

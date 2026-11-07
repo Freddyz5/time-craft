@@ -68,6 +68,14 @@ function withNote(text: string, note: string | null): string {
 	return note === null ? text : `${text} «${note}»`;
 }
 
+// "Juego", "TV y Computadora", "TV, Tablet y Computadora".
+export function namesText(names: readonly string[]): string {
+	if (names.length <= 1) {
+		return names[0] ?? "";
+	}
+	return `${names.slice(0, -1).join(", ")} y ${names.at(-1)}`;
+}
+
 export const messages = {
 	// Sessions
 
@@ -264,11 +272,14 @@ export const messages = {
 		reportId: string;
 		taskName: string;
 		minutes: number;
+		// The quota the bonus went to; null or omitted: every quota.
+		quotaName?: string | null;
 	}): PushMessage {
+		const quota = input.quotaName ? ` para ${input.quotaName}` : "";
 		return {
 			kind: "report_approved",
 			title: "¡Bono aprobado!",
-			body: `Ganaste ${input.minutes} min por «${input.taskName}».`,
+			body: `Ganaste ${input.minutes} min${quota} por «${input.taskName}».`,
 			url: CHILD_URL,
 			tag: `report-${input.reportId}`,
 			data: { reportId: input.reportId },

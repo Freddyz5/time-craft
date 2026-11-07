@@ -553,6 +553,7 @@ function createRepositories(t: () => Tables): Repositories {
 					...stored,
 					status: report.status,
 					awardedMinutes: report.awardedMinutes,
+					bonusActivityId: report.bonusActivityId,
 					reviewNote: report.reviewNote,
 					reviewedByParentId: report.reviewedByParentId,
 					reviewedAt: report.reviewedAt,

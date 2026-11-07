@@ -43,7 +43,9 @@ import {
 	clearActivityPolicy,
 	listCurrentPolicies,
 	listPolicyHistory,
+	listQuotas,
 	setPolicy,
+	setQuotaLayout,
 } from "./policies";
 import {
 	registerNativeToken,
@@ -118,8 +120,10 @@ export function createCore(deps: CoreDeps) {
 		// Overrides and limits
 		grantOverride: bind(deps, grantOverride),
 		listCurrentPolicies: bind(deps, listCurrentPolicies),
+		listQuotas: bind(deps, listQuotas),
 		listPolicyHistory: bind(deps, listPolicyHistory),
 		setPolicy: bind(deps, setPolicy),
+		setQuotaLayout: bind(deps, setQuotaLayout),
 		clearActivityPolicy: bind(deps, clearActivityPolicy),
 		listCustomRules: bind(deps, listCustomRules),
 		addCustomRule: bind(deps, addCustomRule),

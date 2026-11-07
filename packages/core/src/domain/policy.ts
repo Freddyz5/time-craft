@@ -1,11 +1,14 @@
 // Quota policies: daily and weekly limits with history (valid_from/valid_to).
-// activity_id null is the global quota (game and TV share one bag); a policy
-// with an activity is a separate bag for that activity. The policy in force
-// when the balance is computed applies to the whole week (decided).
+// activity_id null is the general quota, a bag shared by every activity
+// without a policy of its own; a policy with an activity is a separate bag
+// for that activity. The general quota is only for sharing: it exists while
+// two or more active activities draw from it (see `generalMembers`). The
+// policy in force when the balance is computed applies to the whole week
+// (decided).
 // allowed_days are the days of the week its bag can be used; grace_minutes,
 // how much of a session's excess never counts (copied to each session).
 import { invalidInput } from "../errors";
-import type { WeekDay } from "./family";
+import type { Activity, WeekDay } from "./family";
 import type { Session } from "./session";
 import { MAX_MINUTES, nonNegativeMinutes, positiveMinutes } from "./values";
 
@@ -126,4 +129,83 @@ export function sessionsUnderPolicy(
 		),
 	);
 	return sessions.filter((session) => !ownBags.has(session.activityId));
+}
+
+// The general quota needs at least this many activities drawing from it.
+export const MIN_GENERAL_MEMBERS = 2;
+
+// The activities that draw from the general quota: the active ones without a
+// current policy of their own. `policies` are the child's current policies.
+export function generalMembers(
+	policies: readonly QuotaPolicy[],
+	activities: readonly Activity[],
+): Activity[] {
+	const ownBags = new Set(
+		policies.flatMap((policy) =>
+			policy.activityId === null ? [] : [policy.activityId],
+		),
+	);
+	return activities.filter(
+		(activity) => activity.isActive && !ownBags.has(activity.id),
+	);
+}
+
+// Whether two policies have the same limits (saving them again changes
+// nothing).
+export function sameLimits(a: PolicyLimits, b: PolicyLimits): boolean {
+	return (
+		a.dailyLimitMinutes === b.dailyLimitMinutes &&
+		a.weeklyLimitMinutes === b.weeklyLimitMinutes &&
+		a.weeklyBonusCapMinutes === b.weeklyBonusCapMinutes &&
+		a.carryOverExcess === b.carryOverExcess &&
+		a.warningMinutes === b.warningMinutes &&
+		a.graceMinutes === b.graceMinutes &&
+		a.allowedDays.length === b.allowedDays.length &&
+		a.allowedDays.every((day, index) => b.allowedDays[index] === day)
+	);
+}
+
+export interface QuotaTotals {
+	// What every bag together allows on each day of the week (index 0 =
+	// Sunday): the daily limits of the bags that allow that day.
+	dailyMinutesByDay: number[];
+	// The weekly limits of every bag together, bonuses aside.
+	weeklyMinutes: number;
+}
+
+// The bags in use: the general one while some activity draws from it, and
+// the own ones of active activities.
+export function bagsInUse(
+	policies: readonly QuotaPolicy[],
+	activities: readonly Activity[],
+): QuotaPolicy[] {
+	const active = new Set(
+		activities.flatMap((activity) => (activity.isActive ? [activity.id] : [])),
+	);
+	const shared = generalMembers(policies, activities).length > 0;
+	return policies.filter((policy) =>
+		policy.activityId === null ? shared : active.has(policy.activityId),
+	);
+}
+
+// How much time all the bags allow together. There is no cap on the total:
+// each bag is separate, so this only adds them up for the parents to see.
+export function quotaTotals(
+	policies: readonly QuotaPolicy[],
+	activities: readonly Activity[],
+): QuotaTotals {
+	const bags = bagsInUse(policies, activities);
+	return {
+		dailyMinutesByDay: ALL_WEEK_DAYS.map((day) =>
+			bags.reduce(
+				(total, bag) =>
+					isDayAllowed(bag, day) ? total + bag.dailyLimitMinutes : total,
+				0,
+			),
+		),
+		weeklyMinutes: bags.reduce(
+			(total, bag) => total + bag.weeklyLimitMinutes,
+			0,
+		),
+	};
 }

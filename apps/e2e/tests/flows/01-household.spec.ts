@@ -66,17 +66,14 @@ test.describe("a new family", () => {
 			parent.getByRole("heading", { name: "Cuenta de Sofía" }),
 		).toBeVisible();
 
-		// The seed brought the activities; their limits are set per child.
+		// The seed brought the activities; their limits are set per child,
+		// starting with a general quota they share.
 		await parent.goto("/padres/reglas");
-		const perActivity = parent.getByRole("region", {
-			name: "Límites por actividad",
-		});
+		const quotas = parent.getByRole("region", { name: "Cuotas" });
 		await expect(
-			perActivity.getByRole("heading", { name: "Juego" }),
+			quotas.getByRole("heading", { name: "Cuota general" }),
 		).toBeVisible();
-		await expect(
-			perActivity.getByRole("heading", { name: "TV" }),
-		).toBeVisible();
+		await expect(quotas.getByText(/compartan Juego y TV/)).toBeVisible();
 		await parentContext.close();
 
 		const childContext = await browser.newContext(contextOptions());

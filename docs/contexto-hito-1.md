@@ -47,7 +47,8 @@ packages/
 ## Reglas de negocio
 - **Disponible** = mín(restante del día, restante de la semana). Si se agota la semana, no puede empezar aunque le quede tiempo en el día.
 - **La sesión propuesta nunca supera el disponible** (más el override si lo hay). Lo valida `core`.
-- **Bonos:** los minutos aprobados por tareas se suman a la bolsa semanal, hasta un tope semanal. No suben el límite diario.
+- **Cuotas:** cada actividad usa una cuota propia o comparte la cuota general. Cada cuota es una bolsa aparte: lo que usa una actividad solo se descuenta de la suya, y no hay un tope por encima de la suma (Reglas e Inicio muestran el total). La cuota general existe mientras la compartan **dos o más actividades activas**: si un cambio la deja con una sola, pasa a ser la cuota propia de esa actividad, con los mismos límites; si la deja sin ninguna, se cierra (`general_needs_two_activities` al intentar crearla con menos de dos). Repartir la general entre actividades y juntarlas de nuevo en una se hace en un solo paso (`POST /api/children/:childId/quota-layout`); lo que no se manda se copia de la cuota de la que sale. Como el saldo se calcula, al repartir a mitad de semana lo ya usado queda en la cuota de cada actividad.
+- **Bonos:** los minutos aprobados por tareas se suman a la bolsa semanal de **una** cuota, hasta su tope semanal. No suben el límite diario. El padre elige la cuota al aprobar; se guarda una actividad de esa cuota (`task_reports.bonus_activity_id`, la primera si es la general), así que si después se reparten las cuotas, el bono sigue a esa actividad. Un bono aprobado sin cuota (antes de este cambio) suma a todas.
 - **El exceso cuenta:** si la sesión se pasa del tiempo, se descuenta el tiempo real consumido, menos la gracia.
 - **Gracia al terminar:** cada cuota define `grace_minutes` (0 por defecto, hasta 15): los primeros minutos después del fin nunca se descuentan, para que el niño avise y un padre la detenga. Si la detienen después, solo cuenta lo que pasó de la gracia. La sesión copia la gracia de su cuota al arrancar (`sessions.grace_seconds`), así un cambio posterior no reescribe sesiones pasadas. `consumed_seconds` sigue siendo el tiempo real; el saldo y el historial descuentan la gracia.
 - **Días con tiempo:** cada cuota define en `allowed_days` qué días de la semana se puede usar (la general vale para todas las actividades sin cuota propia; una cuota por actividad tiene sus propios días). Un día que no está, esa bolsa no tiene tiempo: el niño no puede pedir empezar ni tiempo extra (`day_not_allowed`) y un padre no puede iniciar una sesión normal, pero sí dar tiempo extra con motivo. Ese tiempo extra cuenta para la semana. La recarga diaria (`nextDailyRechargeAt`) es el inicio del siguiente día permitido.
@@ -141,7 +142,7 @@ Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, in
 - **parents**: family_id, auth_user_id (unique), name
 - **children**: family_id, auth_user_id (unique), name, avatar, failed_pin_attempts, locked_until
 - **activities**: family_id, code, name, is_active (unique family_id + code)
-- **quota_policies**: child_id, activity_id (null = cuota global), daily_limit_minutes, weekly_limit_minutes, weekly_bonus_cap_minutes (60), carry_over_excess, warning_minutes (5), allowed_days (smallint[], 0 = domingo … 6 = sábado; todos por defecto, al menos uno), grace_minutes (0), valid_from, valid_to (null = vigente), created_by_parent_id. Cambiar un límite cierra la política vigente y crea otra, así queda historial.
+- **quota_policies**: child_id, activity_id (null = cuota general, compartida por las actividades activas sin cuota propia; existe solo si son dos o más), daily_limit_minutes, weekly_limit_minutes, weekly_bonus_cap_minutes (60), carry_over_excess, warning_minutes (5), allowed_days (smallint[], 0 = domingo … 6 = sábado; todos por defecto, al menos uno), grace_minutes (0), valid_from, valid_to (null = vigente), created_by_parent_id. Cambiar un límite cierra la política vigente y crea otra, así queda historial.
 - **custom_rules**: child_id, text (hasta 200), parents_only (false), position, created_by_parent_id, created_at, updated_at. Reglas escritas por los padres; el niño solo recibe las que no son `parents_only`.
 - **hidden_rules**: child_id + rule_key (PK; limits | days | bonus | warning | grace | carry_over | one_session | request_wait | week_change), hidden_by_parent_id, created_at. Las reglas automáticas que los padres sacan de «Tus reglas».
 - **bonus_tasks**: family_id, name, description, reward_minutes, max_per_week, is_active, created_by_parent_id
@@ -150,7 +151,7 @@ Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, in
 - **sessions**: child_id, activity_id, request_id (null, unique), override_id (null), status (scheduled | running | paused | finished | cancelled), scheduled_start_at (solo si se programó), started_at (null mientras está programada o si se canceló), planned_duration_seconds, ended_at, end_reason (completed | stopped_early | auto_closed), consumed_seconds, grace_seconds (la gracia de su cuota al arrancar, 0 por defecto), started_by_parent_id, ended_by_parent_id (quien la detuvo o canceló; null solo si auto_closed). CHECKs: `scheduled` sin started_at; `running`/`paused`/`finished` con started_at; `finished` con ended_at, end_reason y consumed_seconds; `cancelled` con ended_at y quién canceló.
 - **session_pauses**: session_id, paused_at, resumed_at (null = en curso), paused_by_parent_id, resumed_by_parent_id, reason
 - **session_alerts**: session_id, alert_type (warning | end | auto_close), scheduled_at, provider_message_id (QStash), sent_at, cancelled_at
-- **task_reports**: child_id, bonus_task_id, note, status (pending | approved | rejected), awarded_minutes (solo si approved), review_note, reviewed_by_parent_id, reviewed_at
+- **task_reports**: child_id, bonus_task_id, note, status (pending | approved | rejected), awarded_minutes (solo si approved), bonus_activity_id (la actividad cuya cuota recibe el bono; solo si approved, null = todas), review_note, reviewed_by_parent_id, reviewed_at
 - **push_subscriptions**: auth_user_id, endpoint (unique), p256dh_key, auth_key, device_label
 - **native_push_tokens** (hito 2): auth_user_id, token (unique), platform, device_label
 
@@ -175,7 +176,7 @@ Archivo de referencia: `timecraft_hito_1.sql` (validado contra PostgreSQL 16, in
 - "Hoy" y "esta semana" se calculan con `families.timezone` y `week_start_day`. `core` recibe un puerto `Clock`.
 
 ## Reglas por decidir (configuración o default, sin cambiar el esquema)
-- ¿Cuota global o separada por actividad? Se define con `quota_policies.activity_id`.
+- ¿Cuota global o separada por actividad? Se define con `quota_policies.activity_id`. Decidido (noviembre 2026): la general solo existe si la comparten dos o más actividades, y cada bono va a la cuota que elige el padre.
 - ¿El exceso se descuenta del día siguiente? Se define con `carry_over_excess`.
 - ¿Qué día empieza la semana? Se define con `week_start_day`.
 - Valores iniciales de los límites diario y semanal.

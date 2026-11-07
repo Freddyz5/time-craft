@@ -51,6 +51,9 @@ export const errorKinds = {
 	weekly_task_limit_reached: "rule",
 	day_not_allowed: "rule",
 	custom_rule_limit_reached: "rule",
+	general_needs_two_activities: "rule",
+	activities_without_quota: "rule",
+	no_general_quota: "rule",
 } as const satisfies Record<string, ErrorKind>;
 
 export type ErrorCode = keyof typeof errorKinds;

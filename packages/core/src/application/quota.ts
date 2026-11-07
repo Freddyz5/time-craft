@@ -1,6 +1,6 @@
 // Loads what a balance needs and computes it, per policy (bag).
 import { type Balance, balanceWindow, computeBalance } from "../domain/balance";
-import { weeklyBonusMinutes } from "../domain/bonus";
+import { type TaskReport, weeklyBonusMinutes } from "../domain/bonus";
 import { type CalendarSettings, weekPeriod } from "../domain/calendar";
 import type { Family } from "../domain/family";
 import {
@@ -20,8 +20,23 @@ export function calendarOf(family: Family): CalendarSettings {
 	return { timezone: family.timezone, weekStartDay: family.weekStartDay };
 }
 
-// One balance per current policy of the child. Bonuses are not tied to an
-// activity, so each bag gets them (each capped by its own policy).
+// The approved bonuses that add to `policy`'s bag: those for an activity
+// that draws from it, and those approved before the parents could choose a
+// quota, which add to every bag.
+function bonusesForBag(
+	policy: QuotaPolicy,
+	policies: readonly QuotaPolicy[],
+	reports: readonly TaskReport[],
+): TaskReport[] {
+	return reports.filter(
+		(report) =>
+			report.bonusActivityId === null ||
+			policyForActivity(policies, report.bonusActivityId) === policy,
+	);
+}
+
+// One balance per current policy of the child. Each bag gets the bonuses
+// meant for it, capped by its own policy.
 export async function childBalances(
 	tx: Tx,
 	family: Family,
@@ -42,13 +57,15 @@ export async function childBalances(
 		childId,
 		week,
 	);
-	const bonusMinutesEarned = weeklyBonusMinutes(reports, week);
 	return policies.map((policy) => ({
 		policy,
 		balance: computeBalance({
 			policy,
 			sessions: sessionsUnderPolicy(policy, policies, sessions),
-			bonusMinutesEarned,
+			bonusMinutesEarned: weeklyBonusMinutes(
+				bonusesForBag(policy, policies, reports),
+				week,
+			),
 			now: tx.now,
 			calendar,
 		}),

@@ -64,7 +64,8 @@ describe("limits", () => {
 			{ dailyLimitMinutes: 60, validTo: expect.any(String) },
 		]);
 
-		// A limit of its own for TV, then back to the global quota.
+		// A limit of its own for TV. Game is left alone in the general quota,
+		// so it becomes Game's own, with the same limits.
 		await body<object>(
 			await t.request("POST", path, {
 				cookie: parent,
@@ -76,19 +77,61 @@ describe("limits", () => {
 			}),
 			201,
 		);
-		const cleared = await body<{ policy: object | null }>(
-			await t.request("DELETE", `${path}/${t.ids.tvId}`, { cookie: parent }),
-			200,
+		const split = await body<{
+			policies: { activityId: string | null }[];
+			totals: object;
+		}>(await t.request("GET", path, { cookie: child }), 200);
+		expect(split.policies.map((policy) => policy.activityId).sort()).toEqual(
+			[t.ids.gameId, t.ids.tvId].sort(),
 		);
-		expect(cleared.policy).toMatchObject({
-			activityId: t.ids.tvId,
-			validTo: expect.any(String),
+		expect(split.totals).toEqual({
+			dailyMinutesByDay: [120, 120, 120, 120, 120, 120, 120],
+			weeklyMinutes: 520,
 		});
-		const afterClear = await body<{ policies: object[] }>(
-			await t.request("GET", path, { cookie: parent }),
+
+		// There is no general quota to go back to: they are joined in one step.
+		const back = await t.request("DELETE", `${path}/${t.ids.tvId}`, {
+			cookie: parent,
+		});
+		expect(await body<object>(back, 422)).toMatchObject({
+			error: { code: "no_general_quota" },
+		});
+		const joined = await body<{ policies: object[] }>(
+			await t.request("POST", `/api/children/${t.ids.childId}/quota-layout`, {
+				cookie: parent,
+				json: {
+					general: { dailyLimitMinutes: 90, weeklyLimitMinutes: 400 },
+					own: [],
+				},
+			}),
 			200,
 		);
-		expect(afterClear.policies).toMatchObject([{ activityId: null }]);
+		expect(joined.policies).toMatchObject([
+			{ activityId: null, dailyLimitMinutes: 90 },
+		]);
+		const lonely = await t.request(
+			"POST",
+			`/api/children/${t.ids.childId}/quota-layout`,
+			{
+				cookie: parent,
+				json: {
+					general: { dailyLimitMinutes: 90, weeklyLimitMinutes: 400 },
+					own: [
+						{
+							activityId: t.ids.tvId,
+							dailyLimitMinutes: 30,
+							weeklyLimitMinutes: 120,
+						},
+					],
+				},
+			},
+		);
+		expect(await body<object>(lonely, 422)).toMatchObject({
+			error: {
+				code: "general_needs_two_activities",
+				details: { activityIds: [t.ids.gameId] },
+			},
+		});
 
 		const invalid = await t.request("POST", path, {
 			cookie: parent,
@@ -162,22 +205,29 @@ describe("bonus tasks", () => {
 		const reviewed = await body<{ report: object }>(
 			await t.request("POST", `/api/task-reports/${report.id}/review`, {
 				cookie: parent,
-				json: { decision: "approve" },
+				json: { decision: "approve", bonusActivityId: t.ids.tvId },
 			}),
 			200,
 		);
 		expect(reviewed.report).toMatchObject({
 			status: "approved",
 			awardedMinutes: 20,
+			bonusActivityId: t.ids.tvId,
 		});
 
-		const balance = await body<{ balances: { bonusSeconds: number }[] }>(
+		// TV draws from the general quota, so the bonus goes there.
+		const balance = await body<{
+			balances: { bonusSeconds: number }[];
+			totalAvailableSeconds: number;
+		}>(
 			await t.request("GET", `/api/children/${t.ids.childId}/balance`, {
 				cookie: child,
 			}),
 			200,
 		);
 		expect(balance.balances[0]?.bonusSeconds).toBe(20 * 60);
+		// One bag: the total is what it has left today.
+		expect(balance.totalAvailableSeconds).toBe(60 * 60);
 
 		await body<object>(
 			await t.request("POST", `/api/bonus-tasks/${task.id}/deactivate`, {
