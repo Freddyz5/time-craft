@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/Freddyz5/time-craft/compare/api-v1.5.0...api-v1.6.0) (2026-11-08)
+
+### Features
+
+* **api:** quota layout, quota totals and the bonus quota ([bd24c99](https://github.com/Freddyz5/time-craft/commit/bd24c992a9e62ecf0bc23e6e2e5af858342c78de))
+* **core:** share the general quota only between two or more activities ([d5e672f](https://github.com/Freddyz5/time-craft/commit/d5e672f34c0c7a479be71db3437378eebdd7baab))
+* **db:** record the bonus quota and close lonely general quotas ([0e7bd2f](https://github.com/Freddyz5/time-craft/commit/0e7bd2f9dcc3defe46695a692c5dfa63024e9d7f))
+
 ## [1.5.0](https://github.com/Freddyz5/time-craft/compare/api-v1.4.0...api-v1.5.0) (2026-11-06)
 
 ### Features
