@@ -22,6 +22,13 @@ export function secondsText(seconds: number, ceil = false): string {
 	return minutesText(minutes);
 }
 
+// "Juego", "TV y Computadora", "TV, Tablet y Computadora".
+export function namesText(names: readonly string[]): string {
+	return names.length <= 1
+		? (names[0] ?? "")
+		: `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
+}
+
 // A countdown: "4:05", "1:02:09". Past zero it counts up with a sign: "+3:10".
 export function countdown(ms: number): string {
 	const sign = ms < 0 ? "+" : "";

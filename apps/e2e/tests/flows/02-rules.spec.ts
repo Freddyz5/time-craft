@@ -1,6 +1,7 @@
 // Step 2 · Definir reglas (parents): daily and weekly limits, the weekly
-// bonus cap, the warning before the end, and the catalog of bonus tasks.
-// The child sees the new limits right away.
+// bonus cap, the warning before the end, the general quota split between
+// the activities and joined back, and the catalog of bonus tasks. The child
+// sees the new limits right away.
 import { currentPolicy } from "../support/db";
 import { expect, test } from "../support/fixtures";
 import { toast } from "../support/ui";
@@ -13,12 +14,13 @@ test("parents set the limits, the bonus cap and the warning; the child sees them
 }) => {
 	await ana.page.goto("/padres/reglas");
 	const general = ana.page.getByRole("region", { name: "Cuota general" });
+	await general.getByRole("button", { name: "Cambiar" }).click();
 	await general.getByLabel("Límite por día").fill("90");
 	await general.getByLabel("Límite por semana").fill("420");
 	await general.getByLabel("Tope de bonos por semana").fill("40");
 	await general.getByLabel("Minutos de aviso antes del final").fill("3");
-	await general.getByRole("button", { name: "Guardar reglas" }).click();
-	await expect(toast(ana.page, "Reglas guardadas")).toBeVisible();
+	await general.getByRole("button", { name: "Guardar", exact: true }).click();
+	await expect(toast(ana.page, "Cuota general guardada")).toBeVisible();
 
 	expect(await currentPolicy(db, family)).toMatchObject({
 		dailyLimitMinutes: 90,
@@ -43,6 +45,62 @@ test("parents set the limits, the bonus cap and the warning; the child sees them
 			name: "Bonos: ganaste 0 min de 40 min posibles esta semana",
 		}),
 	).toBeVisible();
+});
+
+test("the general quota is split between the activities and joined back", async ({
+	ana,
+	child,
+	db,
+	family,
+}) => {
+	await ana.page.goto("/padres/reglas");
+	const quotas = ana.page.getByRole("region", { name: "Cuotas" });
+	const general = quotas.getByRole("region", { name: "Cuota general" });
+	await general
+		.getByRole("button", { name: "Repartir entre Juego y TV" })
+		.click();
+	await general.getByRole("button", { name: "Repartir", exact: true }).click();
+	await expect(
+		toast(ana.page, "La cuota general quedó repartida"),
+	).toBeVisible();
+
+	// Each activity has its own quota now, and the total is in sight.
+	await expect(quotas.getByRole("region", { name: "Juego" })).toBeVisible();
+	await expect(quotas.getByRole("region", { name: "TV" })).toBeVisible();
+	await expect(general).toHaveCount(0);
+	await expect(quotas.getByText(/sumando todas las cuotas/)).toBeVisible();
+	await expect(currentPolicy(db, family)).rejects.toThrow();
+
+	// The child sees the total and «Pedir tiempo» first, for every activity,
+	// then one battery per activity.
+	await child.page.goto("/nino");
+	await expect(
+		child.page.getByRole("heading", { name: /en total$/ }),
+	).toBeVisible();
+	await expect(
+		child.page.getByRole("link", { name: "Pedir tiempo" }),
+	).toBeVisible();
+	await expect(
+		child.page.getByRole("heading", { name: /^Juego: / }),
+	).toBeVisible();
+	await expect(
+		child.page.getByRole("heading", { name: /^TV: / }),
+	).toBeVisible();
+
+	// Joined back into one general quota, with the same total.
+	const game = quotas.getByRole("region", { name: "Juego" });
+	await game.getByRole("button", { name: "Juntar con TV" }).click();
+	await game.getByRole("button", { name: "Juntar", exact: true }).click();
+	await expect(
+		toast(ana.page, "Juego y TV comparten la cuota general"),
+	).toBeVisible();
+	await expect(
+		quotas.getByRole("region", { name: "Cuota general" }),
+	).toBeVisible();
+	expect(await currentPolicy(db, family)).toMatchObject({
+		dailyLimitMinutes: 120,
+		weeklyLimitMinutes: 600,
+	});
 });
 
 test("parents add a bonus task and the child can do it", async ({

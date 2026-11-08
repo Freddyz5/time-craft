@@ -163,8 +163,9 @@ export interface TaskReportRepository {
 		period: Period,
 	): Promise<TaskReport[]>;
 	insert(report: TaskReport): Promise<void>;
-	// Writes status, awarded_minutes, review_note, reviewed_by_parent_id and
-	// reviewed_at only if the stored status is still 'pending'.
+	// Writes status, awarded_minutes, bonus_activity_id, review_note,
+	// reviewed_by_parent_id and reviewed_at only if the stored status is still
+	// 'pending'.
 	updateIfPending(report: TaskReport): Promise<boolean>;
 }
 

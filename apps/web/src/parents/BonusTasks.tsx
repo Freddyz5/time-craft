@@ -324,9 +324,9 @@ export function BonusTasks() {
 	const all = tasks.data?.tasks ?? [];
 	const active = all.filter((task) => task.isActive);
 	const inactive = all.filter((task) => !task.isActive);
-	const cap = balance.data?.balances.find(
-		(b) => b.activityId === null,
-	)?.bonusCapSeconds;
+	const bags = balance.data?.balances ?? [];
+	// With one quota, its cap; with several, each has its own.
+	const cap = bags.length === 1 ? bags[0]?.bonusCapSeconds : undefined;
 
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-5">
@@ -339,6 +339,8 @@ export function BonusTasks() {
 						Lo que {child?.name ?? "el niño"} puede hacer para ganar minutos.
 						{cap !== undefined &&
 							` Suman a la semana hasta ${secondsText(cap)}, el tope de bonos.`}
+						{bags.length > 1 &&
+							" Al aprobar una, eliges a qué cuota suma, hasta el tope de bonos de cada una."}
 					</p>
 				</div>
 				{!creating && (

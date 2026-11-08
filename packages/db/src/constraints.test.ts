@@ -289,6 +289,27 @@ describe("task_reports", () => {
 
 		await db.insert(taskReports).values(report);
 	});
+
+	test("only an approved report says which quota its bonus went to", async () => {
+		const f = await createFamily(db);
+		await expectViolation(
+			db.insert(taskReports).values({
+				childId: f.child.id,
+				bonusTaskId: f.homework.id,
+				bonusActivityId: f.tv.id,
+			}),
+			"chk_reports_bonus_activity",
+		);
+		await db.insert(taskReports).values({
+			childId: f.child.id,
+			bonusTaskId: f.homework.id,
+			status: "approved",
+			awardedMinutes: 15,
+			bonusActivityId: f.tv.id,
+			reviewedByParentId: f.dad.id,
+			reviewedAt: new Date(),
+		});
+	});
 });
 
 describe("quota_policies", () => {

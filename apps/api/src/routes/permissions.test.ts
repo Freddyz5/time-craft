@@ -33,6 +33,25 @@ describe("the child", () => {
 				{ dailyLimitMinutes: 600, weeklyLimitMinutes: 1000 },
 			],
 			["DELETE", `/api/children/${childId}/policies/${t.ids.tvId}`],
+			[
+				"POST",
+				`/api/children/${childId}/quota-layout`,
+				{
+					general: null,
+					own: [
+						{
+							activityId: gameId,
+							dailyLimitMinutes: 600,
+							weeklyLimitMinutes: 1000,
+						},
+						{
+							activityId: t.ids.tvId,
+							dailyLimitMinutes: 600,
+							weeklyLimitMinutes: 1000,
+						},
+					],
+				},
+			],
 			["POST", "/api/bonus-tasks", { name: "Nada", rewardMinutes: 60 }],
 			["POST", "/api/children", { name: "Yo", username: "yo2", pin: "123456" }],
 			["PUT", `/api/children/${childId}/pin`, { pin: "111111" }],

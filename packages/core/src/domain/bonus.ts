@@ -26,6 +26,10 @@ export interface TaskReport {
 	note: string | null;
 	status: TaskReportStatus;
 	awardedMinutes: number | null;
+	// The activity whose quota the bonus adds to (its own, or the general one
+	// it draws from), chosen by the parent who approves it. null: approved
+	// before the parents could choose, so it adds to every quota.
+	bonusActivityId: string | null;
 	reviewNote: string | null;
 	reportedAt: Date;
 	reviewedByParentId: string | null;
@@ -77,6 +81,7 @@ export function markReportApproved(
 		at: Date;
 		parentId: string;
 		awardedMinutes: number;
+		bonusActivityId: string | null;
 		note: string | null;
 	},
 ): TaskReport {
@@ -85,6 +90,7 @@ export function markReportApproved(
 		...report,
 		status: "approved",
 		awardedMinutes: review.awardedMinutes,
+		bonusActivityId: review.bonusActivityId,
 		reviewNote: review.note,
 		reviewedByParentId: review.parentId,
 		reviewedAt: review.at,

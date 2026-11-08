@@ -2,7 +2,7 @@
 // and available to the api's tests as @time-craft/core/testing.
 import { type Core, type CoreDeps, createCore } from "../application";
 import type { ChildActor, ParentActor } from "../domain/actor";
-import type { WeekDay } from "../domain/family";
+import type { Activity, WeekDay } from "../domain/family";
 import type { QuotaPolicy } from "../domain/policy";
 import { InMemoryDatabase } from "./database";
 import {
@@ -194,4 +194,23 @@ export function seedHousehold(
 		tvId,
 		auth,
 	};
+}
+
+// Another activity of the household's family: Computadora, unless told
+// otherwise. Returns its id.
+export function addActivity(
+	kit: TestKit,
+	household: Household,
+	fields: Partial<Pick<Activity, "code" | "name" | "isActive">> = {},
+): string {
+	const code = fields.code ?? "pc";
+	const id = `${household.familyId}-activity-${code}`;
+	kit.db.set("activities", {
+		id,
+		familyId: household.familyId,
+		code,
+		name: fields.name ?? "Computadora",
+		isActive: fields.isActive ?? true,
+	});
+	return id;
 }

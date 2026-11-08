@@ -144,10 +144,15 @@ export function Notifications() {
 	const { childId } = useChild();
 	const policies = usePolicies(childId);
 	const { state, busy, change } = usePushSwitch();
-	const global =
-		policies.data?.policies.find((p) => p.activityId === null) ??
-		policies.data?.policies[0];
-	const warning = global?.warningMinutes ?? 5;
+	// Each quota has its own warning: one number only if they all agree.
+	const warnings = [
+		...new Set(
+			(policies.data?.policies ?? [])
+				.map((policy) => policy.warningMinutes)
+				.filter((minutes) => minutes > 0),
+		),
+	];
+	const warning = policies.data === undefined ? 5 : (warnings[0] ?? 0);
 
 	return (
 		<div className="mx-auto flex max-w-xl flex-col gap-5">
@@ -168,7 +173,11 @@ export function Notifications() {
 				<ul className="flex flex-col gap-3">
 					{warning > 0 && (
 						<What Icon={Clock}>
-							{warning === 1 ? "te quede 1 min" : `te queden ${warning} min`}
+							{warnings.length > 1
+								? "te queden pocos minutos"
+								: warning === 1
+									? "te quede 1 min"
+									: `te queden ${warning} min`}
 						</What>
 					)}
 					<What Icon={TimerOff}>se acabe tu tiempo</What>

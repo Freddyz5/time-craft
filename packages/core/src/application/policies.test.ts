@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import {
+	addActivity,
 	createTestKit,
 	type Household,
 	seedHousehold,
@@ -11,6 +12,27 @@ const NOW = "2026-10-21T15:00:00-05:00";
 
 let kit: TestKit;
 let h: Household;
+
+const current = () =>
+	kit.core.listCurrentPolicies(h.mom, { childId: h.childId });
+
+// [activity, daily limit] of each current policy; "general" for the general
+// quota.
+async function layout() {
+	return (await current())
+		.map((policy) => [policy.activityId ?? "general", policy.dailyLimitMinutes])
+		.sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+}
+
+async function availableByBag() {
+	const view = await kit.core.getChildBalance(h.mom, { childId: h.childId });
+	return Object.fromEntries(
+		view.balances.map((balance) => [
+			balance.activityId ?? "general",
+			balance.availableSeconds / 60,
+		]),
+	);
+}
 
 beforeEach(() => {
 	kit = createTestKit(NOW);
@@ -79,6 +101,9 @@ describe("setPolicy", () => {
 	});
 
 	test("a policy per activity is a separate bag", async () => {
+		// With a third activity, Juego and Computadora keep sharing the general
+		// quota.
+		addActivity(kit, h);
 		await kit.core.setPolicy(h.mom, {
 			childId: h.childId,
 			activityId: h.tvId,
@@ -97,15 +122,8 @@ describe("setPolicy", () => {
 			}),
 			childId: h.childId,
 		});
-		const view = await kit.core.getChildBalance(h.mom, { childId: h.childId });
-		const byBag = Object.fromEntries(
-			view.balances.map((balance) => [
-				balance.activityId ?? "global",
-				balance.availableSeconds / 60,
-			]),
-		);
-		// TV: 30 − 25. Game draws from the global bag: 60 − 40.
-		expect(byBag).toEqual({ [h.tvId]: 5, global: 20 });
+		// TV: 30 − 25. Game draws from the general bag: 60 − 40.
+		expect(await availableByBag()).toEqual({ [h.tvId]: 5, general: 20 });
 
 		await expect(
 			kit.core.startDirectSession(h.mom, {
@@ -118,10 +136,364 @@ describe("setPolicy", () => {
 			details: { availableSeconds: 300 },
 		});
 	});
+
+	test("left with one activity, the general quota becomes its own", async () => {
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		const policies = await current();
+		expect(await layout()).toEqual([
+			[h.gameId, 60],
+			[h.tvId, 30],
+		]);
+		// Game keeps every limit the general quota had.
+		expect(
+			policies.find((policy) => policy.activityId === h.gameId),
+		).toMatchObject({
+			weeklyLimitMinutes: 300,
+			weeklyBonusCapMinutes: 30,
+			warningMinutes: 10,
+			validFrom: new Date("2026-10-21T20:00:00.000Z"),
+			createdByParentId: h.mom.parentId,
+		});
+		// The general quota stays in the history.
+		const general = kit.db.get("policies", "policy-global");
+		expect(general.validTo?.toISOString()).toBe("2026-10-21T20:00:00.000Z");
+
+		kit.db.set("sessions", {
+			...finishedSession("2026-10-21T11:00:00-05:00", 40, {
+				activityId: h.gameId,
+			}),
+			childId: h.childId,
+		});
+		expect(await availableByBag()).toEqual({ [h.gameId]: 20, [h.tvId]: 30 });
+	});
+
+	test("the general quota needs two activities drawing from it", async () => {
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		await expect(
+			kit.core.setPolicy(h.mom, {
+				childId: h.childId,
+				dailyLimitMinutes: 60,
+				weeklyLimitMinutes: 300,
+			}),
+		).rejects.toMatchObject({
+			code: "general_needs_two_activities",
+			details: { activityIds: [] },
+		});
+
+		// An inactive activity does not count.
+		addActivity(kit, h, { isActive: false });
+		await expect(
+			kit.core.setPolicy(h.mom, {
+				childId: h.childId,
+				dailyLimitMinutes: 60,
+				weeklyLimitMinutes: 300,
+			}),
+		).rejects.toMatchObject({ code: "general_needs_two_activities" });
+	});
+
+	test("a general quota from before the rule, left with no activity, closes", async () => {
+		// TV already had its own quota, so only Game drew from the general one.
+		kit.db.set("policies", {
+			...kit.db.get("policies", "policy-global"),
+			id: "policy-tv",
+			activityId: h.tvId,
+		});
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.gameId,
+			dailyLimitMinutes: 45,
+			weeklyLimitMinutes: 200,
+		});
+		expect(await layout()).toEqual([
+			[h.gameId, 45],
+			[h.tvId, 60],
+		]);
+	});
+});
+
+describe("setQuotaLayout", () => {
+	test("splits the general quota between two activities in one step", async () => {
+		const policies = await kit.core.setQuotaLayout(h.mom, {
+			childId: h.childId,
+			general: null,
+			own: [
+				// More than the general quota had: the total can grow.
+				{
+					activityId: h.gameId,
+					dailyLimitMinutes: 45,
+					weeklyLimitMinutes: 200,
+				},
+				{
+					activityId: h.tvId,
+					dailyLimitMinutes: 45,
+					weeklyLimitMinutes: 200,
+					warningMinutes: 3,
+				},
+			],
+		});
+		expect(policies).toHaveLength(2);
+		expect(await layout()).toEqual([
+			[h.gameId, 45],
+			[h.tvId, 45],
+		]);
+		// What is not sent comes from the general quota.
+		expect(
+			policies.find((policy) => policy.activityId === h.gameId),
+		).toMatchObject({ weeklyBonusCapMinutes: 30, warningMinutes: 10 });
+		expect(
+			policies.find((policy) => policy.activityId === h.tvId),
+		).toMatchObject({ weeklyBonusCapMinutes: 30, warningMinutes: 3 });
+		expect(kit.db.get("policies", "policy-global").validTo).not.toBeNull();
+	});
+
+	test("joins activities back into a general quota", async () => {
+		await kit.core.setQuotaLayout(h.mom, {
+			childId: h.childId,
+			general: null,
+			own: [
+				{
+					activityId: h.gameId,
+					dailyLimitMinutes: 30,
+					weeklyLimitMinutes: 150,
+				},
+				{ activityId: h.tvId, dailyLimitMinutes: 30, weeklyLimitMinutes: 150 },
+			],
+		});
+		kit.clock.advanceMinutes(5);
+		await kit.core.setQuotaLayout(h.dad, {
+			childId: h.childId,
+			general: { dailyLimitMinutes: 90, weeklyLimitMinutes: 400 },
+			own: [],
+		});
+		expect(await layout()).toEqual([["general", 90]]);
+		expect((await current())[0]).toMatchObject({
+			// From one of the quotas it joins.
+			weeklyBonusCapMinutes: 30,
+			createdByParentId: h.dad.parentId,
+		});
+		expect(Object.keys(await availableByBag())).toEqual(["general"]);
+	});
+
+	test("a third activity keeps sharing the general quota", async () => {
+		addActivity(kit, h);
+		await kit.core.setQuotaLayout(h.mom, {
+			childId: h.childId,
+			general: { dailyLimitMinutes: 60, weeklyLimitMinutes: 300 },
+			own: [
+				{ activityId: h.tvId, dailyLimitMinutes: 30, weeklyLimitMinutes: 120 },
+			],
+		});
+		expect(await layout()).toEqual([
+			[h.tvId, 30],
+			["general", 60],
+		]);
+		const view = await kit.core.getChildBalance(h.mom, { childId: h.childId });
+		expect(view.balances).toHaveLength(2);
+	});
+
+	test("only the quotas that change get a new policy", async () => {
+		const split = {
+			childId: h.childId,
+			general: null,
+			own: [
+				{
+					activityId: h.gameId,
+					dailyLimitMinutes: 30,
+					weeklyLimitMinutes: 150,
+				},
+				{ activityId: h.tvId, dailyLimitMinutes: 30, weeklyLimitMinutes: 150 },
+			],
+		};
+		await kit.core.setQuotaLayout(h.mom, split);
+		expect(kit.db.all("policies")).toHaveLength(3);
+		await kit.core.setQuotaLayout(h.mom, split);
+		expect(kit.db.all("policies")).toHaveLength(3);
+		await kit.core.setQuotaLayout(h.mom, {
+			...split,
+			own: [
+				{
+					activityId: h.gameId,
+					dailyLimitMinutes: 30,
+					weeklyLimitMinutes: 150,
+				},
+				{ activityId: h.tvId, dailyLimitMinutes: 40, weeklyLimitMinutes: 150 },
+			],
+		});
+		expect(kit.db.all("policies")).toHaveLength(4);
+	});
+
+	test("the general quota needs two activities; nothing is saved otherwise", async () => {
+		await expect(
+			kit.core.setQuotaLayout(h.mom, {
+				childId: h.childId,
+				general: { dailyLimitMinutes: 60, weeklyLimitMinutes: 300 },
+				own: [
+					{
+						activityId: h.tvId,
+						dailyLimitMinutes: 30,
+						weeklyLimitMinutes: 120,
+					},
+				],
+			}),
+		).rejects.toMatchObject({
+			code: "general_needs_two_activities",
+			details: { activityIds: [h.gameId] },
+		});
+		expect(await layout()).toEqual([["general", 60]]);
+	});
+
+	test("every active activity needs a quota", async () => {
+		await expect(
+			kit.core.setQuotaLayout(h.mom, {
+				childId: h.childId,
+				general: null,
+				own: [
+					{
+						activityId: h.tvId,
+						dailyLimitMinutes: 30,
+						weeklyLimitMinutes: 120,
+					},
+				],
+			}),
+		).rejects.toMatchObject({
+			code: "activities_without_quota",
+			details: { activityIds: [h.gameId] },
+		});
+	});
+
+	test("checks each activity and the limits before saving anything", async () => {
+		const own = (activityId: string) => ({
+			activityId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		const other = seedHousehold(kit, { prefix: "other-" });
+		const inactive = addActivity(kit, h, { isActive: false });
+		const cases: [Parameters<typeof kit.core.setQuotaLayout>[1], string][] = [
+			[
+				{
+					childId: h.childId,
+					general: null,
+					own: [own(h.gameId), own(h.gameId)],
+				},
+				"invalid_input",
+			],
+			[
+				{
+					childId: h.childId,
+					general: null,
+					own: [own(h.gameId), own(h.tvId), own(other.tvId)],
+				},
+				"activity_not_found",
+			],
+			[
+				{
+					childId: h.childId,
+					general: null,
+					own: [own(h.gameId), own(h.tvId), own(inactive)],
+				},
+				"activity_inactive",
+			],
+			[
+				{
+					childId: h.childId,
+					general: null,
+					own: [
+						own(h.gameId),
+						{
+							activityId: h.tvId,
+							dailyLimitMinutes: 90,
+							weeklyLimitMinutes: 60,
+						},
+					],
+				},
+				"invalid_input",
+			],
+		];
+		for (const [input, code] of cases) {
+			await expect(kit.core.setQuotaLayout(h.mom, input)).rejects.toMatchObject(
+				{
+					code,
+				},
+			);
+		}
+		expect(await layout()).toEqual([["general", 60]]);
+	});
+
+	test("only parents", async () => {
+		await expect(
+			kit.core.setQuotaLayout(h.child, {
+				childId: h.childId,
+				general: null,
+				own: [
+					{
+						activityId: h.gameId,
+						dailyLimitMinutes: 600,
+						weeklyLimitMinutes: 3000,
+					},
+					{
+						activityId: h.tvId,
+						dailyLimitMinutes: 600,
+						weeklyLimitMinutes: 3000,
+					},
+				],
+			}),
+		).rejects.toMatchObject({ code: "forbidden" });
+	});
+});
+
+describe("listQuotas", () => {
+	test("adds up every quota, day by day and for the week", async () => {
+		addActivity(kit, h);
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 60,
+			allowedDays: [0, 6],
+		});
+		for (const actor of [h.dad, h.child]) {
+			const { policies, totals } = await kit.core.listQuotas(actor, {
+				childId: h.childId,
+			});
+			expect(policies).toHaveLength(2);
+			expect(totals).toEqual({
+				dailyMinutesByDay: [90, 60, 60, 60, 60, 60, 90],
+				weeklyMinutes: 360,
+			});
+		}
+	});
+
+	test("an inactive activity's own quota does not count", async () => {
+		const pcId = addActivity(kit, h);
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: pcId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 60,
+		});
+		kit.db.set("activities", {
+			...kit.db.get("activities", pcId),
+			isActive: false,
+		});
+		const { totals } = await kit.core.listQuotas(h.mom, { childId: h.childId });
+		expect(totals.weeklyMinutes).toBe(300);
+	});
 });
 
 describe("listCurrentPolicies", () => {
 	test("parents and the child see the limits in force", async () => {
+		addActivity(kit, h);
 		await kit.core.setPolicy(h.mom, {
 			childId: h.childId,
 			activityId: h.tvId,
@@ -154,6 +526,7 @@ describe("listCurrentPolicies", () => {
 
 describe("listPolicyHistory", () => {
 	test("keeps the closed policies, newest first, for parents and the child", async () => {
+		addActivity(kit, h);
 		kit.clock.set("2026-10-21T16:00:00-05:00");
 		await kit.core.setPolicy(h.mom, {
 			childId: h.childId,
@@ -194,7 +567,8 @@ describe("listPolicyHistory", () => {
 });
 
 describe("clearActivityPolicy", () => {
-	test("the activity goes back to the global quota; the history keeps it", async () => {
+	test("the activity goes back to the general quota; the history keeps it", async () => {
+		addActivity(kit, h);
 		await kit.core.setPolicy(h.mom, {
 			childId: h.childId,
 			activityId: h.tvId,
@@ -228,6 +602,28 @@ describe("clearActivityPolicy", () => {
 		).toBeNull();
 	});
 
+	test("with no general quota to go back to, it says so", async () => {
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		await expect(
+			kit.core.clearActivityPolicy(h.mom, {
+				childId: h.childId,
+				activityId: h.tvId,
+			}),
+		).rejects.toMatchObject({
+			code: "no_general_quota",
+			details: { activityId: h.tvId },
+		});
+		expect(await layout()).toEqual([
+			[h.gameId, 60],
+			[h.tvId, 30],
+		]);
+	});
+
 	test("only parents, and only for an activity of the family", async () => {
 		await expect(
 			kit.core.clearActivityPolicy(h.child, {
@@ -242,5 +638,33 @@ describe("clearActivityPolicy", () => {
 				activityId: other.tvId,
 			}),
 		).rejects.toMatchObject({ code: "activity_not_found" });
+	});
+});
+
+describe("getChildBalance: total", () => {
+	test("adds up what every bag has left today", async () => {
+		await kit.core.setQuotaLayout(h.mom, {
+			childId: h.childId,
+			general: null,
+			own: [
+				{
+					activityId: h.gameId,
+					dailyLimitMinutes: 60,
+					weeklyLimitMinutes: 300,
+				},
+				{ activityId: h.tvId, dailyLimitMinutes: 30, weeklyLimitMinutes: 120 },
+			],
+		});
+		kit.db.set("sessions", {
+			...finishedSession("2026-10-21T11:00:00-05:00", 40, {
+				activityId: h.gameId,
+			}),
+			childId: h.childId,
+		});
+		const view = await kit.core.getChildBalance(h.child, {
+			childId: h.childId,
+		});
+		// Game: 60 − 40; TV: 30.
+		expect(view.totalAvailableSeconds / 60).toBe(50);
 	});
 });

@@ -9,7 +9,9 @@ import {
 	type TaskReport,
 } from "../domain/bonus";
 import { weekPeriod } from "../domain/calendar";
-import { messages } from "../domain/push";
+import type { Activity } from "../domain/family";
+import { generalMembers } from "../domain/policy";
+import { messages, namesText } from "../domain/push";
 import {
 	optionalText,
 	positiveInteger,
@@ -18,6 +20,7 @@ import {
 } from "../domain/values";
 import { DomainError } from "../errors";
 import {
+	loadActivity,
 	loadBonusTask,
 	loadChild,
 	loadChildById,
@@ -186,6 +189,7 @@ export async function reportTask(
 			note,
 			status: "pending",
 			awardedMinutes: null,
+			bonusActivityId: null,
 			reviewNote: null,
 			reportedAt: tx.now,
 			reviewedByParentId: null,
@@ -211,6 +215,10 @@ export type ReviewTaskInput =
 			decision: "approve";
 			// Defaults to the task's reward.
 			awardedMinutes?: number;
+			// The activity whose quota the bonus adds to (its own, or the
+			// general one it draws from). Omitted: every quota, as before the
+			// parents could choose.
+			bonusActivityId?: string;
 			note?: string;
 	  }
 	| { reportId: string; decision: "reject"; note?: string };
@@ -232,6 +240,25 @@ async function loadReportForParent(
 	return report;
 }
 
+// How the child calls the quota a bonus went to: its activity, or the
+// activities that share the general quota. null: the bonus goes to every
+// quota.
+async function bonusQuotaName(
+	tx: Tx,
+	childId: string,
+	activity: Activity | null,
+): Promise<string | null> {
+	if (activity === null) {
+		return null;
+	}
+	const policies = await tx.repos.policies.listCurrent(childId);
+	if (policies.some((policy) => policy.activityId === activity.id)) {
+		return activity.name;
+	}
+	const activities = await tx.repos.activities.listByFamily(activity.familyId);
+	return namesText(generalMembers(policies, activities).map((a) => a.name));
+}
+
 // A parent approves (with the minutes earned) or rejects. The weekly cap is
 // applied by the balance, not here. The child gets a push.
 export async function reviewTask(
@@ -245,6 +272,12 @@ export async function reviewTask(
 		const report = await loadReportForParent(tx, actor, input.reportId);
 		const task = await loadBonusTask(tx, actor, report.bonusTaskId);
 		const review = { at: tx.now, parentId: actor.parentId, note };
+		const bonusActivity =
+			input.decision === "approve" && input.bonusActivityId !== undefined
+				? await loadActivity(tx, actor.familyId, input.bonusActivityId, {
+						requireActive: true,
+					})
+				: null;
 		const reviewed =
 			input.decision === "approve"
 				? markReportApproved(report, {
@@ -253,6 +286,7 @@ export async function reviewTask(
 							input.awardedMinutes ?? task.rewardMinutes,
 							"awardedMinutes",
 						),
+						bonusActivityId: bonusActivity?.id ?? null,
 					})
 				: markReportRejected(report, review);
 		if (!(await tx.repos.taskReports.updateIfPending(reviewed))) {
@@ -270,6 +304,7 @@ export async function reviewTask(
 						reportId: report.id,
 						taskName: task.name,
 						minutes: reviewed.awardedMinutes ?? 0,
+						quotaName: await bonusQuotaName(tx, report.childId, bonusActivity),
 					})
 				: messages.reportRejected({
 						reportId: report.id,

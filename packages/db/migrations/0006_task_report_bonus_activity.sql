@@ -1,0 +1,3 @@
+ALTER TABLE "task_reports" ADD COLUMN "bonus_activity_id" uuid;--> statement-breakpoint
+ALTER TABLE "task_reports" ADD CONSTRAINT "fk_reports_bonus_activity" FOREIGN KEY ("bonus_activity_id") REFERENCES "public"."activities"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_reports" ADD CONSTRAINT "chk_reports_bonus_activity" CHECK ("task_reports"."status" = 'approved' OR "task_reports"."bonus_activity_id" IS NULL);

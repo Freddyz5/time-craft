@@ -13,17 +13,23 @@ import {
 	weekWallBricks,
 } from "../../components/bricks";
 import { Callout } from "../../components/ui";
-import { activityById, activityLook } from "../../lib/activity";
+import {
+	activityById,
+	activityLook,
+	bagMembers,
+	bagOrder,
+} from "../../lib/activity";
 import { useServerNow } from "../../lib/clock";
 import {
 	dayText,
 	minutesText,
+	namesText,
 	rechargeText,
 	secondsText,
 	weekDaysText,
 } from "../../lib/format";
 import { timing } from "../../lib/timer";
-import type { Activity, Balance, Session } from "../../lib/types";
+import type { Balance, Session } from "../../lib/types";
 import { useParents } from "../context";
 
 const DAY_BRICKS = 12;
@@ -280,50 +286,53 @@ function BagBlock({
 	);
 }
 
-// The activities that draw from a bag: its own, or every one without its own
-// for the general quota.
-function bagActivities(
-	balance: Balance,
-	balances: readonly Balance[],
-	activities: readonly Activity[],
-): Activity[] {
-	if (balance.activityId !== null) {
-		return activities.filter((a) => a.id === balance.activityId);
-	}
-	return activities.filter(
-		(a) => a.isActive && !balances.some((b) => b.activityId === a.id),
-	);
-}
-
 export function BalanceCard({
 	balances,
+	totalSeconds,
 	live,
 }: {
 	balances: readonly Balance[];
+	// What every bag has left today, together (undefined from an older api).
+	totalSeconds: number | undefined;
 	live: Session | null;
 }) {
 	const { activities } = useParents();
 	const several = balances.length > 1;
 	// The general quota first, then the activities with their own.
-	const ordered = [...balances].sort(
-		(a, b) => Number(a.activityId !== null) - Number(b.activityId !== null),
-	);
+	const ordered = bagOrder(balances, activities);
 	return (
 		<Callout
 			className="flex flex-col gap-5 p-4 sm:p-5"
 			aria-labelledby="balance-title"
 		>
 			{several && (
-				<h2
-					id="balance-title"
-					className="text-[1.375rem] leading-tight font-bold"
-				>
-					Saldo
-				</h2>
+				<div className="flex flex-col gap-1">
+					<h2
+						id="balance-title"
+						className="text-[1.375rem] leading-tight font-bold"
+					>
+						Saldo
+					</h2>
+					{totalSeconds !== undefined && (
+						<p className="text-ink-soft">
+							{totalSeconds === 0 ? (
+								"Hoy ya no le queda tiempo en ninguna cuota."
+							) : (
+								<>
+									En total le quedan{" "}
+									<strong className="tabular font-bold text-ink">
+										{secondsText(totalSeconds)}
+									</strong>{" "}
+									hoy, sumando todas sus cuotas.
+								</>
+							)}
+						</p>
+					)}
+				</div>
 			)}
 			{ordered.map((balance, index) => {
-				const members = bagActivities(balance, balances, activities);
-				const names = members.map((a) => a.name).join(" y ");
+				const members = bagMembers(balance, balances, activities);
+				const names = namesText(members.map((a) => a.name));
 				const label = !several
 					? null
 					: {
@@ -331,7 +340,7 @@ export function BalanceCard({
 							scope:
 								balance.activityId === null
 									? "Cuota general, compartida."
-									: "Límite propio.",
+									: "Cuota propia.",
 						};
 				const liveHere =
 					live !== null && members.some((a) => a.id === live.activityId)

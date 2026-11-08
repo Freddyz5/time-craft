@@ -12,9 +12,15 @@ import {
 	LoadingBricks,
 	Notice,
 } from "../components/ui";
+import { bagMembers, bagOrder, bonusQuotaName } from "../lib/activity";
 import { api, call } from "../lib/api";
 import { serverNow } from "../lib/clock";
-import { minutesText, relativeDayText, timeText } from "../lib/format";
+import {
+	minutesText,
+	namesText,
+	relativeDayText,
+	timeText,
+} from "../lib/format";
 import {
 	useBalance,
 	useBonusTasks,
@@ -161,9 +167,12 @@ function TaskCard({
 function ReportItem({
 	report,
 	taskName,
+	quotaName,
 }: {
 	report: TaskReport;
 	taskName: string;
+	// With several quotas, the one the bonus went to.
+	quotaName: string;
 }) {
 	const { parentName, timeZone } = useChild();
 	const who = parentName(report.reviewedByParentId);
@@ -172,7 +181,7 @@ function ReportItem({
 		report.status === "approved"
 			? {
 					Icon: Check,
-					text: `${who} la aprobó: +${minutesText(report.awardedMinutes ?? 0)} de bono`,
+					text: `${who} la aprobó: +${minutesText(report.awardedMinutes ?? 0)} de bono${quotaName ? ` para ${quotaName}` : ""}`,
 					className: "text-bonus-ink font-medium",
 				}
 			: report.status === "rejected"
@@ -216,7 +225,7 @@ function ReportItem({
 }
 
 export function Tasks() {
-	const { childId } = useChild();
+	const { childId, activities } = useChild();
 	const tasks = useBonusTasks();
 	const pending = usePendingReports();
 	const balance = useBalance(childId);
@@ -258,9 +267,21 @@ export function Tasks() {
 	}
 
 	const reports = history.data?.taskReports ?? [];
-	const bag =
-		balance.data?.balances.find((b) => b.activityId === null) ??
-		balance.data?.balances[0];
+	// A bonus meter per quota that takes bonuses; with several, each says
+	// whose it is.
+	const balances = balance.data?.balances ?? [];
+	const bags = bagOrder(balances, activities)
+		.filter((bag) => bag.bonusCapSeconds > 0)
+		.map((bag) => ({
+			bag,
+			name:
+				balances.length > 1
+					? namesText(bagMembers(bag, balances, activities).map((a) => a.name))
+					: undefined,
+		}));
+	const allFull = bags.every(
+		({ bag }) => bag.bonusEarnedSeconds >= bag.bonusCapSeconds,
+	);
 	const taskName = (id: string) =>
 		tasks.data.tasks.find((t) => t.id === id)?.name ?? "Una tarea";
 
@@ -268,15 +289,19 @@ export function Tasks() {
 		<div className="mx-auto flex max-w-xl flex-col gap-5">
 			{header}
 
-			{bag !== undefined && bag.bonusCapSeconds > 0 && (
-				<Callout className="p-4 sm:p-5">
-					<BonusMeter
-						earnedSeconds={bag.bonusEarnedSeconds}
-						capSeconds={bag.bonusCapSeconds}
-						heading="h2"
-					/>
-					{bag.bonusEarnedSeconds >= bag.bonusCapSeconds && (
-						<p className="mt-2 text-[0.9375rem] text-ink-soft">
+			{bags.length > 0 && (
+				<Callout className="flex flex-col gap-5 p-4 sm:p-5">
+					{bags.map(({ bag, name }) => (
+						<BonusMeter
+							key={bag.policyId}
+							earnedSeconds={bag.bonusEarnedSeconds}
+							capSeconds={bag.bonusCapSeconds}
+							heading="h2"
+							quotaName={name || undefined}
+						/>
+					))}
+					{allFull && (
+						<p className="-mt-3 text-[0.9375rem] text-ink-soft">
 							Puedes seguir haciendo tareas: mamá o papá las verán igual.
 						</p>
 					)}
@@ -336,6 +361,11 @@ export function Tasks() {
 								key={report.id}
 								report={report}
 								taskName={taskName(report.bonusTaskId)}
+								quotaName={bonusQuotaName(
+									report.bonusActivityId ?? null,
+									balances,
+									activities,
+								)}
 							/>
 						))}
 					</ul>

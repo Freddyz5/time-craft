@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { BonusTask } from "../domain/bonus";
 import {
+	addActivity,
 	createTestKit,
 	type Household,
 	seedHousehold,
@@ -36,6 +37,18 @@ async function weekly() {
 		bonus: (balance?.bonusSeconds ?? 0) / 60,
 		weeklyRemaining: (balance?.weeklyRemainingSeconds ?? 0) / 60,
 	};
+}
+
+// The bonus each bag gets this week, by activity ("general" for the general
+// quota).
+async function bonusByBag() {
+	const view = await kit.core.getChildBalance(h.mom, { childId: h.childId });
+	return Object.fromEntries(
+		view.balances.map((balance) => [
+			balance.activityId ?? "general",
+			balance.bonusSeconds / 60,
+		]),
+	);
 }
 
 describe("catalog", () => {
@@ -195,6 +208,91 @@ describe("reviewTask", () => {
 		});
 		// Week: 120 + 20 − 120 = 20; day: 60.
 		expect((view.balances[0]?.availableSeconds ?? 0) / 60).toBe(20);
+	});
+
+	test("the parent picks the quota the bonus adds to", async () => {
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+			weeklyBonusCapMinutes: 15,
+		});
+		const pending = await report();
+		kit.notifier.clear();
+		const approved = await kit.core.reviewTask(h.dad, {
+			reportId: pending.id,
+			decision: "approve",
+			bonusActivityId: h.tvId,
+		});
+		expect(approved.bonusActivityId).toBe(h.tvId);
+		expect(kit.notifier.sent[0]?.message.body).toBe(
+			"Ganaste 20 min para TV por «Deberes».",
+		);
+		expect(await bonusByBag()).toEqual({ [h.gameId]: 0, [h.tvId]: 15 });
+	});
+
+	test("a bonus for an activity of the general quota goes to the general one", async () => {
+		addActivity(kit, h);
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		const pending = await report();
+		kit.notifier.clear();
+		await kit.core.reviewTask(h.dad, {
+			reportId: pending.id,
+			decision: "approve",
+			bonusActivityId: h.gameId,
+		});
+		expect(kit.notifier.sent[0]?.message.body).toBe(
+			"Ganaste 20 min para Computadora y Juego por «Deberes».",
+		);
+		expect(await bonusByBag()).toEqual({ general: 20, [h.tvId]: 0 });
+
+		// It follows its activity if the quotas are split later.
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.gameId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		expect(await bonusByBag()).toMatchObject({ [h.gameId]: 20, [h.tvId]: 0 });
+	});
+
+	test("a bonus approved without a quota adds to every one, as before", async () => {
+		await kit.core.setPolicy(h.mom, {
+			childId: h.childId,
+			activityId: h.tvId,
+			dailyLimitMinutes: 30,
+			weeklyLimitMinutes: 120,
+		});
+		const pending = await report();
+		await kit.core.reviewTask(h.dad, {
+			reportId: pending.id,
+			decision: "approve",
+		});
+		expect(await bonusByBag()).toEqual({ [h.gameId]: 20, [h.tvId]: 20 });
+	});
+
+	test("the bonus goes to an active activity of the family", async () => {
+		const other = seedHousehold(kit, { prefix: "other-" });
+		const inactive = addActivity(kit, h, { isActive: false });
+		const pending = await report();
+		for (const [bonusActivityId, code] of [
+			[other.tvId, "activity_not_found"],
+			[inactive, "activity_inactive"],
+		] as const) {
+			await expect(
+				kit.core.reviewTask(h.dad, {
+					reportId: pending.id,
+					decision: "approve",
+					bonusActivityId,
+				}),
+			).rejects.toMatchObject({ code });
+		}
 	});
 
 	test("rejecting tells the child, with the note", async () => {
