@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.8.0](https://github.com/Freddyz5/time-craft/compare/web-v1.7.0...web-v1.8.0) (2026-11-08)
+
+### Features
+
+* **web:** quotas with their total, split and join, and the bonus quota ([748c821](https://github.com/Freddyz5/time-craft/commit/748c821bca965ad56942041933b6109da7835d4b))
+
+### Bug Fixes
+
+* **web:** ask for time above every quota, and name each bonus's quota ([a2c057e](https://github.com/Freddyz5/time-craft/commit/a2c057eb11589d7a45f2ed59f811806c858f7f68))
+
 ## [1.7.0](https://github.com/Freddyz5/time-craft/compare/web-v1.6.0...web-v1.7.0) (2026-11-07)
 
 ### Features
