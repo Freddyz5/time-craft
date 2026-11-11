@@ -127,7 +127,7 @@ function AskForm() {
 	);
 	const chosenId = activityId ?? withTime?.id ?? activities[0]?.id ?? null;
 	const chosen = activities.find((a) => a.id === chosenId);
-	const look = activityLook(chosen?.code);
+	const look = activityLook(chosen);
 	const bag = chosenId === null ? undefined : bagFor(balances, chosenId);
 	const available = Math.floor((bag?.availableSeconds ?? 0) / 60);
 	const dayOff = bag !== undefined && !bag.dayAllowed;
@@ -208,7 +208,7 @@ function AskForm() {
 				<fieldset className="grid grid-cols-2 gap-2">
 					<legend className="sr-only">Actividad</legend>
 					{activities.map((activity) => {
-						const itemLook = activityLook(activity.code);
+						const itemLook = activityLook(activity);
 						const itemBag = bagFor(balances, activity.id);
 						const left = Math.floor((itemBag?.availableSeconds ?? 0) / 60);
 						return (

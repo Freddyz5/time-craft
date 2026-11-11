@@ -30,6 +30,9 @@ export function useCommand<Input, Output>(
 		refresh?: boolean;
 		// The text for a failure (default: the parents' wording).
 		errorText?: (error: unknown) => string;
+		// After the failure's toast (for example, to close a dialog that would
+		// hide it).
+		onError?: (error: unknown) => void;
 	} = {},
 ) {
 	const toast = useToast();
@@ -56,6 +59,7 @@ export function useCommand<Input, Output>(
 			if (error instanceof ApiError && STALE_CODES.has(error.code)) {
 				void refreshLive();
 			}
+			options.onError?.(error);
 		},
 	});
 }

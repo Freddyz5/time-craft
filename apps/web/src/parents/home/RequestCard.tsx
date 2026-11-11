@@ -52,7 +52,7 @@ export function RequestCard({
 	const titleId = useId();
 	const [mode, setMode] = useState<Mode>("idle");
 	const activity = activityById(activities, request.activityId);
-	const look = activityLook(activity?.code);
+	const look = activityLook(activity);
 	const childName =
 		household.children.find((c) => c.id === request.childId)?.name ??
 		child?.name ??

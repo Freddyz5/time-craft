@@ -127,7 +127,7 @@ function useActivity(activityId: string) {
 	const activity = activityById(activities, activityId);
 	return {
 		name: activity?.name ?? "pantalla",
-		look: activityLook(activity?.code),
+		look: activityLook(activity),
 	};
 }
 

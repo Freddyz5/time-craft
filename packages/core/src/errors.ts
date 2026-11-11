@@ -41,6 +41,8 @@ export const errorKinds = {
 	invalid_session_transition: "conflict",
 	concurrent_update: "conflict",
 	username_taken: "conflict",
+	activity_name_taken: "conflict",
+	activity_in_use: "conflict",
 
 	no_active_policy: "rule",
 	activity_inactive: "rule",
@@ -54,6 +56,8 @@ export const errorKinds = {
 	general_needs_two_activities: "rule",
 	activities_without_quota: "rule",
 	no_general_quota: "rule",
+	activity_limit_reached: "rule",
+	last_active_activity: "rule",
 } as const satisfies Record<string, ErrorKind>;
 
 export type ErrorCode = keyof typeof errorKinds;

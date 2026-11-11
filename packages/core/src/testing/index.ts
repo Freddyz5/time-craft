@@ -157,6 +157,8 @@ export function seedHousehold(
 		code: "game",
 		name: "Juego",
 		isActive: true,
+		color: null,
+		icon: null,
 	});
 	db.set("activities", {
 		id: tvId,
@@ -164,6 +166,8 @@ export function seedHousehold(
 		code: "tv",
 		name: "TV",
 		isActive: true,
+		color: null,
+		icon: null,
 	});
 	if (options.policy !== null) {
 		db.set("policies", {
@@ -211,6 +215,8 @@ export function addActivity(
 		code,
 		name: fields.name ?? "Computadora",
 		isActive: fields.isActive ?? true,
+		color: null,
+		icon: null,
 	});
 	return id;
 }

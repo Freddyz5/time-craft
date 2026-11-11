@@ -27,6 +27,7 @@ import {
 } from "../lib/queries";
 import type { Policy } from "../lib/types";
 import { parentName, useParents } from "./context";
+import { Activities } from "./rules/Activities";
 import { CustomRuleList } from "./rules/CustomRules";
 import { limitsOf, summary } from "./rules/limits";
 import { Quotas } from "./rules/Quotas";
@@ -137,6 +138,26 @@ export function Rules() {
 					<LoadingBricks />
 				)
 			) : (
+				<Callout
+					className="flex flex-col gap-5 p-4 sm:p-5"
+					aria-labelledby="activities-title"
+				>
+					<div className="flex flex-col gap-1">
+						<h2
+							id="activities-title"
+							className="text-[1.375rem] leading-tight font-bold"
+						>
+							Actividades
+						</h2>
+						<p className="text-ink-soft">
+							Son de toda la familia. Puedes agregar hasta 6 y cambiarles el
+							nombre, el color y el ícono.
+						</p>
+					</div>
+					<Activities policies={current} childId={child.id} />
+				</Callout>
+			)}
+			{current !== undefined && (
 				<Callout
 					className="flex flex-col gap-5 p-4 sm:p-5"
 					aria-labelledby="quotas-title"

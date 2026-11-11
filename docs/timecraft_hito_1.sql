@@ -42,6 +42,9 @@
 --     una migración de datos cerró las que no la cumplían.
 --   - task_reports.bonus_activity_id: la actividad cuya cuota recibe el
 --     bono (la elige el padre al aprobar). NULL en un aprobado = todas.
+--   - activities.color y activities.icon: el aspecto que eligen los padres
+--     (claves de las listas de core). Las actividades que agregan llevan un
+--     code generado; ninguna se borra, se desactiva (is_active).
 -- =====================================================================
 -- Regla de permisos
 --   El niño solo LEE o PIDE. Todo lo que da tiempo o inicia una sesión
@@ -194,6 +197,8 @@ CREATE TABLE activities (
     code            VARCHAR(30)  NOT NULL, -- 'game', 'tv'
     name            VARCHAR(60)  NOT NULL, -- 'Juego', 'TV'
     is_active       BOOLEAN      NOT NULL DEFAULT true,
+    color           VARCHAR(20),           -- clave de ACTIVITY_COLORS; NULL = la de su code
+    icon            VARCHAR(30),           -- clave de ACTIVITY_ICONS; NULL = el de su code
     CONSTRAINT uq_activities_family_code UNIQUE (family_id, code),
     CONSTRAINT fk_activities_family FOREIGN KEY (family_id) REFERENCES families (id)
 );

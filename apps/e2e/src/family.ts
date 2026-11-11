@@ -292,7 +292,8 @@ export async function createTestFamily(
 }
 
 // Back to how createTestFamily left it, between tests: no sessions, requests,
-// overrides or reports; the original policy and tasks; no lockout; and fresh
+// overrides or reports; the original policy, tasks and activities; no
+// lockout; and fresh
 // sign-in limits (Better Auth's are per IP and path, and the e2e signs in
 // more than five times a minute). Close an open session through the api
 // first (closeOpenSession in tests/support), so its QStash messages are
@@ -329,6 +330,26 @@ export async function resetTestFamily(
 				.update(children)
 				.set({ failedPinAttempts: 0, lockedUntil: null })
 				.where(eq(children.id, child.id));
+		}
+		// Only Juego and TV, as they came: a test may add, rename or
+		// deactivate activities.
+		const seeded = [family.activities.game, family.activities.tv];
+		await tx
+			.delete(activities)
+			.where(
+				and(
+					eq(activities.familyId, family.id),
+					notInArray(activities.id, seeded),
+				),
+			);
+		for (const [id, name] of [
+			[family.activities.game, "Juego"],
+			[family.activities.tv, "TV"],
+		] as const) {
+			await tx
+				.update(activities)
+				.set({ name, isActive: true, color: null, icon: null })
+				.where(eq(activities.id, id));
 		}
 		const taskIds = family.bonusTasks.map((task) => task.id);
 		await tx

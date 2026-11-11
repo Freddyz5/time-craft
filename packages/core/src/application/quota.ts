@@ -57,11 +57,12 @@ export async function childBalances(
 		childId,
 		week,
 	);
+	const activities = await tx.repos.activities.listByFamily(family.id);
 	return policies.map((policy) => ({
 		policy,
 		balance: computeBalance({
 			policy,
-			sessions: sessionsUnderPolicy(policy, policies, sessions),
+			sessions: sessionsUnderPolicy(policy, policies, sessions, activities),
 			bonusMinutesEarned: weeklyBonusMinutes(
 				bonusesForBag(policy, policies, reports),
 				week,

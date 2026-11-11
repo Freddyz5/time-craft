@@ -138,7 +138,7 @@ function Usage({ view }: { view: HistoryView }) {
 			<ul className="flex flex-col gap-4">
 				{view.usageByActivity.map((item) => {
 					const activity = activityById(activities, item.activityId);
-					const look = activityLook(activity?.code);
+					const look = activityLook(activity);
 					const minutes = item.consumedSeconds / 60;
 					return (
 						<li key={item.activityId} className="flex flex-col gap-2">
@@ -174,7 +174,7 @@ function Usage({ view }: { view: HistoryView }) {
 function SessionRow({ session, now }: { session: Session; now: number }) {
 	const { household, activities, timeZone } = useParents();
 	const activity = activityById(activities, session.activityId);
-	const look = activityLook(activity?.code);
+	const look = activityLook(activity);
 	const status = sessionStatus(session);
 	const start =
 		session.startedAt ?? session.scheduledStartAt ?? session.createdAt;

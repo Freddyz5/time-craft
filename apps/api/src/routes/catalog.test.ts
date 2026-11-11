@@ -146,6 +146,64 @@ describe("limits", () => {
 	});
 });
 
+describe("activities", () => {
+	test("parents add, rename, deactivate and activate them; everyone sees them", async () => {
+		const { activity } = await body<{
+			activity: { id: string; code: string };
+		}>(
+			await t.request("POST", "/api/activities", {
+				cookie: parent,
+				json: { name: "Computadora", color: "violet", icon: "monitor" },
+			}),
+			201,
+		);
+		expect(activity.code).toStartWith("custom-");
+
+		const renamed = await body<{ activity: object }>(
+			await t.request("PATCH", `/api/activities/${activity.id}`, {
+				cookie: parent,
+				json: { name: "PC", color: "sky" },
+			}),
+			200,
+		);
+		expect(renamed.activity).toMatchObject({
+			name: "PC",
+			color: "sky",
+			icon: "monitor",
+		});
+		const me = await body<{ activities: object[] }>(
+			await t.request("GET", "/api/me", { cookie: child }),
+			200,
+		);
+		expect(me.activities).toContainEqual(
+			expect.objectContaining({ id: activity.id, name: "PC", isActive: true }),
+		);
+
+		const taken = await t.request("POST", "/api/activities", {
+			cookie: parent,
+			json: { name: "pc", color: "violet", icon: "monitor" },
+		});
+		expect(await body<object>(taken, 409)).toMatchObject({
+			error: { code: "activity_name_taken" },
+		});
+
+		const off = await body<{ activity: object }>(
+			await t.request("POST", `/api/activities/${activity.id}/deactivate`, {
+				cookie: parent,
+			}),
+			200,
+		);
+		expect(off.activity).toMatchObject({ isActive: false });
+		const on = await body<{ activity: object }>(
+			await t.request("POST", `/api/activities/${activity.id}/activate`, {
+				cookie: parent,
+			}),
+			200,
+		);
+		expect(on.activity).toMatchObject({ isActive: true });
+	});
+});
+
 describe("bonus tasks", () => {
 	test("catalog, report, review, and the bonus in the balance", async () => {
 		const { task } = await body<{ task: { id: string } }>(

@@ -48,7 +48,7 @@ function ActivityTag({
 }) {
 	const { activities } = useChild();
 	const activity = activityById(activities, activityId);
-	const look = activityLook(activity?.code);
+	const look = activityLook(activity);
 	return (
 		<span
 			className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-bold text-white"
@@ -137,7 +137,7 @@ function Scheduled({
 }) {
 	const { activities, timeZone } = useChild();
 	const activity = activityById(activities, session.activityId);
-	const look = activityLook(activity?.code);
+	const look = activityLook(activity);
 	const name = activity?.name ?? "pantalla";
 	const startsAt = Date.parse(session.scheduledStartAt ?? "");
 	const untilMs = startsAt - now;
@@ -211,7 +211,7 @@ function Running({
 }) {
 	const { activities, timeZone } = useChild();
 	const activity = activityById(activities, session.activityId);
-	const look = activityLook(activity?.code);
+	const look = activityLook(activity);
 	const name = activity?.name ?? "pantalla";
 	const t = timing(session, now);
 	const paused = session.status === "paused";

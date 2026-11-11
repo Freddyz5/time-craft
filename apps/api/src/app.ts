@@ -6,6 +6,7 @@ import { Hono } from "hono";
 import { type AppDeps, type AppEnv, resolveActor } from "./http/context";
 import { notFound, onError } from "./http/errors";
 import { accountRoutes, recoveryRoutes } from "./routes/accounts";
+import { activityRoutes } from "./routes/activities";
 import { balanceRoutes } from "./routes/balance";
 import { bonusTaskRoutes } from "./routes/bonus-tasks";
 import { customRuleRoutes } from "./routes/custom-rules";
@@ -49,6 +50,7 @@ export function createApp(deps: AppDeps) {
 		.route("/api", historyRoutes(deps))
 		.route("/api", requestRoutes(deps))
 		.route("/api", overrideRoutes(deps))
+		.route("/api", activityRoutes(deps))
 		.route("/api", policyRoutes(deps))
 		.route("/api", customRuleRoutes(deps))
 		.route("/api", bonusTaskRoutes(deps))

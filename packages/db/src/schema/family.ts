@@ -114,17 +114,22 @@ export const children = pgTable(
 	],
 );
 
-// Activities that use up the quota (milestone 1: game and TV).
+// Activities that use up the quota: game and TV come with the family, the
+// parents add others. They are deactivated, never deleted.
 export const activities = pgTable(
 	"activities",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
 		familyId: uuid("family_id").notNull(),
-		// 'game', 'tv'
+		// 'game', 'tv'; generated for the ones the parents add.
 		code: varchar("code", { length: 30 }).notNull(),
 		// 'Juego', 'TV'
 		name: varchar("name", { length: 60 }).notNull(),
 		isActive: boolean("is_active").notNull().default(true),
+		// How it looks, from core's lists (ACTIVITY_COLORS, ACTIVITY_ICONS).
+		// NULL: the look of its code (game, tv) or a neutral one.
+		color: varchar("color", { length: 20 }),
+		icon: varchar("icon", { length: 30 }),
 	},
 	(t) => [
 		unique("uq_activities_family_code").on(t.familyId, t.code),

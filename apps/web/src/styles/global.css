@@ -9,7 +9,8 @@
  * has one job:
  *   green  = time still available (the balance)
  *   yellow = bonus minutes, and the brand
- *   blue   = Juego, magenta = TV (activities)
+ *   blue   = Juego, magenta = TV (activities); the ones the parents add
+ *            take violet, sky, brown or graphite (or blue or magenta)
  *   orange = paused
  *   red    = the end, overrun and actions that cut
  * Light is the default below; [data-theme="dark"] redefines the same tokens.
@@ -52,6 +53,19 @@
 	--color-tv: #c2338f;
 	--color-tv-side: #8a1f63;
 	--color-tv-tint: #f8e1f0;
+	/* Activities the parents add: never green, yellow, orange or red. */
+	--color-violet: #7446d6;
+	--color-violet-side: #4f2a9e;
+	--color-violet-tint: #ece5fb;
+	--color-sky: #0a76a4;
+	--color-sky-side: #07506f;
+	--color-sky-tint: #dcedf5;
+	--color-brown: #8a5a35;
+	--color-brown-side: #5e3c22;
+	--color-brown-tint: #f1e7df;
+	--color-graphite: #4a5263;
+	--color-graphite-side: #2e333f;
+	--color-graphite-tint: #e6e8ec;
 	--color-pause: #ff8c1a;
 	--color-pause-side: #b35c00;
 	--color-pause-tint: #ffe9d2;
@@ -112,6 +126,18 @@
 		--color-tv: #c93a96;
 		--color-tv-side: #7d1f5d;
 		--color-tv-tint: #3a1f33;
+		--color-violet: #8257e0;
+		--color-violet-side: #4a2a93;
+		--color-violet-tint: #2a2142;
+		--color-sky: #0f7cab;
+		--color-sky-side: #075474;
+		--color-sky-tint: #15293a;
+		--color-brown: #9a6740;
+		--color-brown-side: #5c3b22;
+		--color-brown-tint: #33271d;
+		--color-graphite: #5c6578;
+		--color-graphite-side: #2f3542;
+		--color-graphite-tint: #30353f;
 		--color-pause: #ff9a2e;
 		--color-pause-side: #a85500;
 		--color-pause-tint: #3d2a14;

@@ -1,6 +1,19 @@
-// How each activity looks: its brick colour and icon. Juego and TV come from
-// the seed; any other activity gets a neutral brick.
-import { Blocks, Gamepad2, type LucideIcon, Tv } from "lucide-react";
+// How each activity looks: its brick colour and icon. Juego and TV start with
+// theirs (by code); the parents pick one for any activity from these lists,
+// the same keys core accepts. The colours are theme tokens (global.css).
+import {
+	Blocks,
+	Clapperboard,
+	Gamepad2,
+	Headphones,
+	Laptop,
+	type LucideIcon,
+	Monitor,
+	Puzzle,
+	Smartphone,
+	Tablet,
+	Tv,
+} from "lucide-react";
 
 export interface ActivityLook {
 	// CSS colour of its bricks and its tint for backgrounds.
@@ -12,30 +25,112 @@ export interface ActivityLook {
 	Icon: LucideIcon;
 }
 
-const looks: Record<string, ActivityLook> = {
-	game: {
+// The colours an activity can take, with their names. None is green, yellow,
+// orange or red: those mean time left, bonus, pause and end.
+// Each token is written out whole: Tailwind only emits the theme variables it
+// finds in the source.
+export const ACTIVITY_COLORS = {
+	blue: {
+		label: "Azul",
 		color: "var(--color-game)",
+		side: "var(--color-game-side)",
 		tint: "var(--color-game-tint)",
-		plate: { face: "var(--color-game)", side: "var(--color-game-side)" },
-		Icon: Gamepad2,
 	},
-	tv: {
+	magenta: {
+		label: "Magenta",
 		color: "var(--color-tv)",
+		side: "var(--color-tv-side)",
 		tint: "var(--color-tv-tint)",
-		plate: { face: "var(--color-tv)", side: "var(--color-tv-side)" },
-		Icon: Tv,
 	},
+	violet: {
+		label: "Violeta",
+		color: "var(--color-violet)",
+		side: "var(--color-violet-side)",
+		tint: "var(--color-violet-tint)",
+	},
+	sky: {
+		label: "Celeste",
+		color: "var(--color-sky)",
+		side: "var(--color-sky-side)",
+		tint: "var(--color-sky-tint)",
+	},
+	brown: {
+		label: "Café",
+		color: "var(--color-brown)",
+		side: "var(--color-brown-side)",
+		tint: "var(--color-brown-tint)",
+	},
+	graphite: {
+		label: "Grafito",
+		color: "var(--color-graphite)",
+		side: "var(--color-graphite-side)",
+		tint: "var(--color-graphite-tint)",
+	},
+} as const;
+
+export const ACTIVITY_ICONS = {
+	gamepad: { Icon: Gamepad2, label: "Mando" },
+	tv: { Icon: Tv, label: "Televisor" },
+	monitor: { Icon: Monitor, label: "Computadora" },
+	laptop: { Icon: Laptop, label: "Laptop" },
+	tablet: { Icon: Tablet, label: "Tablet" },
+	smartphone: { Icon: Smartphone, label: "Celular" },
+	clapperboard: { Icon: Clapperboard, label: "Películas" },
+	headphones: { Icon: Headphones, label: "Música" },
+	puzzle: { Icon: Puzzle, label: "Rompecabezas" },
+	blocks: { Icon: Blocks, label: "Bloques" },
+} as const;
+
+export type ActivityColorKey = keyof typeof ACTIVITY_COLORS;
+export type ActivityIconKey = keyof typeof ACTIVITY_ICONS;
+
+// Juego and TV until the parents pick something else.
+const BY_CODE: Record<
+	string,
+	{ color: ActivityColorKey; icon: ActivityIconKey }
+> = {
+	game: { color: "blue", icon: "gamepad" },
+	tv: { color: "magenta", icon: "tv" },
 };
 
-const fallback: ActivityLook = {
-	color: "var(--color-ink-soft)",
-	tint: "var(--color-sheet-sunk)",
-	plate: { face: "#4a5263", side: "#2a2f38" },
-	Icon: Blocks,
-};
+function isColor(key: string | null | undefined): key is ActivityColorKey {
+	return key != null && key in ACTIVITY_COLORS;
+}
 
-export function activityLook(code: string | undefined): ActivityLook {
-	return (code !== undefined ? looks[code] : undefined) ?? fallback;
+function isIcon(key: string | null | undefined): key is ActivityIconKey {
+	return key != null && key in ACTIVITY_ICONS;
+}
+
+export interface LookSource {
+	code: string;
+	color?: string | null;
+	icon?: string | null;
+}
+
+// The colour and icon keys an activity shows: its own, those of its code, or
+// graphite blocks.
+export function lookKeys(activity: LookSource | undefined): {
+	color: ActivityColorKey;
+	icon: ActivityIconKey;
+} {
+	const base = activity === undefined ? undefined : BY_CODE[activity.code];
+	return {
+		color: isColor(activity?.color)
+			? activity.color
+			: (base?.color ?? "graphite"),
+		icon: isIcon(activity?.icon) ? activity.icon : (base?.icon ?? "blocks"),
+	};
+}
+
+export function activityLook(activity: LookSource | undefined): ActivityLook {
+	const keys = lookKeys(activity);
+	const color = ACTIVITY_COLORS[keys.color];
+	return {
+		color: color.color,
+		tint: color.tint,
+		plate: { face: color.color, side: color.side },
+		Icon: ACTIVITY_ICONS[keys.icon].Icon,
+	};
 }
 
 export interface NamedActivity {

@@ -95,6 +95,9 @@ En la computadora, Chrome no congela una pestaña de fondo: Time Craft abierto d
 - [ ] Inicio del padre muestra un bloque por actividad y «En total le quedan … hoy». Inicio del niño muestra arriba «Hoy te quedan … en total» y «Pedir tiempo» (para cualquier actividad), y debajo una batería por actividad, cada una con su nombre y sus bonos.
 - [ ] El niño reporta una tarea. En la tarjeta del padre aparece «¿A qué cuota suma?» con Juego y TV y cuánto le falta a cada una para su tope. Elige TV y apruébala: el aviso dice «+… min para TV», al niño le llega «Ganaste … min para TV…», en **Tareas** del niño solo sube «Bonos de TV» y el reporte dice «… de bono para TV», igual que en el **Historial** del padre.
 - [ ] «Juntar con TV» en Juego vuelve a crear la cuota general con la suma de las dos; con una sola cuota, la tarjeta de la tarea ya no pregunta.
+- [ ] En **Reglas › Actividades**, agrega «Computadora» con un color y un ícono, compartiendo la general: Cuotas dice «La comparten Computadora, Juego y TV». En el teléfono del niño, **Pedir** la muestra con su color.
+- [ ] Cámbiale el nombre a Juego (por ejemplo, «Minecraft») y el color: cambia en Inicio, Nueva sesión, Historial y en el teléfono del niño.
+- [ ] Desactiva Computadora: desaparece de Pedir y de Nueva sesión, la general vuelve a ser de Juego y TV, y queda en «Desactivadas», desde donde se puede activar otra vez. Con una sesión abierta de esa actividad, no deja desactivarla.
 
 ## 5. Login con Google
 
